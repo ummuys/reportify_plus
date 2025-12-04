@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Вход | Reportify</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="auth-card" aria-labelledby="auth-title">
+      <header class="auth-header">
+        <h1 id="auth-title">Вход в систему</h1>
+        <p class="auth-subtitle">Введите логин и пароль для продолжения</p>
+      </header>
+
+      <form id="auth-form" novalidate>
+        <div class="field">
+          <label for="username">Логин</label>
+          <input id="username" name="username" type="text"
+                 autocomplete="username" required maxlength="128"
+                 placeholder="Ваш логин" />
+          <div class="hint"><span id="username-count">0</span> / 128</div>
+        </div>
+
+        <div class="field">
+          <label for="password">Пароль</label>
+          <div class="password-wrap">
+            <input id="password" name="password" type="password"
+                   autocomplete="current-password" required minlength="6" maxlength="128"
+                   placeholder="••••••••" />
+            <button class="toggle" type="button" id="toggle-pass" aria-label="Показать пароль">Показать</button>
+          </div>
+          <div class="hint"><span id="password-count">0</span> / 128</div>
+        </div>
+
+        <div class="actions">
+          <button id="btnLogin" type="submit" class="btn primary">
+            <span class="btn-text">Войти</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <p class="error" id="error" role="alert" hidden aria-live="polite"></p>
+      </form>
+
+      <footer class="auth-footer">
+        <small>Забыли пароль? Свяжитесь с администратором.</small>
+      </footer>
+    </section>
+  </main>
+
+  <script src="./main.js"></script>
+</body>
+</html>

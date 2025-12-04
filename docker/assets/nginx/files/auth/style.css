@@ -1,0 +1,146 @@
+:root{
+  --bg: hsl(0 0% 100%);
+  --panel: hsla(167, 22%, 71%, .35);
+  --panel-strong: hsla(167, 22%, 71%, .55);
+  --text: hsl(0 0% 12%);
+  --muted: hsl(0 0% 40%);
+  --accent: hsl(221 83% 53%);
+  --green: hsl(150 60% 42%);
+  --green-2: hsl(150 60% 38%);
+  --err: hsl(0 70% 50%);
+  --radius: 18px;
+  --shadow: 0 10px 30px rgba(0,0,0,.10);
+}
+
+*{ box-sizing:border-box; }
+html,body{
+  height:100%; margin:0;
+  color:var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Open Sans", "Montserrat", sans-serif;
+  background:
+    radial-gradient(1200px 800px at 10% 10%, rgba(99, 205, 190, .18), transparent 60%),
+    radial-gradient(1200px 800px at 90% 90%, rgba(120, 180, 255, .16), transparent 60%),
+    var(--bg);
+}
+
+.page{
+  min-height:100%;
+  display:grid;
+  place-items:center;
+  padding: clamp(16px, 3vw, 32px);
+}
+
+.auth-card{
+  width:min(440px, 100%);
+  backdrop-filter: blur(8px);
+  background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.78));
+  border: 1px solid color-mix(in srgb, var(--panel-strong) 60%, transparent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: clamp(22px, 3vw, 32px);
+  animation: pop .25s ease-out;
+}
+
+@keyframes pop { from { transform: translateY(8px); opacity: 0 } to { transform: none; opacity: 1 } }
+
+.auth-header h1{
+  margin:0 0 6px;
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+.auth-subtitle{ margin:0; color:var(--muted); }
+
+.field{ margin-top:18px; }
+label{ display:block; margin-bottom:8px; font-weight:600; }
+
+input{
+  width:100%;
+  border:1px solid rgba(0,0,0,.10);
+  border-radius:14px;
+  padding:13px 14px;
+  background:#fff;
+  outline:none;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .04s ease;
+}
+input:hover{ border-color: rgba(0,0,0,.18); }
+input:focus{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.hint{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.password-wrap{
+  position: relative;
+  display:flex;
+  align-items:center;
+}
+.password-wrap input{ padding-right:98px; }
+.password-wrap .toggle{
+  position:absolute;
+  right:8px; top:50%;
+  transform: translateY(-50%);
+  border:1px solid rgba(0,0,0,.08);
+  background: #f6f7f8;
+  padding:8px 12px;
+  border-radius:10px;
+  cursor:pointer;
+  color: var(--text);
+  font-weight:600;
+  transition: background .15s ease, transform .06s ease, border-color .15s ease;
+}
+.password-wrap .toggle:hover{ background:#eef2f6; border-color: rgba(0,0,0,.14); }
+.password-wrap .toggle:active{ transform: translateY(-50%) scale(.98); }
+
+.actions{ margin-top:22px; }
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:10px;
+  border:none;
+  border-radius: 14px;
+  padding: 12px 18px;
+  cursor:pointer;
+  font-weight:800;
+  letter-spacing:.2px;
+  transition: transform .06s ease, filter .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn.primary{
+  background: linear-gradient(180deg, var(--green), var(--green-2));
+  color: #fff;
+  min-width: 160px;
+  box-shadow: 0 8px 20px rgba(0, 140, 120, .18);
+}
+.btn.primary:hover{ filter: brightness(1.02); box-shadow: 0 10px 26px rgba(0, 140, 120, .24); }
+.btn.primary:active{ transform: translateY(1px); }
+.btn:disabled{ opacity:.75; cursor:progress; }
+
+.spinner{
+  width:16px; height:16px; border-radius:50%;
+  border:2px solid #fff; border-right-color: transparent;
+  display:none;
+  animation: spin .8s linear infinite;
+}
+.btn.loading .spinner{ display:inline-block; }
+.btn.loading .btn-text{ opacity:.9; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error{
+  margin-top:14px;
+  color: var(--err);
+  background: color-mix(in srgb, var(--err) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--err) 30%, transparent);
+  padding:10px 12px;
+  border-radius:12px;
+}
+
+.auth-footer{
+  margin-top:18px;
+  color:var(--muted);
+  text-align:center;
+}

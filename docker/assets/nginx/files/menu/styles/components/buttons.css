@@ -1,0 +1,201 @@
+.btn {
+    cursor: pointer;
+    color: var(--panel);
+}
+
+.btn-ghost {
+    background: var(--btn-bg);
+    transition: 0.4s ease;
+}
+
+.btn-ghost:hover {
+    background-color: var(--btn-bg-hv);
+}
+
+.btn-primary {
+    background: var(--green);
+    color: var(--text);
+    border: 0;
+} 
+
+.btn-primary:hover {
+    background: var(--color-green-base);
+}
+
+.btn-primary:disabled {
+    opacity: .5;
+    cursor: default;
+}
+
+.btn-primary:disabled:hover {
+    background: var(--green);
+}
+
+.btn-remove.btn {
+    padding: 6px 10px;
+    background-color: var(--danger);
+    color: var(--color-white);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.btn-remove.btn:hover {
+    background-color: var(--error-tint-900);
+}
+
+.about-btn {
+  background: var(--green);
+  border: 1px solid var(--color-green-base);
+  width: 150px;
+  border-radius: 10px;
+  padding: 10px 2px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.logout-btn {
+  background: var(--btn-bg);
+  border: 1px solid var(--color-green-base);
+  color: var(--panel);  
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 4px 14px var(--overlay-shadow-teal-soft);
+}
+
+.logout-btn:hover {
+  background: var(--btn-bg-hv);
+  color: var(--bg);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 26px var(--overlay-shadow-teal-strong);
+}
+
+.btn-fav-filter {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  padding: 2px 6px;
+  line-height: 1;
+}
+
+.btn-fav-filter:hover {
+  color: var(--color-gold-accent);
+}
+
+/* Активное состояние — фильтр включён */
+.btn-fav-filter.active {
+  color: var(--color-gold-accent);
+}
+
+.btn-clear-history {
+  background: var(--white-tint-600);
+  border: 1px solid var(--mint-tint-600);
+  border-radius: 8px;
+  font-size: 16px;
+  padding: 6px 7px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  width: auto;                  
+  flex-shrink: 0;           
+  white-space: nowrap;
+}
+
+.btn-clear-history:hover {
+  background: var(--mint-tint-700);
+}
+
+.btn-delete-history {
+  background: transparent;
+  border: none;
+  color: var(--color-gray-500);
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.btn-delete-history:hover {
+  color: var(--err);
+  transform: scale(1.1);
+}
+
+.btn-fav-history {
+  background: transparent;
+  border: none;
+  color: var(--color-gray-400);
+  font-size: 22px;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.btn-fav-history.active {
+  color: var(--color-gold-accent);
+}
+
+.btn-fav-history:hover {
+  color: var(--color-gold-accent);
+}
+
+.history-item:hover .btn-delete-history {
+  opacity: 1;
+}
+
+.history-item:hover .btn-fav-history {
+  opacity: 1;
+}
+
+.btn-preview.disabled {
+  opacity: 0.6;
+  cursor: default;
+  pointer-events: all;
+}
+
+.btn.disabled,
+.btn.is-disabled {
+  opacity: 0.6;
+  cursor: default;
+  pointer-events: auto;
+  filter: grayscale(.03);
+  transition: 0.4s ease;
+}
+
+.btn.disabled:hover,
+.btn.is-disabled:hover {
+  transform: none;
+  background: var(--btn-bg-hv);
+}
+
+#btnCreateChart {
+  width: auto;
+  padding: 10px 20px;
+  color: var(--bg);
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 10px;
+  background: var(--green);
+  border: 1px solid var(--color-green-base);
+  transition: transform 0.18s ease, 0.18s ease;
+}
+
+#btnCreateChart:hover {
+  background: var(--btn-bg-hv);
+  transform: scale(1.02);
+}
+
+.btn-preview.disabled:hover {
+    background: var(--mint-tint-800);
+}
+
+

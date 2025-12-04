@@ -1,0 +1,14 @@
+.panel {
+    background: linear-gradient(180deg, #fff 0%, #fbfefe 100%);
+    border: 1px solid var(--overlay-white-08);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 2px 3px 5px var(--overlay-black-12); 
+}
+
+.panel h3 {
+    margin: 0 0 12px;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 700;
+}

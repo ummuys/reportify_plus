@@ -1,0 +1,32 @@
+.chips {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(90px, 1fr));
+    gap: 10px;
+    justify-content: center; 
+    justify-items: center;   
+    margin: 0 auto;          
+    max-width: 500px;  
+}
+
+.chip {
+    padding: 8px 12px;
+    border: 1px solid var(--overlay-white-14);
+    border-radius: 10px;
+    font-size: 13px;
+    background: var(--btn-bg);
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+    transition: 0.2s ease, transform 0.1s ease;
+}
+
+.chip.active {
+    background: var(--color-mint-base);
+    font-weight: 550;
+}
+
+.chip:hover {
+  background: var(--btn-bg-hv);
+  transform: scale(1.03);
+  color: var(--bg);
+}
