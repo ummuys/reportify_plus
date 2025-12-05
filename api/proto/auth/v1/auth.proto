@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package auth.v1;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/ummuys/reportify/api/pb/auth/v1;authv1";
+
+service AuthService {
+    rpc Login (LoginRequest) returns (LoginResponse) {}
+    rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
+    rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse);
+    rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
+    rpc ListUsers (google.protobuf.Empty) returns (ListUsersResponse);
+    rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
+}
+
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string access_token = 1;
+    string refresh_token = 2;
+}
+
+message CreateUserRequest {
+    string username = 1;
+    string password = 2;
+    string role = 3;
+}
+
+message CreateUserResponse {
+    int64 user_id = 1;
+}
+
+message UpdateUserRequest {
+    int64 user_id = 1;
+    string username = 2;
+    string password = 3;
+    string role = 4;
+    bool is_active = 5;
+}
+
+message UpdateUserResponse {
+    int64 user_id = 1;
+    string username = 2;
+    string password = 3;
+    string role = 4;
+    bool is_active = 5;
+}
+
+message DeleteUserRequest {
+    int64 user_id = 1;
+}
+
+message DeleteUserResponse {
+    int64 user_id = 1;
+}
+
+message RefreshTokenRequest {
+    string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+    string access_token = 1;
+}
+
+message ListUsersResponse {
+    repeated User users = 1;
+}
+
+message User {
+  string user_id   = 1;
+  string username  = 2;
+  string role      = 3;
+  bool   is_active = 4;
+}
