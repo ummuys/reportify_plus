@@ -22,24 +22,16 @@ func ParseTMConfig() (TMConfig, error) {
 	}
 
 	atl, err := parseInt("ACCESS_TOKEN_LIMIT", false)
-	if err != nil {
-		add(err)
-	}
+	add(err)
 
 	ac, err := parseStr("ACCESS_SECRET")
-	if err != nil {
-		add(err)
-	}
+	add(err)
 
 	rtl, err := parseInt("REFRESH_TOKEN_LIMIT", false)
-	if err != nil {
-		add(err)
-	}
+	add(err)
 
 	rc, err := parseStr("REFRESH_SECRET")
-	if err != nil {
-		add(err)
-	}
+	add(err)
 
 	if len(errs) > 0 {
 		return TMConfig{}, errors.New(strings.Join(errs, ", "))

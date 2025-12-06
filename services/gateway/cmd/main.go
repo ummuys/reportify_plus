@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/joho/godotenv"
+	"github.com/ummuys/reportify/pkg/config"
 	"github.com/ummuys/reportify/pkg/logger"
 	"github.com/ummuys/reportify/services/gateway/internal/di"
 	"github.com/ummuys/reportify/services/gateway/internal/web"
@@ -19,17 +19,20 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	_ = godotenv.Load("../../../.env")
-
 	logs, err := logger.InitLogger("gateway", "LOG_LEVEL_GATEWAY")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// CLIENTS
-	sc, err := di.NewGRPCServiceClients("127.0.0.1:50051")
+	cfg, err := config.ParseGatewayConfig()
 	if err != nil {
-		logs.Fatal().Err(err).Msg("")
+		logs.Fatal().Err(err).Msg("config")
+	}
+
+	// CLIENTS
+	sc, err := di.NewGRPCServiceClients(cfg.AuthServiceAddr)
+	if err != nil {
+		logs.Fatal().Err(err).Msg("clients")
 	}
 
 	rh := di.NewRESTHandlers(sc, logs)

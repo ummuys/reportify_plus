@@ -25,7 +25,7 @@ func NewAuthDB(ctx context.Context, baseLogger zerolog.Logger) (AuthDB, error) {
 		return nil, err
 	}
 
-	pool, err := db.PoolFromConfig(dctx, cfg, "DB_AUTH")
+	pool, err := db.PoolFromConfig(dctx, cfg, "AUTH_DB")
 	if err != nil {
 		return nil, err
 	}

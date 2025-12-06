@@ -1,54 +1,44 @@
 package config
 
-import (
-	"errors"
-	"fmt"
-	"strings"
-)
+// type RepCacheConfig struct {
+// 	Addr     string
+// 	Password string
+// 	DB       int
+// 	Exp      int
+// }
 
-type RepCacheConfig struct {
-	Addr     string
-	Password string
-	DB       int
-	Exp      int
-}
+// func ParseReportCacheEnv() (RepCacheConfig, error) {
+// 	var errs []string
 
-func ParseReportCacheEnv() (RepCacheConfig, error) {
-	var sErr []string
+// 	add := func(err error) {
+// 		if err != nil {
+// 			errs = append(errs, err.Error())
+// 		}
+// 	}
 
-	add := func(env string) {
-		sErr = append(sErr, fmt.Sprintf("invalid env for %s", env))
-	}
+// 	addr, err := parseStr("CACHE_ADDR")
+// 	add("cache_addr")
 
-	addr, err := parseStr("CACHE_ADDR")
-	if err != nil {
-		add("cache_addr")
-	}
+// 	pass, err := parseStr("CACHE_PASSWORD")
 
-	pass, err := parseStr("CACHE_PASSWORD")
-	if err != nil {
-		add("cache_password")
-	}
+// 	add("cache_password")
 
-	db, err := parseInt("CACHE_DB", true)
-	if err != nil {
-		add("cache_db")
-	}
+// 	db, err := parseInt("CACHE_DB", true)
 
-	exp, err := parseInt("CACHE_EXPIRE_TIME", true)
-	if err != nil {
-		add("cache_db")
-	}
+// 	add("cache_db")
 
-	if len(sErr) > 0 {
-		msg := strings.Join(sErr, ", ")
-		return RepCacheConfig{}, errors.New(msg)
-	}
+// 	exp, err := parseInt("CACHE_EXPIRE_TIME", true)
 
-	return RepCacheConfig{
-		Addr:     addr,
-		Password: pass,
-		DB:       db,
-		Exp:      exp,
-	}, nil
-}
+// 	add("cache_db")
+
+// 	if len(errs) > 0 {
+// 		return {}, errors.New(strings.Join(errs, ", "))
+// 	}
+
+// 	return RepCacheConfig{
+// 		Addr:     addr,
+// 		Password: pass,
+// 		DB:       db,
+// 		Exp:      exp,
+// 	}, nil
+// }

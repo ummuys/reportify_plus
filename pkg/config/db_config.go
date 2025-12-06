@@ -25,8 +25,19 @@ func parseDBEnv(prefix string) (DBConfig, error) {
 		}
 	}
 
-	addr, err := parseStr(prefix + "_ADDR")
+	us, err := parseStr(prefix + "_USER")
 	add(err)
+
+	pw, err := parseStr(prefix + "_PASSWORD")
+	add(err)
+
+	cn, err := parseStr(prefix + "_CONTAINER_NAME")
+	add(err)
+
+	dbm, err := parseStr(prefix + "_NAME")
+	add(err)
+
+	addr := fmt.Sprintf("postgres://%s:%s@%s/%s", us, pw, cn, dbm)
 
 	minConn, err := parseInt(prefix+"_MIN_CONN", true)
 	add(err)
@@ -67,5 +78,5 @@ func parseDBEnv(prefix string) (DBConfig, error) {
 	}, nil
 }
 
-func ParseAuthDBEnv() (DBConfig, error) { return parseDBEnv("DB_AUTH") }
+func ParseAuthDBEnv() (DBConfig, error) { return parseDBEnv("AUTH_DB") }
 func ParseUserDBEnv() (DBConfig, error) { return parseDBEnv("DB_UD") }

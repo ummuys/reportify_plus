@@ -2,15 +2,16 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log"
 	"net"
 	"os/signal"
 	"sync"
 	"syscall"
 
-	"github.com/joho/godotenv"
 	authv1 "github.com/ummuys/reportify/api/pb/auth/v1"
+	"github.com/ummuys/reportify/pkg/config"
+	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/pkg/logger"
 	"github.com/ummuys/reportify/services/auth/internal/adapter"
 	"github.com/ummuys/reportify/services/auth/internal/auth"
@@ -24,14 +25,17 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	_ = godotenv.Load("../../../.env")
-
 	logs, err := logger.InitLogger("auth", "LOG_LEVEL_AUTH")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	lis, err := net.Listen("tcp", ":50051")
+	cfg, err := config.ParseAuthServiceConfig()
+	if err != nil {
+		logs.Fatal().Err(err).Msg("config")
+	}
+
+	lis, err := net.Listen(cfg.Network, cfg.Port)
 	if err != nil {
 		logs.Fatal().Err(err).Msg("listener")
 	}
@@ -52,15 +56,14 @@ func main() {
 	svc := auth.NewAuthService(ph, tm, db, logs)
 
 	// CREATE USER
-	if out, err := svc.CreateUser(ctx, dto.CreateUserParams{
-		Username: "admin",
-		Password: "admin",
+	if _, err := svc.CreateUser(ctx, dto.CreateUserParams{
+		Username: cfg.AdmUsername,
+		Password: cfg.AdmPassword,
 		Role:     "admin",
-	}); err != nil {
-		logs.Error().Err(err).Msg("create user")
-	} else {
-		fmt.Println(out.UserID)
+	}); err != nil && !errors.Is(err, errs.ErrDuplicate) {
+		logs.Fatal().Err(err).Msg("create admin user")
 	}
+
 	adp := adapter.NewAuthAdapter(svc, logs)
 	authv1.RegisterAuthServiceServer(srv, adp)
 
@@ -73,7 +76,7 @@ func main() {
 	wg.Go(func() {
 		logs.Info().Msg("run the grpc-server")
 		if err := srv.Serve(lis); err != nil {
-			logs.Error().Err(err).Msg("")
+			logs.Error().Err(err).Msg("grpc-server")
 		}
 	})
 

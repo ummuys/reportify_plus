@@ -1,4 +1,6 @@
-# --- Цвета ---
+
+####################################################
+
 GREEN  := \033[1;32m
 RESET  := \033[0m
 
@@ -6,35 +8,50 @@ RESET  := \033[0m
 SCRIPTS_PATH=scripts
 UPDATE_SECRETS=$(SCRIPTS_PATH)/update_secrets.sh
 COMPOSE=docker-compose.yaml
+ENV_PATH=../.env
+BASE_COMMAND=-docker compose --env-file $(ENV_PATH)
 
-# 			APP			# 
-app-up: # Start the app
+####################################################
+
+
+up: 
 	@./$(UPDATE_SECRETS)
-	-docker network create reportify_network
-	-docker compose -f $(COMPOSE) up -d
+	@-docker network create reportify_network
+	@$(BASE_COMMAND) -f $(COMPOSE) up -d
 
-app-down: 
-	-docker compose -f $(COMPOSE) down
+down: 
+	@$(BASE_COMMAND) -f $(COMPOSE) down
 
-app-update:
-	-docker compose -f $(COMPOSE) down
-	-docker compose -f $(COMPOSE) up -d
+update:
+	@$(BASE_COMMAND) -f $(COMPOSE) down
+	@$(BASE_COMMAND) -f $(COMPOSE) up -d
 
-app-logs:
-	-docker logs app
+status:
+	@$(BASE_COMMAND) -f $(COMPOSE) ps -a
 
-
-# 			DOCKER			# 
-containers-status:
-	-docker compose -f $(COMPOSE) ps -a
-
-update-app-image:
-	-docker compose -f $(COMPOSE) down
-	-docker image rm docker-app
-	-docker compose -f $(COMPOSE) up -d
+drop-auth-volume:
+	@$(BASE_COMMAND) -f $(COMPOSE) down -v
 	
-clear-database-volumes:
-	-docker compose -f (COMPOSE) down -v
+
+update-gateway-image:
+	@$(BASE_COMMAND) -f $(COMPOSE) down
+	@-docker image rm docker-app
+	@$(BASE_COMMAND) -f $(COMPOSE) up -d
+
+update-auth-image:
+	@$(BASE_COMMAND) -f $(COMPOSE) down
+	@-docker image rm auth-service
+	@$(BASE_COMMAND) -f $(COMPOSE) up -d
+
+update-report-image:
+	@$(BASE_COMMAND) -f $(COMPOSE) down
+	@-docker image rm docker-app
+	@$(BASE_COMMAND) -f $(COMPOSE) up -d
+
+update-report-worker-image:
+	@$(BASE_COMMAND) -f $(COMPOSE) down
+	@-docker image rm docker-app
+	@$(BASE_COMMAND) -f $(COMPOSE) up -d
 	
 
 
