@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func RequestLogger(logger *zerolog.Logger) gin.HandlerFunc {
+func RequestLogger(logger zerolog.Logger) gin.HandlerFunc {
 	return func(g *gin.Context) {
 		// Latenсy нормально не отображается
 		start := time.Now()

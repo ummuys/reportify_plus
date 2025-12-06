@@ -1,6 +1,6 @@
 package dto
 
-type UpdateUserRequest struct {
+type UpdateUserParams struct {
 	UserID   int64
 	Username string
 	Password string
@@ -8,7 +8,7 @@ type UpdateUserRequest struct {
 	IsActive bool
 }
 
-type UpdateUserResponse struct {
+type UpdateUserResult struct {
 	UserID   int64
 	Username string
 	Password string

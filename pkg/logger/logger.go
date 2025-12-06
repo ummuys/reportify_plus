@@ -8,7 +8,7 @@ import (
 	"github.com/ummuys/reportify/pkg/config"
 )
 
-func InitLogger(compName string) (zerolog.Logger, error) {
+func InitLogger(compName string, confName string) (zerolog.Logger, error) {
 	zerolog.TimestampFunc = func() time.Time { return time.Now().UTC() }
 	zerolog.DurationFieldUnit = time.Millisecond
 	zerolog.DurationFieldInteger = true
@@ -21,12 +21,12 @@ func InitLogger(compName string) (zerolog.Logger, error) {
 
 	baseLog := zerolog.New(cw).With().Timestamp().Logger()
 
-	logLevels, err := config.ParseLogLevels()
+	lvl, err := config.ParseLogLevel(confName)
 	if err != nil {
 		return zerolog.Logger{}, err
 	}
 
-	log := baseLog.With().Str("component", "app").Logger().Level(logLevels.AppLvl)
+	log := baseLog.With().Str("service", compName).Logger().Level(lvl)
 
 	return log, nil
 }

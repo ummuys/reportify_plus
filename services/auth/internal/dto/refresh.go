@@ -1,9 +1,9 @@
 package dto
 
-type RefreshTokenRequest struct {
+type RefreshTokenParams struct {
 	RefreshToken string
 }
 
-type RefreshTokenResponse struct {
+type RefreshTokenResult struct {
 	AccessToken string
 }

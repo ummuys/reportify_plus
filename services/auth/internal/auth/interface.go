@@ -7,10 +7,10 @@ import (
 )
 
 type AuthService interface {
-	Login(ctx context.Context, in dto.LoginRequest) (dto.LoginResponse, error)
-	CreateUser(ctx context.Context, in dto.CreateUserRequest) (dto.CreateUserResponse, error)
-	UpdateUser(ctx context.Context, in dto.UpdateUserRequest) (dto.UpdateUserResponse, error)
-	DeleteUser(ctx context.Context, in dto.DeleteUserRequest) (dto.DeleteUserResponse, error)
-	ListUsers(ctx context.Context) (dto.ListUsersResponse, error)
-	RefreshToken(ctx context.Context, in dto.RefreshTokenRequest) (dto.RefreshTokenResponse, error)
+	Login(ctx context.Context, in dto.LoginParams) (dto.LoginResult, error)
+	CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.CreateUserResult, error)
+	UpdateUser(ctx context.Context, in dto.UpdateUserParams) (dto.UpdateUserResult, error)
+	DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.DeleteUserResult, error)
+	ListUsers(ctx context.Context) (dto.ListUsersResult, error)
+	RefreshToken(ctx context.Context, in dto.RefreshTokenParams) (dto.RefreshTokenResult, error)
 }

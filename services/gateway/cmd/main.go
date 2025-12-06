@@ -9,40 +9,53 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/ummuys/reportify/pkg/logger"
+	"github.com/ummuys/reportify/services/gateway/internal/di"
 	"github.com/ummuys/reportify/services/gateway/internal/web"
 )
 
 func main() {
-	mainCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	logger, err := logger.InitLogger("gateway")
+	_ = godotenv.Load("../../../.env")
+
+	logs, err := logger.InitLogger("gateway", "LOG_LEVEL_GATEWAY")
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// CLIENTS
+	sc, err := di.NewGRPCServiceClients("127.0.0.1:50051")
+	if err != nil {
+		logs.Fatal().Err(err).Msg("")
+	}
+
+	rh := di.NewRESTHandlers(sc, logs)
+
 	// START SERVER
-	server := web.CreateServer()
+	server := web.CreateServer(rh, logs)
 	errsCh := make(chan error, 4)
 	srvOff := make(chan struct{})
 
 	var wg sync.WaitGroup
 
 	wg.Go(func() {
-		<-mainCtx.Done()
+		<-ctx.Done()
 		defer func() { _ = server.Close() }()
 
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		sdCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := server.Shutdown(shutdownCtx); err != nil {
+		if err := server.Shutdown(sdCtx); err != nil {
 			errsCh <- fmt.Errorf("server shutdown: %w", err)
 		}
 		close(srvOff)
 	})
 
 	wg.Go(func() {
+		logs.Info().Msg("run the rest-server")
 		if err := web.RunServer(server); err != nil {
 			errsCh <- fmt.Errorf("server start failed: %w", err)
 		}
@@ -55,13 +68,13 @@ func main() {
 	for err := range errsCh {
 		if err != nil {
 			hadErr = true
-			logger.Error().Err(err).Send()
+			logs.Error().Err(err).Send()
 		}
 	}
 
 	if hadErr {
-		logger.Error().Msg("graceful shutdown completed with errors")
+		logs.Error().Msg("graceful shutdown completed with errors")
 	} else {
-		logger.Info().Msg("shutdown successful")
+		logs.Info().Msg("graceful shutdown")
 	}
 }

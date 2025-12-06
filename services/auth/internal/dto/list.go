@@ -7,6 +7,6 @@ type User struct {
 	IsActive bool
 }
 
-type ListUsersResponse struct {
+type ListUsersResult struct {
 	Users []User
 }

@@ -188,10 +188,10 @@ func ParsePgError(err error) error {
 			return ErrIndexCorrupted
 
 		default:
-			return ErrUnknown
+			return err
 		}
 	}
 
 	// 3. Fallback for unrecognized errors
-	return ErrUnknown
+	return err
 }

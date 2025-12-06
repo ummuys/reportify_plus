@@ -1,75 +1,32 @@
 package config
 
 import (
-	"errors"
 	"fmt"
-	"strings"
+	"os"
 
 	"github.com/rs/zerolog"
 )
 
-//---LOGS---
+func ParseLogLevel(nameConf string) (zerolog.Level, error) {
 
-type LogLevels struct {
-	AppLvl zerolog.Level
-	SrvLvl zerolog.Level
-	DbLvl  zerolog.Level
-	ChcLvl zerolog.Level
-	SvcLvl zerolog.Level
+	lvl, err := validateLevel(nameConf)
+	if err != nil {
+		return 0, err
+	}
+
+	return lvl, nil
 }
 
-type Loggers struct {
-	AppLog *zerolog.Logger // APP
-	SrvLog *zerolog.Logger // SERVER
-	DbLog  *zerolog.Logger // DATABASE
-	SvcLog *zerolog.Logger // SERVICE
-	ChcLog *zerolog.Logger // CACHE
-}
-
-//---LOGS---
-
-func ParseLogLevels() (*LogLevels, error) {
-	var sErr []string
-
-	add := func(env string) {
-		sErr = append(sErr, fmt.Sprintf("invalid level for %s", env))
+func validateLevel(path string) (zerolog.Level, error) {
+	env := os.Getenv(path)
+	if env == "" {
+		return 0, fmt.Errorf("%s is empty", path)
 	}
 
-	appLvl, err := parseLevel("LOG_LEVEL_APP")
+	level, err := zerolog.ParseLevel(env)
 	if err != nil {
-		add("log_level_app")
+		return 0, err
 	}
 
-	srvLvl, err := parseLevel("LOG_LEVEL_SERVER")
-	if err != nil {
-		add("log_level_server")
-	}
-
-	dbLvl, err := parseLevel("LOG_LEVEL_DATABASE")
-	if err != nil {
-		add("log_level_database")
-	}
-
-	svcLvl, err := parseLevel("LOG_LEVEL_SERVICE")
-	if err != nil {
-		add("log_level_service")
-	}
-
-	chcLvl, err := parseLevel("LOG_LEVEL_CACHE")
-	if err != nil {
-		add("log_level_cache")
-	}
-
-	if len(sErr) > 0 {
-		msg := strings.Join(sErr, ", ")
-		return nil, errors.New(msg)
-	}
-
-	return &LogLevels{
-		AppLvl: appLvl,
-		SrvLvl: srvLvl,
-		DbLvl:  dbLvl,
-		SvcLvl: svcLvl,
-		ChcLvl: chcLvl,
-	}, nil
+	return level, nil
 }

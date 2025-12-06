@@ -1,11 +1,11 @@
 package dto
 
-type CreateUserRequest struct {
+type CreateUserParams struct {
 	Username string
 	Password string
 	Role     string
 }
 
-type CreateUserResponse struct {
+type CreateUserResult struct {
 	UserID int64
 }

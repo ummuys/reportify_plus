@@ -30,8 +30,7 @@ const (
 	DeleteUserPath  = "/admin/users/:username" // DELETE
 )
 
-// AUTH
 const (
-	AuthPath           = "secure/auth"
-	GetAccessTokenPath = "secure/access"
+	LoginPath        = "secure/login"
+	RefreshTokenPath = "secure/access"
 )

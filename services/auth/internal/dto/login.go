@@ -1,11 +1,11 @@
 package dto
 
-type LoginRequest struct {
+type LoginParams struct {
 	Username string
 	Password string
 }
 
-type LoginResponse struct {
+type LoginResult struct {
 	AccessToken  string
 	RefreshToken string
 }

@@ -46,9 +46,8 @@ message UpdateUserRequest {
 message UpdateUserResponse {
     int64 user_id = 1;
     string username = 2;
-    string password = 3;
-    string role = 4;
-    bool is_active = 5;
+    string role = 3;
+    bool is_active = 4;
 }
 
 message DeleteUserRequest {

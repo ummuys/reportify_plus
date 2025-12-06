@@ -236,7 +236,7 @@ type UpdateUserRequest struct {
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
 	Role          string                 `protobuf:"bytes,4,opt,name=role,proto3" json:"role,omitempty"`
-	IsActive      string                 `protobuf:"bytes,5,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	IsActive      bool                   `protobuf:"varint,5,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -299,19 +299,19 @@ func (x *UpdateUserRequest) GetRole() string {
 	return ""
 }
 
-func (x *UpdateUserRequest) GetIsActive() string {
+func (x *UpdateUserRequest) GetIsActive() bool {
 	if x != nil {
 		return x.IsActive
 	}
-	return ""
+	return false
 }
 
 type UpdateUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
-	Role          string                 `protobuf:"bytes,4,opt,name=role,proto3" json:"role,omitempty"`
+	Role          string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	IsActive      bool                   `protobuf:"varint,4,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -360,18 +360,18 @@ func (x *UpdateUserResponse) GetUsername() string {
 	return ""
 }
 
-func (x *UpdateUserResponse) GetPassword() string {
-	if x != nil {
-		return x.Password
-	}
-	return ""
-}
-
 func (x *UpdateUserResponse) GetRole() string {
 	if x != nil {
 		return x.Role
 	}
 	return ""
+}
+
+func (x *UpdateUserResponse) GetIsActive() bool {
+	if x != nil {
+		return x.IsActive
+	}
+	return false
 }
 
 type DeleteUserRequest struct {
@@ -684,12 +684,12 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x03 \x01(\tR\bpassword\x12\x12\n" +
 	"\x04role\x18\x04 \x01(\tR\x04role\x12\x1b\n" +
-	"\tis_active\x18\x05 \x01(\tR\bisActive\"y\n" +
+	"\tis_active\x18\x05 \x01(\bR\bisActive\"z\n" +
 	"\x12UpdateUserResponse\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x1a\n" +
-	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\x12\x12\n" +
-	"\x04role\x18\x04 \x01(\tR\x04role\",\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x12\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\x12\x1b\n" +
+	"\tis_active\x18\x04 \x01(\bR\bisActive\",\n" +
 	"\x11DeleteUserRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\"-\n" +
 	"\x12DeleteUserResponse\x12\x17\n" +
