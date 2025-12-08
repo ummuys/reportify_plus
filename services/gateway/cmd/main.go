@@ -11,6 +11,7 @@ import (
 
 	"github.com/ummuys/reportify/pkg/config"
 	"github.com/ummuys/reportify/pkg/logger"
+	pkg "github.com/ummuys/reportify/pkg/tm"
 	"github.com/ummuys/reportify/services/gateway/internal/di"
 	"github.com/ummuys/reportify/services/gateway/internal/web"
 )
@@ -37,8 +38,13 @@ func main() {
 
 	rh := di.NewRESTHandlers(sc, logs)
 
+	tm, err := pkg.NewTokenManager()
+	if err != nil {
+		logs.Fatal().Err(err).Msg("token-manager")
+	}
+
 	// START SERVER
-	server := web.CreateServer(cfg, rh, logs)
+	server := web.CreateServer(cfg, rh, tm, logs)
 	errsCh := make(chan error, 4)
 	srvOff := make(chan struct{})
 

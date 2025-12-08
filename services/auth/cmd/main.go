@@ -13,6 +13,7 @@ import (
 	"github.com/ummuys/reportify/pkg/config"
 	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/pkg/logger"
+	pkg "github.com/ummuys/reportify/pkg/tm"
 	"github.com/ummuys/reportify/services/auth/internal/adapter"
 	"github.com/ummuys/reportify/services/auth/internal/auth"
 	"github.com/ummuys/reportify/services/auth/internal/dto"
@@ -41,8 +42,7 @@ func main() {
 	}
 
 	ph := secure.NewPasswordHasher()
-	tm, err := secure.NewTokenManager()
-
+	tm, err := pkg.NewTokenManager()
 	if err != nil {
 		logs.Fatal().Err(err).Msg("token-manager")
 	}

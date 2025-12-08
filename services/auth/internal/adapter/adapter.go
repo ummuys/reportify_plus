@@ -61,7 +61,7 @@ func (a *AuthAdapter) UpdateUser(ctx context.Context, in *authv1.UpdateUserReque
 		IsActive: in.IsActive,
 	})
 	if err != nil {
-		return &authv1.UpdateUserResponse{}, nil
+		return &authv1.UpdateUserResponse{}, err
 	}
 
 	return &authv1.UpdateUserResponse{UserId: out.UserID, Username: out.Username, Role: out.Role, IsActive: out.IsActive}, nil
@@ -74,7 +74,7 @@ func (a *AuthAdapter) DeleteUser(ctx context.Context, in *authv1.DeleteUserReque
 		UserID: in.UserId,
 	})
 	if err != nil {
-		return &authv1.DeleteUserResponse{}, nil
+		return &authv1.DeleteUserResponse{}, err
 	}
 	return &authv1.DeleteUserResponse{UserId: out.UserID}, nil
 }

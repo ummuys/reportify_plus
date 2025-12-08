@@ -9,11 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/ummuys/reportify/pkg/config"
+	pkg "github.com/ummuys/reportify/pkg/tm"
 	"github.com/ummuys/reportify/services/gateway/internal/di"
 	"github.com/ummuys/reportify/services/gateway/internal/web/middleware"
 )
 
-func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, baseLogger zerolog.Logger) *http.Server {
+func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.TokenManager, baseLogger zerolog.Logger) *http.Server {
 	gin.SetMode(gin.ReleaseMode)
 	g := gin.New()
 
@@ -30,9 +31,16 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, baseLogge
 	api.Use(middleware.RequestLogger(logger))
 	api.Use(gin.Recovery())
 
+	admPass := []string{"admin"}
+	_ = []string{"user", "admin"}
 	// AUTH
 	auth := api.Group("")
 	auth.POST(LoginPath, rh.Auth.Login)
+
+	authAdm := api.Group("")
+	authAdm.Use(middleware.CheckJWT(tm, admPass))
+	authAdm.POST(CreateUserPath, rh.Auth.CreateUser)
+	authAdm.PUT(UpdateUserPath, rh.Auth.UpdateUser)
 
 	server := &http.Server{
 		Addr:              net.JoinHostPort(cfg.Host, cfg.Port),

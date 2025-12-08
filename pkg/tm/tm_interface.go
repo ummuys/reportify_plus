@@ -1,4 +1,4 @@
-package secure
+package pkg
 
 type TokenManager interface {
 	GenerateRefreshToken(user_id int64, role string) (string, error)

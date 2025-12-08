@@ -12,6 +12,7 @@ var (
 
 	// ANOTHER
 	ErrUserUnauthorized   = errors.New("you need to auth")
+	ErrUserExists         = errors.New("user already exists")
 	ErrInvalidCredentials = errors.New("user or password not found")
 	ErrUserNotFound       = errors.New("user not found")
 	ErrEmptyUsername      = errors.New("empty username")

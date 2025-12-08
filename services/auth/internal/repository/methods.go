@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 	"github.com/ummuys/reportify/pkg/config"
 	"github.com/ummuys/reportify/pkg/db"
+	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/services/auth/internal/dto"
 )
 
@@ -73,20 +75,12 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 
 	var tx pgx.Tx
 
-	// stack: rollback(3) - commit(2) - close batch(1)
-
-	// tx failed -> rollback
 	defer func() {
 		if err != nil {
 			if rbErr := tx.Rollback(ctx); rbErr != nil && !errors.Is(rbErr, pgx.ErrTxClosed) {
 				db.logger.Error().Err(rbErr).Msg("rollback failed")
 			}
 		}
-	}()
-
-	//commit tx
-	defer func() {
-		err = tx.Commit(qctx)
 	}()
 
 	tx, err = db.pool.Begin(qctx)
@@ -97,31 +91,43 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 	b := &pgx.Batch{}
 
 	if in.Username != "" {
-		b.Queue(updateUsernameQuery, in.Username)
+		b.Queue(updateUsernameQuery, in.UserID, in.Username)
 	}
 
 	if in.Password != "" {
-		b.Queue(updatePasswordQuery, in.Password)
+		b.Queue(updatePasswordQuery, in.UserID, in.Password)
 	}
 
 	if in.Role != "" {
-		b.Queue(updateRoleQuery, in.Role)
+		b.Queue(updateRoleQuery, in.UserID, in.Role)
 	}
 
 	br := tx.SendBatch(qctx, b)
 
-	// close batch
-	defer func() {
-		err = br.Close()
-	}()
-
+	var res pgconn.CommandTag
 	for range b.Len() {
-		if _, err = br.Exec(); err != nil {
+
+		if res, err = br.Exec(); err != nil {
+			_ = br.Close()
+			return
+		}
+
+		if res.RowsAffected() == 0 {
+			err = errs.ErrUserNotFound
 			return
 		}
 	}
 
-	return dto.UpdateUserResult{}, nil
+	if err = br.Close(); err != nil {
+		return
+	}
+
+	if err = tx.Commit(qctx); err != nil {
+		return
+	}
+
+	out = dto.UpdateUserResult(in)
+	return
 }
 
 func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.DeleteUserResult, error) {

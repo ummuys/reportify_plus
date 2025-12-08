@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/ummuys/reportify/pkg/errs"
+	pkg "github.com/ummuys/reportify/pkg/tm"
 	"github.com/ummuys/reportify/services/auth/internal/dto"
 	"github.com/ummuys/reportify/services/auth/internal/repository"
 	"github.com/ummuys/reportify/services/auth/internal/secure"
@@ -12,12 +13,12 @@ import (
 
 type authService struct {
 	ph     secure.PasswordHasher
-	tm     secure.TokenManager
+	tm     pkg.TokenManager
 	db     repository.AuthDB
 	logger zerolog.Logger
 }
 
-func NewAuthService(ph secure.PasswordHasher, tm secure.TokenManager, db repository.AuthDB, baseLogger zerolog.Logger) AuthService {
+func NewAuthService(ph secure.PasswordHasher, tm pkg.TokenManager, db repository.AuthDB, baseLogger zerolog.Logger) AuthService {
 	logger := baseLogger.With().Str("component", "svc").Logger()
 	return &authService{ph: ph, tm: tm, db: db, logger: logger}
 }
@@ -62,7 +63,13 @@ func (as *authService) CreateUser(ctx context.Context, in dto.CreateUserParams) 
 }
 
 func (as *authService) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (dto.UpdateUserResult, error) {
-	return dto.UpdateUserResult{}, nil
+	as.logger.Debug().Str("evt", "call UpdateUser").Msg("")
+
+	out, err := as.db.UpdateUser(ctx, in)
+	if err != nil {
+		return dto.UpdateUserResult{}, errs.ParsePgError(err)
+	}
+	return out, nil
 }
 
 func (as *authService) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.DeleteUserResult, error) {
