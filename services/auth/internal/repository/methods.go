@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 	"github.com/ummuys/reportify/pkg/config"
@@ -44,7 +46,7 @@ func (db *authDB) Login(ctx context.Context, username string) (dto.AuthUser, err
 	defer cancel()
 
 	var out dto.AuthUser
-	if err := db.pool.QueryRow(qctx, LoginQuery, username).Scan(&out.UserID, &out.Password, &out.Role); err != nil {
+	if err := db.pool.QueryRow(qctx, loginQuery, username).Scan(&out.UserID, &out.Password, &out.Role); err != nil {
 		return dto.AuthUser{}, err
 	}
 
@@ -57,14 +59,68 @@ func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.
 	defer cancel()
 
 	var out dto.CreateUserResult
-	if err := db.pool.QueryRow(qctx, CreateUserQuery, in.Username, in.Password, in.Role).Scan(&out.UserID); err != nil {
+	if err := db.pool.QueryRow(qctx, createUserQuery, in.Username, in.Password, in.Role).Scan(&out.UserID); err != nil {
 		return dto.CreateUserResult{}, err
 	}
 
 	return out, nil
 }
 
-func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (dto.UpdateUserResult, error) {
+func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out dto.UpdateUserResult, err error) {
+	db.logger.Debug().Str("evt", "call UpdateUser").Msg("")
+	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
+
+	var tx pgx.Tx
+
+	// stack: rollback(3) - commit(2) - close batch(1)
+
+	// tx failed -> rollback
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(ctx); rbErr != nil && !errors.Is(rbErr, pgx.ErrTxClosed) {
+				db.logger.Error().Err(rbErr).Msg("rollback failed")
+			}
+		}
+	}()
+
+	//commit tx
+	defer func() {
+		err = tx.Commit(qctx)
+	}()
+
+	tx, err = db.pool.Begin(qctx)
+	if err != nil {
+		return
+	}
+
+	b := &pgx.Batch{}
+
+	if in.Username != "" {
+		b.Queue(updateUsernameQuery, in.Username)
+	}
+
+	if in.Password != "" {
+		b.Queue(updatePasswordQuery, in.Password)
+	}
+
+	if in.Role != "" {
+		b.Queue(updateRoleQuery, in.Role)
+	}
+
+	br := tx.SendBatch(qctx, b)
+
+	// close batch
+	defer func() {
+		err = br.Close()
+	}()
+
+	for range b.Len() {
+		if _, err = br.Exec(); err != nil {
+			return
+		}
+	}
+
 	return dto.UpdateUserResult{}, nil
 }
 

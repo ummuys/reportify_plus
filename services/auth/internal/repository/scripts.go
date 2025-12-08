@@ -1,6 +1,7 @@
 package repository
 
-const LoginQuery = `
+const (
+	loginQuery = `
 SELECT 
     u.user_id,
     u.password,
@@ -11,7 +12,7 @@ JOIN identity.roles AS r ON r.role_id = ur.role_id
 WHERE u.username = $1;
 `
 
-const CreateUserQuery = `
+	createUserQuery = `
 WITH new_user AS (
     INSERT INTO identity.users (username, password)
     VALUES ($1, $2)
@@ -27,3 +28,22 @@ ins_role AS (
 )
 SELECT user_id FROM new_user;
 `
+
+	updateUsernameQuery = `
+UPDATE identity.users SET username = $2 WHERE user_id = $1;
+`
+
+	updatePasswordQuery = `
+UPDATE identity.users SET password = $2 WHERE user_id = $1;
+`
+
+	// #nosec G101 -- SQL query, not hardcoded password
+	updateRoleQuery = `
+UPDATE 
+    identity.user_roles 
+SET 
+    role_id = (SELECT role_id FROM identity.roles WHERE name = $2)
+WHERE 
+    user_id = $1
+`
+)
