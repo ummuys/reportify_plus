@@ -38,7 +38,7 @@ func main() {
 	rh := di.NewRESTHandlers(sc, logs)
 
 	// START SERVER
-	server := web.CreateServer(rh, logs)
+	server := web.CreateServer(cfg, rh, logs)
 	errsCh := make(chan error, 4)
 	srvOff := make(chan struct{})
 

@@ -35,7 +35,7 @@ drop-auth-volume:
 
 update-gateway-image:
 	@$(BASE_COMMAND) -f $(COMPOSE) down
-	@-docker image rm docker-app
+	@-docker image rm gateway-service
 	@$(BASE_COMMAND) -f $(COMPOSE) up -d
 
 update-auth-image:

@@ -3,17 +3,17 @@ package web
 import (
 	"net"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
+	"github.com/ummuys/reportify/pkg/config"
 	"github.com/ummuys/reportify/services/gateway/internal/di"
 	"github.com/ummuys/reportify/services/gateway/internal/web/middleware"
 )
 
-func CreateServer(rh di.RESTHandlers, baseLogger zerolog.Logger) *http.Server {
+func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, baseLogger zerolog.Logger) *http.Server {
 	gin.SetMode(gin.ReleaseMode)
 	g := gin.New()
 
@@ -34,14 +34,8 @@ func CreateServer(rh di.RESTHandlers, baseLogger zerolog.Logger) *http.Server {
 	auth := api.Group("")
 	auth.POST(LoginPath, rh.Auth.Login)
 
-	host := os.Getenv("SERVER_IP")
-	port := os.Getenv("SERVER_PORT")
-	if port == "" {
-		port = "8008"
-	}
-
 	server := &http.Server{
-		Addr:              net.JoinHostPort(host, port),
+		Addr:              net.JoinHostPort(cfg.Host, cfg.Port),
 		Handler:           g,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,

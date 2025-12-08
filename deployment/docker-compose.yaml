@@ -1,10 +1,28 @@
 services:
 
+  gateway-service:
+    build:
+      context: ../
+      dockerfile: deployment/Dockerfile
+      target: gateway
+    image: gateway-service
+    container_name: ${GATEWAY_SERVICE_CONTAINER_NAME}
+    env_file:
+      - ./../.env
+      - ./../services/gateway/.env
+    ports:
+      - ${GATEWAY_SERVICE_OUT_PORT}:${GATEWAY_SERVICE_IN_PORT}
+    depends_on:
+      auth-migration:
+        condition: service_completed_successfully
+    networks:
+      - reportify_network
 
   auth-service:
     build: 
       context: ../
       dockerfile: deployment/Dockerfile
+      target: auth
     image: auth-service
     container_name: ${AUTH_SERVICE_CONTAINER_NAME}
     env_file:
