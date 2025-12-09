@@ -1,7 +1,7 @@
 package dto
 
 type User struct {
-	UserID   string
+	UserID   int64
 	Username string
 	Role     string
 	IsActive bool

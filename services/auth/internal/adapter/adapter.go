@@ -84,27 +84,38 @@ func (a *AuthAdapter) UpdateUser(ctx context.Context, in *authv1.UpdateUserReque
 	return &authv1.UpdateUserResponse{UserId: out.UserID, Username: out.Username, Role: out.Role, IsActive: out.IsActive}, nil
 }
 
-// DeleteUser: заглушка
 func (a *AuthAdapter) DeleteUser(ctx context.Context, in *authv1.DeleteUserRequest) (*authv1.DeleteUserResponse, error) {
 	a.logger.Debug().Str("evt", "call DeleteUser").Msg("")
 	out, err := a.svc.DeleteUser(ctx, dto.DeleteUserParams{
 		UserID: in.UserId,
 	})
 	if err != nil {
-		return &authv1.DeleteUserResponse{}, err
+		switch {
+		case errors.Is(err, errs.ErrNotFound):
+			return nil, status.Error(codes.NotFound, errs.ErrUserNotFound.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
 	}
 	return &authv1.DeleteUserResponse{UserId: out.UserID}, nil
 }
 
-// ListUsers: заглушка
 func (a *AuthAdapter) ListUsers(ctx context.Context, in *emptypb.Empty) (*authv1.ListUsersResponse, error) {
 	a.logger.Debug().Str("evt", "call ListUsers").Msg("")
-	_, err := a.svc.ListUsers(ctx)
+	out, err := a.svc.ListUsers(ctx)
 	if err != nil {
-		return &authv1.ListUsersResponse{}, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &authv1.ListUsersResponse{}, nil
+	var resp authv1.ListUsersResponse
+	resp.Users = make([]*authv1.User, len(out.Users))
+	for i := 0; i < len(out.Users); i++ {
+		resp.Users[i].UserId = out.Users[i].UserID
+		resp.Users[i].Username = out.Users[i].Username
+		resp.Users[i].Role = out.Users[i].Role
+	}
+
+	return &resp, nil
 }
 
 // RefreshToken: заглушка

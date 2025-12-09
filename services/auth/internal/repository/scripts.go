@@ -49,4 +49,14 @@ UPDATE identity.users SET password = $2 WHERE user_id = $1;
     `
 
 	deleteUserQuery = `DELETE FROM identity.users WHERE user_id = $1`
+
+	ListUsersQuery = `
+    SELECT 
+        u.user_id,
+        u.username,
+        r.name AS role
+    FROM identity.users AS u
+    JOIN identity.user_roles AS ur ON ur.user_id = u.user_id
+    JOIN identity.roles AS r ON r.role_id = ur.role_id
+    `
 )

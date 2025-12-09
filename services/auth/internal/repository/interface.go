@@ -12,5 +12,4 @@ type AuthDB interface {
 	UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out dto.UpdateUserResult, err error)
 	DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.DeleteUserResult, error)
 	ListUsers(ctx context.Context) (dto.ListUsersResult, error)
-	RefreshToken(ctx context.Context, in dto.RefreshTokenParams) (dto.RefreshTokenResult, error)
 }

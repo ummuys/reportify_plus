@@ -73,11 +73,23 @@ func (as *authService) UpdateUser(ctx context.Context, in dto.UpdateUserParams) 
 }
 
 func (as *authService) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.DeleteUserResult, error) {
-	return dto.DeleteUserResult{}, nil
+	as.logger.Debug().Str("evt", "call DeleteUser").Msg("")
+
+	out, err := as.db.DeleteUser(ctx, in)
+	if err != nil {
+		return dto.DeleteUserResult{}, errs.ParsePgError(err)
+	}
+	return out, nil
 }
 
 func (as *authService) ListUsers(ctx context.Context) (dto.ListUsersResult, error) {
-	return dto.ListUsersResult{}, nil
+	as.logger.Debug().Str("evt", "call ListUsers").Msg("")
+
+	out, err := as.db.ListUsers(ctx)
+	if err != nil {
+		return dto.ListUsersResult{}, errs.ParsePgError(err)
+	}
+	return out, nil
 }
 
 func (as *authService) RefreshToken(ctx context.Context, in dto.RefreshTokenParams) (dto.RefreshTokenResult, error) {

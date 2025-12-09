@@ -596,7 +596,7 @@ func (x *ListUsersResponse) GetUsers() []*User {
 
 type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Role          string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
 	IsActive      bool                   `protobuf:"varint,4,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
@@ -634,11 +634,11 @@ func (*User) Descriptor() ([]byte, []int) {
 	return file_auth_v1_auth_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *User) GetUserId() string {
+func (x *User) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
-	return ""
+	return 0
 }
 
 func (x *User) GetUsername() string {
@@ -701,7 +701,7 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x11ListUsersResponse\x12#\n" +
 	"\x05users\x18\x01 \x03(\v2\r.auth.v1.UserR\x05users\"l\n" +
 	"\x04User\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x12\n" +
 	"\x04role\x18\x03 \x01(\tR\x04role\x12\x1b\n" +
 	"\tis_active\x18\x04 \x01(\bR\bisActive2\xaa\x03\n" +

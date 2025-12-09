@@ -138,7 +138,7 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 }
 
 func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.DeleteUserResult, error) {
-	db.logger.Debug().Str("evt", "call UpdateUser").Msg("")
+	db.logger.Debug().Str("evt", "call DeleteUser").Msg("")
 	if in.UserID == 1 {
 		return dto.DeleteUserResult{}, errs.ErrInsufficientPrivilege
 	}
@@ -148,6 +148,7 @@ func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.
 	res, err := db.pool.Exec(qctx, deleteUserQuery, in.UserID)
 
 	if err != nil {
+		db.logger.Error().Err(err).Str("evt", "call DeleteUser").Msg("")
 		return dto.DeleteUserResult{}, err
 	}
 
@@ -155,13 +156,36 @@ func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.
 		return dto.DeleteUserResult{}, pgx.ErrNoRows
 	}
 
-	return dto.DeleteUserResult{UserID: in.UserID}, nil
+	return dto.DeleteUserResult(in), nil
 }
 
 func (db *authDB) ListUsers(ctx context.Context) (dto.ListUsersResult, error) {
-	return dto.ListUsersResult{}, nil
-}
+	db.logger.Debug().Str("evt", "call GetUsers").Msg("")
+	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
 
-func (db *authDB) RefreshToken(ctx context.Context, in dto.RefreshTokenParams) (dto.RefreshTokenResult, error) {
-	return dto.RefreshTokenResult{}, nil
+	rows, err := db.pool.Query(qctx, ListUsersQuery)
+	if err != nil {
+		db.logger.Error().Err(err).Str("evt", "call ListUsers").Msg("")
+		return dto.ListUsersResult{}, err
+	}
+	defer rows.Close()
+
+	var users []dto.User
+	for rows.Next() {
+		var u dto.User
+		err = rows.Scan(&u.UserID, &u.Username, &u.Role)
+		if err != nil {
+			db.logger.Error().Err(err).Str("evt", "call ListUsers").Msg("")
+			return dto.ListUsersResult{}, err
+		}
+		users = append(users, u)
+	}
+
+	if err := rows.Err(); err != nil {
+		db.logger.Error().Err(err).Str("evt", "call ListUsers").Msg("")
+		return dto.ListUsersResult{}, err
+	}
+
+	return dto.ListUsersResult{Users: users}, nil
 }
