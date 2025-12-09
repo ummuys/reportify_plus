@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,6 +8,7 @@ import (
 	authv1 "github.com/ummuys/reportify/api/pb/auth/v1"
 	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/services/gateway/internal/webdto"
+	"google.golang.org/grpc/codes"
 )
 
 type authHandler struct {
@@ -30,19 +30,34 @@ func (a *authHandler) Login(g *gin.Context) {
 		return
 	}
 
-	out, err := a.sc.Login(g.Request.Context(), &authv1.LoginRequest{
+	out, gErr := a.sc.Login(g.Request.Context(), &authv1.LoginRequest{
 		Username: req.Username,
 		Password: req.Password,
 	})
 
-	if err != nil {
-		g.Set("msg", err.Error())
-		switch {
-		case errors.Is(err, errs.ErrInvalidCredentials):
-			g.AbortWithStatusJSON(http.StatusUnauthorized, webdto.ErrResponse{Error: err.Error()})
-		default:
-			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("non-gprc-msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError,
+				webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			return
 		}
+
+		g.Set("msg", st.Message())
+		var (
+			code int
+			resp any
+		)
+		switch st.Code() {
+		case codes.Unauthenticated:
+			code = http.StatusNotFound
+			resp = webdto.ErrResponse{Error: st.Message()}
+		default:
+			code = http.StatusInternalServerError
+			resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
+		}
+		g.AbortWithStatusJSON(code, resp)
 		return
 	}
 
@@ -63,20 +78,35 @@ func (a *authHandler) CreateUser(g *gin.Context) {
 		return
 	}
 
-	out, err := a.sc.CreateUser(g.Request.Context(), &authv1.CreateUserRequest{
+	out, gErr := a.sc.CreateUser(g.Request.Context(), &authv1.CreateUserRequest{
 		Username: req.Username,
 		Password: req.Password,
 		Role:     req.Password,
 	})
 
-	if err != nil {
-		g.Set("msg", err.Error())
-		switch {
-		case errors.Is(err, errs.ErrDuplicate):
-			g.AbortWithStatusJSON(http.StatusUnauthorized, webdto.ErrResponse{Error: errs.ErrUserExists.Error()})
-		default:
-			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("non-gprc-msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError,
+				webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			return
 		}
+
+		g.Set("msg", st.Message())
+		var (
+			code int
+			resp any
+		)
+		switch st.Code() {
+		case codes.AlreadyExists:
+			code = http.StatusConflict
+			resp = webdto.ErrResponse{Error: st.Message()}
+		default:
+			code = http.StatusInternalServerError
+			resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
+		}
+		g.AbortWithStatusJSON(code, resp)
 		return
 	}
 
@@ -92,21 +122,39 @@ func (a *authHandler) UpdateUser(g *gin.Context) {
 		return
 	}
 
-	out, err := a.sc.UpdateUser(g.Request.Context(), &authv1.UpdateUserRequest{
+	out, gErr := a.sc.UpdateUser(g.Request.Context(), &authv1.UpdateUserRequest{
 		UserId:   req.UserID,
 		Username: req.Username,
 		Password: req.Password,
-		Role:     req.Password,
+		Role:     req.Role,
 	})
 
-	if err != nil {
-		g.Set("msg", err.Error())
-		switch {
-		case errors.Is(err, errs.ErrUserNotFound):
-			g.AbortWithStatusJSON(http.StatusUnauthorized, webdto.ErrResponse{Error: err.Error()})
-		default:
-			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError,
+				webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			return
 		}
+
+		g.Set("msg", st.Message())
+		var (
+			code int
+			resp any
+		)
+		switch st.Code() {
+		case codes.NotFound:
+			code = http.StatusNotFound
+			resp = webdto.ErrResponse{Error: st.Message()}
+		case codes.AlreadyExists:
+			code = http.StatusConflict
+			resp = webdto.ErrResponse{Error: st.Message()}
+		default:
+			code = http.StatusInternalServerError
+			resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
+		}
+		g.AbortWithStatusJSON(code, resp)
 		return
 	}
 

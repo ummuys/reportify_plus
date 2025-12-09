@@ -39,11 +39,14 @@ UPDATE identity.users SET password = $2 WHERE user_id = $1;
 
 	// #nosec G101 -- SQL query, not hardcoded password
 	updateRoleQuery = `
-UPDATE 
-    identity.user_roles 
-SET 
-    role_id = (SELECT role_id FROM identity.roles WHERE name = $2)
-WHERE 
-    user_id = $1
-`
+    WITH selected_role AS (
+        SELECT role_id FROM identity.roles WHERE name = $2
+    )
+    UPDATE identity.user_roles ur
+    SET role_id = sr.role_id
+    FROM selected_role sr
+    WHERE ur.user_id = $1;
+    `
+
+	deleteUserQuery = `DELETE FROM identity.users WHERE user_id = $1`
 )

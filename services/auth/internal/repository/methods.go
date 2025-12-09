@@ -49,6 +49,7 @@ func (db *authDB) Login(ctx context.Context, username string) (dto.AuthUser, err
 
 	var out dto.AuthUser
 	if err := db.pool.QueryRow(qctx, loginQuery, username).Scan(&out.UserID, &out.Password, &out.Role); err != nil {
+		db.logger.Error().Err(err).Str("evt", "call Login").Msg("")
 		return dto.AuthUser{}, err
 	}
 
@@ -62,6 +63,7 @@ func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.
 
 	var out dto.CreateUserResult
 	if err := db.pool.QueryRow(qctx, createUserQuery, in.Username, in.Password, in.Role).Scan(&out.UserID); err != nil {
+		db.logger.Error().Err(err).Str("evt", "call CreateUser").Msg("")
 		return dto.CreateUserResult{}, err
 	}
 
@@ -78,13 +80,14 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 	defer func() {
 		if err != nil {
 			if rbErr := tx.Rollback(ctx); rbErr != nil && !errors.Is(rbErr, pgx.ErrTxClosed) {
-				db.logger.Error().Err(rbErr).Msg("rollback failed")
+				db.logger.Error().Err(rbErr).Str("evt", "call UpdateUser").Msg("")
 			}
 		}
 	}()
 
 	tx, err = db.pool.Begin(qctx)
 	if err != nil {
+		db.logger.Error().Err(err).Str("evt", "call UpdateUser").Msg("")
 		return
 	}
 
@@ -108,21 +111,25 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 	for range b.Len() {
 
 		if res, err = br.Exec(); err != nil {
+			db.logger.Error().Err(err).Str("evt", "call UpdateUser").Msg("")
 			_ = br.Close()
 			return
 		}
 
 		if res.RowsAffected() == 0 {
-			err = errs.ErrUserNotFound
+			_ = br.Close()
+			err = pgx.ErrNoRows
 			return
 		}
 	}
 
 	if err = br.Close(); err != nil {
+		db.logger.Error().Err(err).Str("evt", "call UpdateUser").Msg("")
 		return
 	}
 
 	if err = tx.Commit(qctx); err != nil {
+		db.logger.Error().Err(err).Str("evt", "call UpdateUser").Msg("")
 		return
 	}
 
@@ -131,7 +138,24 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 }
 
 func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.DeleteUserResult, error) {
-	return dto.DeleteUserResult{}, nil
+	db.logger.Debug().Str("evt", "call UpdateUser").Msg("")
+	if in.UserID == 1 {
+		return dto.DeleteUserResult{}, errs.ErrInsufficientPrivilege
+	}
+	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
+
+	res, err := db.pool.Exec(qctx, deleteUserQuery, in.UserID)
+
+	if err != nil {
+		return dto.DeleteUserResult{}, err
+	}
+
+	if res.RowsAffected() == 0 {
+		return dto.DeleteUserResult{}, pgx.ErrNoRows
+	}
+
+	return dto.DeleteUserResult{UserID: in.UserID}, nil
 }
 
 func (db *authDB) ListUsers(ctx context.Context) (dto.ListUsersResult, error) {
