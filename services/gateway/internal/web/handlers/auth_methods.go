@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
@@ -164,15 +165,22 @@ func (a *authHandler) UpdateUser(g *gin.Context) {
 }
 func (a *authHandler) DeleteUser(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call DeleteUser").Msg("")
-	var req webdto.DeleteUserRequest
-	if err := g.ShouldBindJSON(&req); err != nil {
+
+	userID, err := strconv.ParseInt(g.Param("user_id"), 10, 64)
+	if err != nil {
 		g.Set("msg", err.Error())
-		g.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+		g.AbortWithStatusJSON(http.StatusInternalServerError,
+			webdto.ErrResponse{Error: errs.ErrInternal.Error()})
 		return
 	}
-
+	if userID < 0 {
+		g.Set("msg", "invalid user_id")
+		g.AbortWithStatusJSON(http.StatusInternalServerError,
+			webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+		return
+	}
 	out, gErr := a.sc.DeleteUser(g.Request.Context(), &authv1.DeleteUserRequest{
-		UserId: req.UserID,
+		UserId: userID,
 	})
 
 	if gErr != nil {
@@ -202,7 +210,7 @@ func (a *authHandler) DeleteUser(g *gin.Context) {
 	}
 
 	g.Set("msg", "user deleted")
-	g.JSON(http.StatusOK, webdto.UpdateUserResponse{UserID: out.UserId})
+	g.JSON(http.StatusOK, webdto.DeleteUserResponse{UserID: out.UserId})
 }
 func (a *authHandler) RefreshToken(g *gin.Context) {}
 func (a *authHandler) ListUsers(g *gin.Context) {
@@ -234,11 +242,13 @@ func (a *authHandler) ListUsers(g *gin.Context) {
 	}
 
 	var resp webdto.ListUsersResponse
-	resp.Users = make([]webdto.User, len(out.Users))
-	for i := 0; i < len(out.Users); i++ {
-		resp.Users[i].UserID = out.Users[i].UserId
-		resp.Users[i].Username = out.Users[i].Username
-		resp.Users[i].Role = out.Users[i].Role
+	resp.Users = make([]webdto.User, 0, len(out.Users))
+	for _, user := range out.Users {
+		resp.Users = append(resp.Users, webdto.User{
+			UserID:   user.UserId,
+			Username: user.Username,
+			Role:     user.Role,
+		})
 	}
 	g.Set("msg", "users list returned")
 	g.JSON(http.StatusOK, resp)

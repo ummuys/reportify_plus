@@ -21,13 +21,13 @@ const (
 const (
 
 	// Collection
-	GetUsersPath   = "/admin/users" // GET
+	ListUsersPath  = "/admin/users" // GET
 	CreateUserPath = "/admin/users" // POST
 	UpdateUserPath = "/admin/users" // PATCH
 
 	// Item
-	GetUserInfoPath = "/admin/users/:username" // GET
-	DeleteUserPath  = "/admin/users/:username" // DELETE
+	GetUserInfoPath = "/admin/users/:user_id" // GET
+	DeleteUserPath  = "/admin/users/:user_id" // DELETE
 )
 
 const (

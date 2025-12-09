@@ -41,6 +41,8 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 	authAdm.Use(middleware.CheckJWT(tm, admPass))
 	authAdm.POST(CreateUserPath, rh.Auth.CreateUser)
 	authAdm.PUT(UpdateUserPath, rh.Auth.UpdateUser)
+	authAdm.GET(ListUsersPath, rh.Auth.ListUsers)
+	authAdm.DELETE(DeleteUserPath, rh.Auth.DeleteUser)
 
 	server := &http.Server{
 		Addr:              net.JoinHostPort(cfg.Host, cfg.Port),

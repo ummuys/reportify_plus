@@ -108,11 +108,13 @@ func (a *AuthAdapter) ListUsers(ctx context.Context, in *emptypb.Empty) (*authv1
 	}
 
 	var resp authv1.ListUsersResponse
-	resp.Users = make([]*authv1.User, len(out.Users))
-	for i := 0; i < len(out.Users); i++ {
-		resp.Users[i].UserId = out.Users[i].UserID
-		resp.Users[i].Username = out.Users[i].Username
-		resp.Users[i].Role = out.Users[i].Role
+	resp.Users = make([]*authv1.User, 0, len(out.Users))
+	for _, user := range out.Users {
+		resp.Users = append(resp.Users, &authv1.User{
+			UserId:   user.UserID,
+			Username: user.Username,
+			Role:     user.Role,
+		})
 	}
 
 	return &resp, nil

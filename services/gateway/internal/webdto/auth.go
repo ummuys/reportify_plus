@@ -41,11 +41,7 @@ type UpdateUserResponse struct {
 	IsActive bool   `json:"is_active"`
 }
 
-// DELETE USER
-
-type DeleteUserRequest struct {
-	UserID int64 `json:"user_id"`
-}
+// DELETE
 
 type DeleteUserResponse struct {
 	UserID int64 `json:"user_id"`
