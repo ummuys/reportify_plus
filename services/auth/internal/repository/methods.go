@@ -46,6 +46,10 @@ func NewAuthDB(ctx context.Context, baseLogger zerolog.Logger) (AuthDB, error) {
 	}, nil
 }
 
+func (db *authDB) Close() {
+	db.pool.Close()
+}
+
 func (db *authDB) Login(ctx context.Context, username string) (dto.AuthUser, error) {
 	db.logger.Debug().Str("evt", "call Login").Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)

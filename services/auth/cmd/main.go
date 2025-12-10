@@ -15,10 +15,10 @@ import (
 	"github.com/ummuys/reportify/pkg/logger"
 	pkg "github.com/ummuys/reportify/pkg/tm"
 	"github.com/ummuys/reportify/services/auth/internal/adapter"
-	"github.com/ummuys/reportify/services/auth/internal/auth"
 	"github.com/ummuys/reportify/services/auth/internal/dto"
 	"github.com/ummuys/reportify/services/auth/internal/repository"
 	"github.com/ummuys/reportify/services/auth/internal/secure"
+	"github.com/ummuys/reportify/services/auth/internal/service"
 	"google.golang.org/grpc"
 )
 
@@ -51,9 +51,10 @@ func main() {
 	if err != nil {
 		logs.Fatal().Err(err).Msg("auth-db")
 	}
+	defer db.Close()
 
 	srv := grpc.NewServer()
-	svc := auth.NewAuthService(ph, tm, db, logs)
+	svc := service.NewAuthService(ph, tm, db, logs)
 
 	// CREATE USER
 	if err := svc.CreateBaseAdmin(ctx, dto.CreateUserParams{
@@ -76,7 +77,7 @@ func main() {
 	wg.Go(func() {
 		logs.Info().Msg("run the grpc-server")
 		if err := srv.Serve(lis); err != nil {
-			logs.Error().Err(err).Msg("grpc-server")
+			logs.Fatal().Err(err).Msg("shutdown grpc-server")
 		}
 	})
 

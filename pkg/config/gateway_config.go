@@ -6,9 +6,10 @@ import (
 )
 
 type GatewayServiceConfig struct {
-	AuthServiceAddr string
-	Host            string
-	Port            string
+	ReportServiceAddr string
+	AuthServiceAddr   string
+	Host              string
+	Port              string
 }
 
 func ParseGatewayConfig() (GatewayServiceConfig, error) {
@@ -19,10 +20,16 @@ func ParseGatewayConfig() (GatewayServiceConfig, error) {
 		}
 	}
 
-	name, err := parseStr("AUTH_SERVICE_CONTAINER_NAME")
+	authName, err := parseStr("AUTH_SERVICE_CONTAINER_NAME")
 	add(err)
 
-	port, err := parseStr("AUTH_SERVICE_IN_PORT")
+	authPort, err := parseStr("AUTH_SERVICE_IN_PORT")
+	add(err)
+
+	reportName, err := parseStr("REPORT_SERVICE_CONTAINER_NAME")
+	add(err)
+
+	reportPort, err := parseStr("REPORT_SERVICE_IN_PORT")
 	add(err)
 
 	restHost, err := parseStr("GATEWAY_SERVICE_HOST")
@@ -36,8 +43,9 @@ func ParseGatewayConfig() (GatewayServiceConfig, error) {
 	}
 
 	return GatewayServiceConfig{
-		AuthServiceAddr: name + ":" + port,
-		Host:            restHost,
-		Port:            restPort,
+		ReportServiceAddr: reportName + ":" + reportPort,
+		AuthServiceAddr:   authName + ":" + authPort,
+		Host:              restHost,
+		Port:              restPort,
 	}, nil
 }

@@ -31,7 +31,7 @@ func main() {
 	}
 
 	// CLIENTS
-	sc, err := di.NewGRPCServiceClients(cfg.AuthServiceAddr)
+	sc, err := di.NewGRPCServiceClients(cfg.AuthServiceAddr, cfg.ReportServiceAddr)
 	if err != nil {
 		logs.Fatal().Err(err).Msg("clients")
 	}

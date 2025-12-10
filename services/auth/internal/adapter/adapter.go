@@ -7,8 +7,8 @@ import (
 	"github.com/rs/zerolog"
 	authv1 "github.com/ummuys/reportify/api/pb/auth/v1"
 	"github.com/ummuys/reportify/pkg/errs"
-	"github.com/ummuys/reportify/services/auth/internal/auth"
 	"github.com/ummuys/reportify/services/auth/internal/dto"
+	"github.com/ummuys/reportify/services/auth/internal/service"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -17,10 +17,10 @@ import (
 type AuthAdapter struct {
 	logger zerolog.Logger
 	authv1.UnimplementedAuthServiceServer
-	svc auth.AuthService
+	svc service.AuthService
 }
 
-func NewAuthAdapter(svc auth.AuthService, baseLogger zerolog.Logger) *AuthAdapter {
+func NewAuthAdapter(svc service.AuthService, baseLogger zerolog.Logger) *AuthAdapter {
 	logger := baseLogger.With().Str("component", "adpt").Logger()
 	return &AuthAdapter{svc: svc, logger: logger}
 }
