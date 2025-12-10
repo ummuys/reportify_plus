@@ -1,5 +1,22 @@
 services:
 
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    networks:
+      - reportify_network
+    ports:
+      - "8088:80"
+    volumes:
+      - ./assets/nginx/files/:/var/www/:rw
+      - ./assets/nginx/main.conf:/etc/nginx/conf.d/default.conf:ro
+    command: >
+      sh -c "chown -R nginx:nginx /var/www && 
+             chmod -R 755 /var/www && 
+             nginx -g 'daemon off;'"
+    depends_on:
+      - gateway-service
+
   gateway-service:
     build:
       context: ../

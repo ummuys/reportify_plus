@@ -22,8 +22,8 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 
 	api := g.Group("/api/v1")
 	api.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://127.0.0.1:8008"},
-		AllowMethods:     []string{"GET", "POST", "DELETE", "UPDATE", "OPTIONS"},
+		AllowOrigins:     []string{"http://127.0.0.1:8088"},
+		AllowMethods:     []string{"GET", "POST", "DELETE", "PUT", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
