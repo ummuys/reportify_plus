@@ -1,7 +1,7 @@
 package dto
 
 type UpdateUserParams struct {
-	UserID   int64
+	UserID   string
 	Username string
 	Password string
 	Role     string
@@ -9,7 +9,7 @@ type UpdateUserParams struct {
 }
 
 type UpdateUserResult struct {
-	UserID   int64
+	UserID   string
 	Username string
 	Password string
 	Role     string

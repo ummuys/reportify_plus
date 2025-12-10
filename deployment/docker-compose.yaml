@@ -4,7 +4,7 @@ services:
     image: nginx:alpine
     container_name: nginx
     networks:
-      - reportify_network
+      - reportify-network
     ports:
       - "8088:80"
     volumes:
@@ -32,8 +32,13 @@ services:
     depends_on:
       auth-migration:
         condition: service_completed_successfully
+    restart: always
     networks:
-      - reportify_network
+      - reportify-network
+
+##############################################################
+############################ AUTH ############################
+##############################################################
 
   auth-service:
     build: 
@@ -47,11 +52,12 @@ services:
       - ./../services/auth/.env
     ports:
       - ${AUTH_SERVICE_OUT_PORT}:${AUTH_SERVICE_IN_PORT}
+    restart: always
     depends_on:
       auth-migration:
         condition: service_completed_successfully
     networks:
-      - reportify_network
+      - reportify-network
     
     
   auth-db:
@@ -66,9 +72,9 @@ services:
     ports:
       - ${AUTH_DB_OUT_PORT}:${AUTH_DB_IN_PORT}
     networks:
-      - reportify_network
+      - reportify-network
     volumes:
-      - pg_auth_data:/var/lib/postgresql/data
+      - auth-db:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${AUTH_DB_USER} -d ${AUTH_DB_NAME}" ]
       interval: 2s
@@ -91,11 +97,31 @@ services:
         condition: service_healthy
     restart: no
     networks:
-      - reportify_network
+      - reportify-network
+
+##############################################################
+########################### REPORT ###########################
+##############################################################
+  report-minio:
+    image: quay.io/minio/minio:latest
+    container_name: ${REPORT_MINIO_CONTAINER_NAME}
+    ports:
+      - ${REPORT_MINIO_OUT_API_PORT}:${REPORT_MINIO_IN_API_PORT}
+      - ${REPORT_MINIO_OUT_PORT}:${REPORT_MINIO_IN_PORT}
+    environment:
+      MINIO_ROOT_USER: ${REPORT_MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${REPORT_MINIO_PASSWORD}
+    volumes:
+      - report-minio-data:/data 
+    command: server /data --console-address ":9001"
+    restart: always
+    networks:
+      - reportify-network
 
 volumes:
-  pg_auth_data:
+  auth-db:
+  report-minio-data:
 
 networks:
-  reportify_network:
+  reportify-network:
     external: true

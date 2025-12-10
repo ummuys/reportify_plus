@@ -1,7 +1,7 @@
 // ==== Конфигурация ====
 const config = {
   API_BASE: "http://127.0.0.1:8088/",
-  AuthPath: "api/v1/secure/auth",
+  AuthPath: "api/v1/secure/login",
   MAIN_MENU: "http://127.0.0.1:8088/menu/"
 };
 

@@ -20,7 +20,7 @@ func NewTokenManager() (TokenManager, error) {
 	return &tokMan{cfg: c}, nil
 }
 
-func (tm *tokMan) GenerateRefreshToken(user_id int64, role string) (string, error) {
+func (tm *tokMan) GenerateRefreshToken(user_id string, role string) (string, error) {
 	claims := RefreshClaims{
 		UserID: user_id,
 		Role:   role,
@@ -39,7 +39,7 @@ func (tm *tokMan) GetRefreshLifetime() time.Duration {
 	return tm.cfg.RefreshTokenLimit
 }
 
-func (tm *tokMan) GenerateAccessToken(user_id int64, role string) (string, error) {
+func (tm *tokMan) GenerateAccessToken(user_id string, role string) (string, error) {
 	claims := AccessClaims{
 		UserID: user_id,
 		Role:   role,

@@ -12,7 +12,7 @@ BASE_COMMAND=-docker compose --env-file $(ENV_PATH)
 
 up: 
 	@./$(UPDATE_SECRETS)
-	@-docker network create reportify_network
+	@-docker network create reportify-network
 	@$(BASE_COMMAND) -f $(COMPOSE) up -d
 
 down: 

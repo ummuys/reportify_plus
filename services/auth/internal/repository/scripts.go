@@ -14,23 +14,6 @@ WHERE u.username = $1;
 
 	createUserQuery = `
 WITH new_user AS (
-    INSERT INTO identity.users (username, password)
-    VALUES ($1, $2)
-    RETURNING user_id
-),
-ins_role AS (
-    INSERT INTO identity.user_roles (user_id, role_id)
-    SELECT
-        new_user.user_id,
-        r.role_id
-    FROM new_user
-    JOIN identity.roles r ON r.name = $3
-)
-SELECT user_id FROM new_user;
-`
-
-	createBaseAdminQuery = `
-WITH new_user AS (
     INSERT INTO identity.users (user_id, username, password)
     VALUES ($1, $2, $3)
     RETURNING user_id

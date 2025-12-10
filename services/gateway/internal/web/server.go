@@ -20,6 +20,10 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 
 	logger := baseLogger.With().Str("component", "srv").Logger()
 
+	g.NoRoute(func(g *gin.Context) {
+		g.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+	})
+
 	api := g.Group("/api/v1")
 	api.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://127.0.0.1:8088"},

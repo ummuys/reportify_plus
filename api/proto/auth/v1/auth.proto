@@ -7,7 +7,7 @@ import "google/protobuf/empty.proto";
 option go_package = "github.com/ummuys/reportify/api/pb/auth/v1;authv1";
 
 service AuthService {
-    rpc Login (LoginRequest) returns (LoginResponse) {}
+    rpc Login (LoginRequest) returns (LoginResponse);
     rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
     rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse);
     rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
@@ -32,11 +32,11 @@ message CreateUserRequest {
 }
 
 message CreateUserResponse {
-    int64 user_id = 1;
+    string user_id = 1;
 }
 
 message UpdateUserRequest {
-    int64 user_id = 1;
+    string user_id = 1;
     string username = 2;
     string password = 3;
     string role = 4;
@@ -44,18 +44,18 @@ message UpdateUserRequest {
 }
 
 message UpdateUserResponse {
-    int64 user_id = 1;
+    string user_id = 1;
     string username = 2;
     string role = 3;
     bool is_active = 4;
 }
 
 message DeleteUserRequest {
-    int64 user_id = 1;
+    string user_id = 1;
 }
 
 message DeleteUserResponse {
-    int64 user_id = 1;
+    string user_id = 1;
 }
 
 message RefreshTokenRequest {
@@ -71,7 +71,7 @@ message ListUsersResponse {
 }
 
 message User {
-  int64 user_id   = 1;
+  string user_id  = 1;
   string username  = 2;
   string role      = 3;
   bool   is_active = 4;

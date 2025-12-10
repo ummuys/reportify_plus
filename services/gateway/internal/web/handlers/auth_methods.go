@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -84,7 +83,7 @@ func (a *authHandler) CreateUser(g *gin.Context) {
 	out, gErr := a.sc.CreateUser(g.Request.Context(), &authv1.CreateUserRequest{
 		Username: req.Username,
 		Password: req.Password,
-		Role:     req.Password,
+		Role:     req.Role,
 	})
 
 	if gErr != nil {
@@ -168,14 +167,8 @@ func (a *authHandler) UpdateUser(g *gin.Context) {
 func (a *authHandler) DeleteUser(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call DeleteUser").Msg("")
 
-	userID, err := strconv.ParseInt(g.Param("user_id"), 10, 64)
-	if err != nil {
-		g.Set("msg", err.Error())
-		g.AbortWithStatusJSON(http.StatusInternalServerError,
-			webdto.ErrResponse{Error: errs.ErrInternal.Error()})
-		return
-	}
-	if userID < 0 {
+	userID := g.Param("user_id")
+	if userID == "" {
 		g.Set("msg", "invalid user_id")
 		g.AbortWithStatusJSON(http.StatusInternalServerError,
 			webdto.ErrResponse{Error: errs.ErrInternal.Error()})

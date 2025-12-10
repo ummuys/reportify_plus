@@ -1,9 +1,9 @@
 package dto
 
 type DeleteUserParams struct {
-	UserID int64
+	UserID string
 }
 
 type DeleteUserResult struct {
-	UserID int64
+	UserID string
 }

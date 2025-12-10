@@ -46,22 +46,6 @@ func (as *authService) Login(ctx context.Context, in dto.LoginParams) (dto.Login
 	return dto.LoginResult{AccessToken: at, RefreshToken: rt}, nil
 }
 
-func (as *authService) CreateBaseAdmin(ctx context.Context, in dto.CreateBaseAdminParams) error {
-	as.logger.Debug().Str("evt", "call CreateUser").Msg("")
-
-	hashPass, err := as.ph.Hash(in.Password)
-	if err != nil {
-		return err
-	}
-	in.Password = hashPass
-
-	err = as.db.CreateBaseAdmin(ctx, in)
-	if err != nil {
-		return errs.ParsePgError(err)
-	}
-	return nil
-}
-
 func (as *authService) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.CreateUserResult, error) {
 	as.logger.Debug().Str("evt", "call CreateUser").Msg("")
 
@@ -76,6 +60,24 @@ func (as *authService) CreateUser(ctx context.Context, in dto.CreateUserParams) 
 		return dto.CreateUserResult{}, errs.ParsePgError(err)
 	}
 	return out, nil
+}
+
+func (as *authService) CreateBaseAdmin(ctx context.Context, in dto.CreateUserParams) error {
+	as.logger.Debug().Str("evt", "call CreateBaseAdmin").Msg("")
+	hashPass, err := as.ph.Hash(in.Password)
+	if err != nil {
+		return err
+	}
+	in.Password = hashPass
+
+	out, err := as.db.CreateUser(ctx, in)
+	if err != nil {
+		return errs.ParsePgError(err)
+	}
+
+	as.db.SetAdminUUID(out.UserID)
+
+	return nil
 }
 
 func (as *authService) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (dto.UpdateUserResult, error) {

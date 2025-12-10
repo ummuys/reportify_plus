@@ -3,8 +3,10 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -16,8 +18,9 @@ import (
 )
 
 type authDB struct {
-	logger zerolog.Logger
-	pool   *pgxpool.Pool
+	logger    zerolog.Logger
+	pool      *pgxpool.Pool
+	adminUUID string
 }
 
 func NewAuthDB(ctx context.Context, baseLogger zerolog.Logger) (AuthDB, error) {
@@ -37,8 +40,9 @@ func NewAuthDB(ctx context.Context, baseLogger zerolog.Logger) (AuthDB, error) {
 	logger := baseLogger.With().Str("component", "db").Logger()
 
 	return &authDB{
-		logger: logger,
-		pool:   pool,
+		logger:    logger,
+		pool:      pool,
+		adminUUID: "92eac12a-2df0-46ce-9307-f53ab18c79c9",
 	}, nil
 }
 
@@ -56,31 +60,24 @@ func (db *authDB) Login(ctx context.Context, username string) (dto.AuthUser, err
 	return out, nil
 }
 
-func (db *authDB) CreateBaseAdmin(ctx context.Context, in dto.CreateBaseAdminParams) error {
+func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.CreateUserResult, error) {
 	db.logger.Debug().Str("evt", "call CreateBaseAdmin").Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
-	if _, err := db.pool.Exec(qctx, createBaseAdminQuery, in.UserID, in.Username, in.Password, in.Role); err != nil {
+	uuid := uuid.New().String()
+
+	fmt.Println(in)
+	if _, err := db.pool.Exec(qctx, createUserQuery, uuid, in.Username, in.Password, in.Role); err != nil {
 		db.logger.Error().Err(err).Str("evt", "call CreateBaseAdmin").Msg("")
-		return err
-	}
-
-	return nil
-}
-
-func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.CreateUserResult, error) {
-	db.logger.Debug().Str("evt", "call CreateUser").Msg("")
-	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
-	defer cancel()
-
-	var out dto.CreateUserResult
-	if err := db.pool.QueryRow(qctx, createUserQuery, in.Username, in.Password, in.Role).Scan(&out.UserID); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call CreateUser").Msg("")
 		return dto.CreateUserResult{}, err
 	}
 
-	return out, nil
+	return dto.CreateUserResult{UserID: uuid}, nil
+}
+
+func (db *authDB) SetAdminUUID(UUID string) {
+	db.adminUUID = UUID
 }
 
 func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out dto.UpdateUserResult, err error) {
@@ -152,7 +149,7 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 
 func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.DeleteUserResult, error) {
 	db.logger.Debug().Str("evt", "call DeleteUser").Msg("")
-	if in.UserID == 1 {
+	if in.UserID == db.adminUUID {
 		return dto.DeleteUserResult{}, errs.ErrInsufficientPrivilege
 	}
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
@@ -194,6 +191,8 @@ func (db *authDB) ListUsers(ctx context.Context) (dto.ListUsersResult, error) {
 		}
 		users = append(users, u)
 	}
+
+	fmt.Println(users)
 
 	if err := rows.Err(); err != nil {
 		db.logger.Error().Err(err).Str("evt", "call ListUsers").Msg("")

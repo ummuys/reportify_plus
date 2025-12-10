@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS identity.queries (
-    user_id INT PRIMARY KEY REFERENCES identity.users(user_id) ON DELETE CASCADE,
+    user_id UUID PRIMARY KEY REFERENCES identity.users(user_id) ON DELETE CASCADE,
     list JSONB NOT NULL
 );
 

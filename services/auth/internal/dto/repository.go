@@ -1,7 +1,7 @@
 package dto
 
 type AuthUser struct {
-	UserID   int64
+	UserID   string
 	Password string
 	Role     string
 }

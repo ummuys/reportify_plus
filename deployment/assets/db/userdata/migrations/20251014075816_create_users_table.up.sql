@@ -1,6 +1,6 @@
 
 CREATE TABLE IF NOT EXISTS identity.users (
-    user_id SERIAL PRIMARY KEY,
+    user_id UUID PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

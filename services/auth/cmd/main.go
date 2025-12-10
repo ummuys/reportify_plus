@@ -56,8 +56,7 @@ func main() {
 	svc := auth.NewAuthService(ph, tm, db, logs)
 
 	// CREATE USER
-	if err := svc.CreateBaseAdmin(ctx, dto.CreateBaseAdminParams{
-		UserID:   1,
+	if err := svc.CreateBaseAdmin(ctx, dto.CreateUserParams{
 		Username: cfg.AdmUsername,
 		Password: cfg.AdmPassword,
 		Role:     "admin",

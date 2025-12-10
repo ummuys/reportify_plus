@@ -8,7 +8,7 @@ import (
 
 type AuthDB interface {
 	Login(ctx context.Context, username string) (dto.AuthUser, error)
-	CreateBaseAdmin(ctx context.Context, in dto.CreateBaseAdminParams) error
+	SetAdminUUID(UUID string)
 	CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.CreateUserResult, error)
 	UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out dto.UpdateUserResult, err error)
 	DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.DeleteUserResult, error)
