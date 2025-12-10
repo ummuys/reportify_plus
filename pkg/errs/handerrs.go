@@ -11,6 +11,7 @@ var (
 	ErrInvalidJSON     = errors.New("invalid JSON format")
 
 	// ANOTHER
+	ErrDeleteAdmin        = errors.New("can't delete main admin")
 	ErrInvalidUserID      = errors.New("invalid user_id")
 	ErrInvalidData        = errors.New("invalid data")
 	ErrUserUnauthorized   = errors.New("you need to auth")

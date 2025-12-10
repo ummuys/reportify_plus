@@ -93,6 +93,8 @@ func (a *AuthAdapter) DeleteUser(ctx context.Context, in *authv1.DeleteUserReque
 		switch {
 		case errors.Is(err, errs.ErrNotFound):
 			return nil, status.Error(codes.NotFound, errs.ErrUserNotFound.Error())
+		case errors.Is(err, errs.ErrInsufficientPrivilege):
+			return nil, status.Error(codes.PermissionDenied, errs.ErrDeleteAdmin.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
 		}
@@ -125,7 +127,12 @@ func (a *AuthAdapter) RefreshToken(ctx context.Context, in *authv1.RefreshTokenR
 	a.logger.Debug().Str("evt", "call RefreshToken").Msg("")
 	out, err := a.svc.RefreshToken(ctx, dto.RefreshTokenParams{RefreshToken: in.RefreshToken})
 	if err != nil {
-		return &authv1.RefreshTokenResponse{}, err
+		switch {
+		case errors.Is(err, errs.ErrBadRefreshToken):
+			return nil, status.Error(codes.Unauthenticated, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
 	}
 	return &authv1.RefreshTokenResponse{AccessToken: out.AccessToken}, nil
 }

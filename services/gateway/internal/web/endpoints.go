@@ -32,5 +32,5 @@ const (
 
 const (
 	LoginPath        = "secure/login"
-	RefreshTokenPath = "secure/access"
+	RefreshTokenPath = "secure/refresh"
 )

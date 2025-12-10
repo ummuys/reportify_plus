@@ -29,6 +29,20 @@ ins_role AS (
 SELECT user_id FROM new_user;
 `
 
+	createBaseAdminQuery = `
+WITH new_user AS (
+    INSERT INTO identity.users (user_id, username, password)
+    VALUES ($1, $2, $3)
+    RETURNING user_id
+)
+INSERT INTO identity.user_roles (user_id, role_id)
+SELECT
+    new_user.user_id,
+    r.role_id
+FROM new_user
+JOIN identity.roles r ON r.name = $4
+`
+
 	updateUsernameQuery = `
 UPDATE identity.users SET username = $2 WHERE user_id = $1;
 `

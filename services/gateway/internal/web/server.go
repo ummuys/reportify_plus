@@ -33,9 +33,11 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 
 	admPass := []string{"admin"}
 	_ = []string{"user", "admin"}
+
 	// AUTH
 	auth := api.Group("")
-	auth.POST(LoginPath, rh.Auth.Login)
+	auth.POST(LoginPath, rh.Auth.Login(tm.GetRefreshLifetime()))
+	auth.GET(RefreshTokenPath, rh.Auth.RefreshToken)
 
 	authAdm := api.Group("")
 	authAdm.Use(middleware.CheckJWT(tm, admPass))

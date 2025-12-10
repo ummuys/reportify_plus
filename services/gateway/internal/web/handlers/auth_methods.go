@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
@@ -22,52 +23,53 @@ func NewAuthHandler(sc authv1.AuthServiceClient, baseLogger zerolog.Logger) Auth
 	return &authHandler{sc: sc, logger: logger}
 }
 
-func (a *authHandler) Login(g *gin.Context) {
-	a.logger.Debug().Str("evt", "call Login").Msg("")
-	var req webdto.LoginRequest
-	if err := g.ShouldBindJSON(&req); err != nil {
-		g.Set("msg", err.Error())
-		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidJSON.Error()})
-		return
-	}
-
-	out, gErr := a.sc.Login(g.Request.Context(), &authv1.LoginRequest{
-		Username: req.Username,
-		Password: req.Password,
-	})
-
-	if gErr != nil {
-		st, ok := errs.GRPCtoREST(gErr)
-		if !ok {
-			g.Set("non-gprc-msg", gErr.Error())
-			g.AbortWithStatusJSON(http.StatusInternalServerError,
-				webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+func (a *authHandler) Login(refreshTime time.Duration) gin.HandlerFunc {
+	return func(g *gin.Context) {
+		a.logger.Debug().Str("evt", "call Login").Msg("")
+		var req webdto.LoginRequest
+		if err := g.ShouldBindJSON(&req); err != nil {
+			g.Set("msg", err.Error())
+			g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidJSON.Error()})
 			return
 		}
 
-		g.Set("msg", st.Message())
-		var (
-			code int
-			resp any
-		)
-		switch st.Code() {
-		case codes.Unauthenticated:
-			code = http.StatusNotFound
-			resp = webdto.ErrResponse{Error: st.Message()}
-		default:
-			code = http.StatusInternalServerError
-			resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
+		out, gErr := a.sc.Login(g.Request.Context(), &authv1.LoginRequest{
+			Username: req.Username,
+			Password: req.Password,
+		})
+
+		if gErr != nil {
+			st, ok := errs.GRPCtoREST(gErr)
+			if !ok {
+				g.Set("non-gprc-msg", gErr.Error())
+				g.AbortWithStatusJSON(http.StatusInternalServerError,
+					webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+				return
+			}
+
+			g.Set("msg", st.Message())
+			var (
+				code int
+				resp any
+			)
+			switch st.Code() {
+			case codes.Unauthenticated:
+				code = http.StatusNotFound
+				resp = webdto.ErrResponse{Error: st.Message()}
+			default:
+				code = http.StatusInternalServerError
+				resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
+			}
+			g.AbortWithStatusJSON(code, resp)
+			return
 		}
-		g.AbortWithStatusJSON(code, resp)
-		return
+
+		g.Set("msg", "login succsessful")
+		g.SetCookie("refresh_token", out.RefreshToken, int(refreshTime), "/", "", false, true)
+		g.JSON(http.StatusOK, webdto.LoginResponse{
+			AccessToken: out.AccessToken,
+		})
 	}
-
-	g.Set("msg", "login succsessful")
-	g.JSON(http.StatusOK, webdto.LoginResponse{
-		AccessToken:  out.AccessToken,
-		RefreshToken: out.RefreshToken,
-	})
-
 }
 
 func (a *authHandler) CreateUser(g *gin.Context) {
@@ -201,6 +203,9 @@ func (a *authHandler) DeleteUser(g *gin.Context) {
 		case codes.NotFound:
 			code = http.StatusNotFound
 			resp = webdto.ErrResponse{Error: st.Message()}
+		case codes.PermissionDenied:
+			code = http.StatusForbidden
+			resp = webdto.ErrResponse{Error: st.Message()}
 		default:
 			code = http.StatusInternalServerError
 			resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
@@ -212,7 +217,51 @@ func (a *authHandler) DeleteUser(g *gin.Context) {
 	g.Set("msg", "user deleted")
 	g.JSON(http.StatusOK, webdto.DeleteUserResponse{UserID: out.UserId})
 }
-func (a *authHandler) RefreshToken(g *gin.Context) {}
+func (a *authHandler) RefreshToken(g *gin.Context) {
+	a.logger.Debug().Str("evt", "call RefreshToken").Msg("")
+
+	refreshToken, err := g.Cookie("refresh_token")
+	if err != nil {
+		g.Set("msg", err.Error())
+		g.AbortWithStatusJSON(http.StatusUnauthorized, webdto.ErrResponse{Error: errs.ErrBadRefreshToken.Error()})
+		return
+	}
+
+	out, gErr := a.sc.RefreshToken(g.Request.Context(), &authv1.RefreshTokenRequest{
+		RefreshToken: refreshToken,
+	})
+
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError,
+				webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			return
+		}
+
+		g.Set("msg", st.Message())
+		var (
+			code int
+			resp any
+		)
+		switch st.Code() {
+		case codes.Unauthenticated:
+			code = http.StatusUnauthorized
+			resp = webdto.ErrResponse{Error: st.Message()}
+		default:
+			code = http.StatusInternalServerError
+			resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
+		}
+		g.AbortWithStatusJSON(code, resp)
+		return
+	}
+
+	g.Set("msg", "access token refreshed")
+	g.JSON(http.StatusOK, webdto.RefreshTokenResponse{AccessToken: out.AccessToken})
+
+}
+
 func (a *authHandler) ListUsers(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call ListUsers").Msg("")
 

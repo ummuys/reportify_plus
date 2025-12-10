@@ -46,6 +46,22 @@ func (as *authService) Login(ctx context.Context, in dto.LoginParams) (dto.Login
 	return dto.LoginResult{AccessToken: at, RefreshToken: rt}, nil
 }
 
+func (as *authService) CreateBaseAdmin(ctx context.Context, in dto.CreateBaseAdminParams) error {
+	as.logger.Debug().Str("evt", "call CreateUser").Msg("")
+
+	hashPass, err := as.ph.Hash(in.Password)
+	if err != nil {
+		return err
+	}
+	in.Password = hashPass
+
+	err = as.db.CreateBaseAdmin(ctx, in)
+	if err != nil {
+		return errs.ParsePgError(err)
+	}
+	return nil
+}
+
 func (as *authService) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.CreateUserResult, error) {
 	as.logger.Debug().Str("evt", "call CreateUser").Msg("")
 
@@ -64,6 +80,14 @@ func (as *authService) CreateUser(ctx context.Context, in dto.CreateUserParams) 
 
 func (as *authService) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (dto.UpdateUserResult, error) {
 	as.logger.Debug().Str("evt", "call UpdateUser").Msg("")
+
+	if in.Password != "" {
+		hashPass, err := as.ph.Hash(in.Password)
+		if err != nil {
+			return dto.UpdateUserResult{}, err
+		}
+		in.Password = hashPass
+	}
 
 	out, err := as.db.UpdateUser(ctx, in)
 	if err != nil {
@@ -93,5 +117,20 @@ func (as *authService) ListUsers(ctx context.Context) (dto.ListUsersResult, erro
 }
 
 func (as *authService) RefreshToken(ctx context.Context, in dto.RefreshTokenParams) (dto.RefreshTokenResult, error) {
-	return dto.RefreshTokenResult{}, nil
+	as.logger.Debug().Str("evt", "call RefreshToken").Msg("")
+
+	rc, err := as.tm.ValidateRefreshToken(in.RefreshToken)
+	if err != nil {
+		return dto.RefreshTokenResult{}, err
+	}
+
+	userID := rc.UserID
+	role := rc.Role
+
+	access, err := as.tm.GenerateAccessToken(userID, role)
+	if err != nil {
+		return dto.RefreshTokenResult{}, err
+	}
+
+	return dto.RefreshTokenResult{AccessToken: access}, nil
 }

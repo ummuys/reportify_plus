@@ -8,8 +8,7 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	AccessToken string `json:"access_token"`
 }
 
 // CREATE USER
@@ -48,11 +47,6 @@ type DeleteUserResponse struct {
 }
 
 // REFRESH TOKEN
-
-type RefreshTokenRequest struct {
-	RefreshToken string `json:"refresh_token"`
-}
-
 type RefreshTokenResponse struct {
 	AccessToken string `json:"access_token"`
 }

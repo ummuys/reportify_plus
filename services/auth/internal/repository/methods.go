@@ -56,6 +56,19 @@ func (db *authDB) Login(ctx context.Context, username string) (dto.AuthUser, err
 	return out, nil
 }
 
+func (db *authDB) CreateBaseAdmin(ctx context.Context, in dto.CreateBaseAdminParams) error {
+	db.logger.Debug().Str("evt", "call CreateBaseAdmin").Msg("")
+	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
+
+	if _, err := db.pool.Exec(qctx, createBaseAdminQuery, in.UserID, in.Username, in.Password, in.Role); err != nil {
+		db.logger.Error().Err(err).Str("evt", "call CreateBaseAdmin").Msg("")
+		return err
+	}
+
+	return nil
+}
+
 func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.CreateUserResult, error) {
 	db.logger.Debug().Str("evt", "call CreateUser").Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
