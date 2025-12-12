@@ -1,5 +1,7 @@
 package dto
 
+import "time"
+
 type CreateReportParams struct {
 	AuthorID string
 	Name     string
@@ -21,4 +23,27 @@ type ReportStatusParams struct {
 type ReportStatusResult struct {
 	UUID   string
 	Status string
+}
+
+type ListUserReportsParams struct {
+	AuthorID string
+}
+
+type ListReportsResult struct {
+	Reports []ReportMetadata
+}
+
+type ReportMetadata struct {
+	ReportID  string
+	AuthorID  string
+	Name      string
+	Comm      string
+	Query     string
+	Format    string
+	CSVSep    string
+	Status    string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	FilePath  string
+	ErrMsg    string
 }

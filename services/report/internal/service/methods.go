@@ -27,3 +27,20 @@ func (rs *reportService) CreateReport(ctx context.Context, in dto.CreateReportPa
 	}
 	return out, nil
 }
+
+func (rs *reportService) ListUserReports(ctx context.Context, in dto.ListUserReportsParams) (dto.ListReportsResult, error) {
+	rs.logger.Debug().Str("evt", "call ListUserReports").Msg("")
+	out, err := rs.db.ListUserReports(ctx, in)
+	if err != nil {
+		return out, errs.ParsePgError(err)
+	}
+	return out, nil
+}
+func (rs *reportService) ReportStatus(ctx context.Context, in dto.ReportStatusParams) (dto.ReportStatusResult, error) {
+	rs.logger.Debug().Str("evt", "call ReportStatus").Msg("")
+	out, err := rs.db.ReportStatus(ctx, in)
+	if err != nil {
+		return out, errs.ParsePgError(err)
+	}
+	return out, nil
+}

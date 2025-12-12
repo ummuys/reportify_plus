@@ -8,4 +8,14 @@ const (
 	($1, $2, $3, $4, $5, $6, $7)
 	RETURNING status;
 	`
+
+	GetReportStatusQuery = `
+	SEELECT status FROM report_metadata.report_requests
+	where report_id = $1;
+	`
+
+	ListUserReportsQuery = `
+	SELECT * FROM report_metadata.report_requests
+	WHERE author_id = $1;
+	`
 )

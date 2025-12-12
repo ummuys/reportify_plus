@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ReportService_CreateReport_FullMethodName = "/report.v1.ReportService/CreateReport"
-	ReportService_ReportStatus_FullMethodName = "/report.v1.ReportService/ReportStatus"
+	ReportService_CreateReport_FullMethodName    = "/report.v1.ReportService/CreateReport"
+	ReportService_ReportStatus_FullMethodName    = "/report.v1.ReportService/ReportStatus"
+	ReportService_ListUserReports_FullMethodName = "/report.v1.ReportService/ListUserReports"
 )
 
 // ReportServiceClient is the client API for ReportService service.
@@ -29,6 +30,7 @@ const (
 type ReportServiceClient interface {
 	CreateReport(ctx context.Context, in *CreateReportRequest, opts ...grpc.CallOption) (*CreateReportResponse, error)
 	ReportStatus(ctx context.Context, in *ReportStatusRequest, opts ...grpc.CallOption) (*ReportStatusResponse, error)
+	ListUserReports(ctx context.Context, in *ListUserReportsRequest, opts ...grpc.CallOption) (*ListUserReportsResponse, error)
 }
 
 type reportServiceClient struct {
@@ -59,12 +61,23 @@ func (c *reportServiceClient) ReportStatus(ctx context.Context, in *ReportStatus
 	return out, nil
 }
 
+func (c *reportServiceClient) ListUserReports(ctx context.Context, in *ListUserReportsRequest, opts ...grpc.CallOption) (*ListUserReportsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUserReportsResponse)
+	err := c.cc.Invoke(ctx, ReportService_ListUserReports_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReportServiceServer is the server API for ReportService service.
 // All implementations must embed UnimplementedReportServiceServer
 // for forward compatibility.
 type ReportServiceServer interface {
 	CreateReport(context.Context, *CreateReportRequest) (*CreateReportResponse, error)
 	ReportStatus(context.Context, *ReportStatusRequest) (*ReportStatusResponse, error)
+	ListUserReports(context.Context, *ListUserReportsRequest) (*ListUserReportsResponse, error)
 	mustEmbedUnimplementedReportServiceServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedReportServiceServer) CreateReport(context.Context, *CreateRep
 }
 func (UnimplementedReportServiceServer) ReportStatus(context.Context, *ReportStatusRequest) (*ReportStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportStatus not implemented")
+}
+func (UnimplementedReportServiceServer) ListUserReports(context.Context, *ListUserReportsRequest) (*ListUserReportsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListUserReports not implemented")
 }
 func (UnimplementedReportServiceServer) mustEmbedUnimplementedReportServiceServer() {}
 func (UnimplementedReportServiceServer) testEmbeddedByValue()                       {}
@@ -138,6 +154,24 @@ func _ReportService_ReportStatus_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReportService_ListUserReports_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserReportsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportServiceServer).ListUserReports(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportService_ListUserReports_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportServiceServer).ListUserReports(ctx, req.(*ListUserReportsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ReportService_ServiceDesc is the grpc.ServiceDesc for ReportService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,10 @@ var ReportService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReportStatus",
 			Handler:    _ReportService_ReportStatus_Handler,
+		},
+		{
+			MethodName: "ListUserReports",
+			Handler:    _ReportService_ListUserReports_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

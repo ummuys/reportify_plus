@@ -22,6 +22,9 @@ func NewReportHandler(sc reportv1.ReportServiceClient, baseLogger zerolog.Logger
 
 func (r *reportHandler) CreateReport(g *gin.Context) {
 	r.logger.Debug().Str("evt", "call CreateReport").Msg("")
+
+	id := g.GetString("user_id")
+
 	req := webdto.CreateReportRequest{}
 	if err := g.ShouldBindJSON(&req); err != nil {
 		g.Set("msg", err.Error())
@@ -30,7 +33,7 @@ func (r *reportHandler) CreateReport(g *gin.Context) {
 	}
 
 	out, gErr := r.sc.CreateReport(g.Request.Context(), &reportv1.CreateReportRequest{
-		AuthorId: req.AuthorID,
+		AuthorId: id,
 		Name:     req.Name,
 		Comm:     req.Comm,
 		Query:    req.Comm,
@@ -66,6 +69,10 @@ func (r *reportHandler) CreateReport(g *gin.Context) {
 		UUID:   out.Uuid,
 		Status: out.Status,
 	})
+}
+
+func (rh *reportHandler) ListUserReports(g *gin.Context) {
+	return
 }
 
 func (rh *reportHandler) ReportStatus(g *gin.Context) {

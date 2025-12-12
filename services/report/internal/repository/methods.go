@@ -57,6 +57,44 @@ func (db *reportDB) CreateReport(ctx context.Context, in dto.CreateReportParams)
 	return out, nil
 }
 
-func (rdb *reportDB) ReportStatus(ctx context.Context, in dto.ReportStatusParams) (dto.ReportStatusResult, error) {
-	return dto.ReportStatusResult{}, nil
+func (db *reportDB) ListUserReports(ctx context.Context, in dto.ListUserReportsParams) (dto.ListReportsResult, error) {
+	db.logger.Debug().Str("evt", "call ListUserReports")
+	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
+
+	rows, err := db.pool.Query(qctx, ListUserReportsQuery, in.AuthorID)
+	if err != nil {
+		db.logger.Error().Err(err).Str("evt", "call ListUserReports").Msg("")
+		return dto.ListReportsResult{}, err
+	}
+	defer rows.Close()
+
+	out := dto.ListReportsResult{}
+	for rows.Next() {
+		rmd := dto.ReportMetadata{}
+		if err := rows.Scan(&rmd.ReportID, &rmd.AuthorID, &rmd.Name,
+			&rmd.Comm, &rmd.Query, &rmd.Format, &rmd.CSVSep, &rmd.Status,
+			&rmd.CreatedAt, &rmd.UpdatedAt, &rmd.FilePath, &rmd.ErrMsg); err != nil {
+			db.logger.Error().Err(err).Str("evt", "call ListUserReports").Msg("")
+		}
+		out.Reports = append(out.Reports, rmd)
+	}
+
+	return out, nil
+}
+
+func (db *reportDB) ReportStatus(ctx context.Context, in dto.ReportStatusParams) (dto.ReportStatusResult, error) {
+	db.logger.Debug().Str("evt", "call ReportStatus")
+	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
+
+	out := dto.ReportStatusResult{}
+
+	if err := db.pool.QueryRow(qctx, GetReportStatusQuery, in.UUID).Scan(&out.Status); err != nil {
+		db.logger.Error().Err(err).Str("evt", "call CreateReport").Msg("")
+		return dto.ReportStatusResult{}, err
+	}
+
+	out.UUID = in.UUID
+	return out, nil
 }

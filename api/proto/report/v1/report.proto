@@ -4,9 +4,12 @@ package report.v1;
 
 option go_package = "github.com/ummuys/reportify/api/pb/report/v1;reportv1";
 
+import "google/protobuf/timestamp.proto";
+
 service ReportService {
     rpc CreateReport (CreateReportRequest) returns (CreateReportResponse);
     rpc ReportStatus (ReportStatusRequest) returns (ReportStatusResponse);
+    rpc ListUserReports (ListUserReportsRequest) returns (ListUserReportsResponse);
 }
 
 message CreateReportRequest {
@@ -28,5 +31,29 @@ message ReportStatusRequest {
 }
 
 message ReportStatusResponse {
-    string status = 1;
+    string uuid = 1;
+    string status = 2;
+}
+
+message ListUserReportsRequest {
+    string author_id = 1;
+}
+
+message ListUserReportsResponse {
+    repeated ReportMetadata reports = 1;
+}
+
+message ReportMetadata {
+    string report_id = 1;
+    string author_id = 2;
+    string name = 3;
+    string comm = 4;
+    string query = 5;
+    string format = 6;
+    string csv_sep = 7;
+    string status = 8;
+    google.protobuf.Timestamp created_at = 9;
+    google.protobuf.Timestamp updated_at = 10;
+    string file_path = 11;
+    string err_msg = 12;
 }
