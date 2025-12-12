@@ -4,7 +4,7 @@ package web
 
 // REPORT
 const (
-	CreateReportPath = "report/:format"
+	CreateReportPath = "report"
 )
 
 // Metadata

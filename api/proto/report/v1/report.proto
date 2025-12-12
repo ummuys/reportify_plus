@@ -6,7 +6,7 @@ option go_package = "github.com/ummuys/reportify/api/pb/report/v1;reportv1";
 
 service ReportService {
     rpc CreateReport (CreateReportRequest) returns (CreateReportResponse);
-    rpc CheckReportStatus (CheckReportStatusRequest) returns (CheckReportStatusResponse);
+    rpc ReportStatus (ReportStatusRequest) returns (ReportStatusResponse);
 }
 
 message CreateReportRequest {
@@ -14,17 +14,19 @@ message CreateReportRequest {
     string name = 2;
     string comm = 3;
     string query = 4;
-    string csv_sep = 5;
+    string format = 5;
+    string csv_sep = 6;
 }
 
 message CreateReportResponse {
     string uuid = 1;
+    string status = 2;
 }
 
-message CheckReportStatusRequest {
+message ReportStatusRequest {
     string uuid = 1;
 }
 
-message CheckReportStatusResponse {
+message ReportStatusResponse {
     string status = 1;
 }

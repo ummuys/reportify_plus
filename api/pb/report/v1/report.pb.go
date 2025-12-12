@@ -22,14 +22,15 @@ const (
 )
 
 type CreateReportRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	ReportAuthorId string                 `protobuf:"bytes,1,opt,name=report_author_id,json=reportAuthorId,proto3" json:"report_author_id,omitempty"`
-	ReportName     string                 `protobuf:"bytes,2,opt,name=report_name,json=reportName,proto3" json:"report_name,omitempty"`
-	ReportComm     string                 `protobuf:"bytes,3,opt,name=report_comm,json=reportComm,proto3" json:"report_comm,omitempty"`
-	Query          string                 `protobuf:"bytes,4,opt,name=query,proto3" json:"query,omitempty"`
-	CsvSep         string                 `protobuf:"bytes,5,opt,name=csv_sep,json=csvSep,proto3" json:"csv_sep,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AuthorId      string                 `protobuf:"bytes,1,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Comm          string                 `protobuf:"bytes,3,opt,name=comm,proto3" json:"comm,omitempty"`
+	Query         string                 `protobuf:"bytes,4,opt,name=query,proto3" json:"query,omitempty"`
+	Format        string                 `protobuf:"bytes,5,opt,name=format,proto3" json:"format,omitempty"`
+	CsvSep        string                 `protobuf:"bytes,6,opt,name=csv_sep,json=csvSep,proto3" json:"csv_sep,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateReportRequest) Reset() {
@@ -62,23 +63,23 @@ func (*CreateReportRequest) Descriptor() ([]byte, []int) {
 	return file_report_v1_report_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *CreateReportRequest) GetReportAuthorId() string {
+func (x *CreateReportRequest) GetAuthorId() string {
 	if x != nil {
-		return x.ReportAuthorId
+		return x.AuthorId
 	}
 	return ""
 }
 
-func (x *CreateReportRequest) GetReportName() string {
+func (x *CreateReportRequest) GetName() string {
 	if x != nil {
-		return x.ReportName
+		return x.Name
 	}
 	return ""
 }
 
-func (x *CreateReportRequest) GetReportComm() string {
+func (x *CreateReportRequest) GetComm() string {
 	if x != nil {
-		return x.ReportComm
+		return x.Comm
 	}
 	return ""
 }
@@ -86,6 +87,13 @@ func (x *CreateReportRequest) GetReportComm() string {
 func (x *CreateReportRequest) GetQuery() string {
 	if x != nil {
 		return x.Query
+	}
+	return ""
+}
+
+func (x *CreateReportRequest) GetFormat() string {
+	if x != nil {
+		return x.Format
 	}
 	return ""
 }
@@ -99,7 +107,8 @@ func (x *CreateReportRequest) GetCsvSep() string {
 
 type CreateReportResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Report_UUID   string                 `protobuf:"bytes,1,opt,name=report_UUID,json=reportUUID,proto3" json:"report_UUID,omitempty"`
+	Uuid          string                 `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -134,34 +143,41 @@ func (*CreateReportResponse) Descriptor() ([]byte, []int) {
 	return file_report_v1_report_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateReportResponse) GetReport_UUID() string {
+func (x *CreateReportResponse) GetUuid() string {
 	if x != nil {
-		return x.Report_UUID
+		return x.Uuid
 	}
 	return ""
 }
 
-type CheckReportStatusRequest struct {
+func (x *CreateReportResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type ReportStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ReportUuid    string                 `protobuf:"bytes,1,opt,name=report_uuid,json=reportUuid,proto3" json:"report_uuid,omitempty"`
+	Uuid          string                 `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CheckReportStatusRequest) Reset() {
-	*x = CheckReportStatusRequest{}
+func (x *ReportStatusRequest) Reset() {
+	*x = ReportStatusRequest{}
 	mi := &file_report_v1_report_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CheckReportStatusRequest) String() string {
+func (x *ReportStatusRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CheckReportStatusRequest) ProtoMessage() {}
+func (*ReportStatusRequest) ProtoMessage() {}
 
-func (x *CheckReportStatusRequest) ProtoReflect() protoreflect.Message {
+func (x *ReportStatusRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_report_v1_report_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -173,39 +189,39 @@ func (x *CheckReportStatusRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CheckReportStatusRequest.ProtoReflect.Descriptor instead.
-func (*CheckReportStatusRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ReportStatusRequest.ProtoReflect.Descriptor instead.
+func (*ReportStatusRequest) Descriptor() ([]byte, []int) {
 	return file_report_v1_report_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *CheckReportStatusRequest) GetReportUuid() string {
+func (x *ReportStatusRequest) GetUuid() string {
 	if x != nil {
-		return x.ReportUuid
+		return x.Uuid
 	}
 	return ""
 }
 
-type CheckReportStatusResponse struct {
+type ReportStatusResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ReportStatus  string                 `protobuf:"bytes,1,opt,name=report_status,json=reportStatus,proto3" json:"report_status,omitempty"`
+	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CheckReportStatusResponse) Reset() {
-	*x = CheckReportStatusResponse{}
+func (x *ReportStatusResponse) Reset() {
+	*x = ReportStatusResponse{}
 	mi := &file_report_v1_report_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CheckReportStatusResponse) String() string {
+func (x *ReportStatusResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CheckReportStatusResponse) ProtoMessage() {}
+func (*ReportStatusResponse) ProtoMessage() {}
 
-func (x *CheckReportStatusResponse) ProtoReflect() protoreflect.Message {
+func (x *ReportStatusResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_report_v1_report_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -217,14 +233,14 @@ func (x *CheckReportStatusResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CheckReportStatusResponse.ProtoReflect.Descriptor instead.
-func (*CheckReportStatusResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ReportStatusResponse.ProtoReflect.Descriptor instead.
+func (*ReportStatusResponse) Descriptor() ([]byte, []int) {
 	return file_report_v1_report_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *CheckReportStatusResponse) GetReportStatus() string {
+func (x *ReportStatusResponse) GetStatus() string {
 	if x != nil {
-		return x.ReportStatus
+		return x.Status
 	}
 	return ""
 }
@@ -233,26 +249,24 @@ var File_report_v1_report_proto protoreflect.FileDescriptor
 
 const file_report_v1_report_proto_rawDesc = "" +
 	"\n" +
-	"\x16report/v1/report.proto\x12\treport.v1\"\xb0\x01\n" +
-	"\x13CreateReportRequest\x12(\n" +
-	"\x10report_author_id\x18\x01 \x01(\tR\x0ereportAuthorId\x12\x1f\n" +
-	"\vreport_name\x18\x02 \x01(\tR\n" +
-	"reportName\x12\x1f\n" +
-	"\vreport_comm\x18\x03 \x01(\tR\n" +
-	"reportComm\x12\x14\n" +
-	"\x05query\x18\x04 \x01(\tR\x05query\x12\x17\n" +
-	"\acsv_sep\x18\x05 \x01(\tR\x06csvSep\"7\n" +
-	"\x14CreateReportResponse\x12\x1f\n" +
-	"\vreport_UUID\x18\x01 \x01(\tR\n" +
-	"reportUUID\";\n" +
-	"\x18CheckReportStatusRequest\x12\x1f\n" +
-	"\vreport_uuid\x18\x01 \x01(\tR\n" +
-	"reportUuid\"@\n" +
-	"\x19CheckReportStatusResponse\x12#\n" +
-	"\rreport_status\x18\x01 \x01(\tR\freportStatus2\xc0\x01\n" +
+	"\x16report/v1/report.proto\x12\treport.v1\"\xa1\x01\n" +
+	"\x13CreateReportRequest\x12\x1b\n" +
+	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
+	"\x04comm\x18\x03 \x01(\tR\x04comm\x12\x14\n" +
+	"\x05query\x18\x04 \x01(\tR\x05query\x12\x16\n" +
+	"\x06format\x18\x05 \x01(\tR\x06format\x12\x17\n" +
+	"\acsv_sep\x18\x06 \x01(\tR\x06csvSep\"B\n" +
+	"\x14CreateReportResponse\x12\x12\n" +
+	"\x04uuid\x18\x01 \x01(\tR\x04uuid\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\")\n" +
+	"\x13ReportStatusRequest\x12\x12\n" +
+	"\x04uuid\x18\x01 \x01(\tR\x04uuid\".\n" +
+	"\x14ReportStatusResponse\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status2\xb1\x01\n" +
 	"\rReportService\x12O\n" +
-	"\fCreateReport\x12\x1e.report.v1.CreateReportRequest\x1a\x1f.report.v1.CreateReportResponse\x12^\n" +
-	"\x11CheckReportStatus\x12#.report.v1.CheckReportStatusRequest\x1a$.report.v1.CheckReportStatusResponseB7Z5github.com/ummuys/reportify/api/pb/report/v1;reportv1b\x06proto3"
+	"\fCreateReport\x12\x1e.report.v1.CreateReportRequest\x1a\x1f.report.v1.CreateReportResponse\x12O\n" +
+	"\fReportStatus\x12\x1e.report.v1.ReportStatusRequest\x1a\x1f.report.v1.ReportStatusResponseB7Z5github.com/ummuys/reportify/api/pb/report/v1;reportv1b\x06proto3"
 
 var (
 	file_report_v1_report_proto_rawDescOnce sync.Once
@@ -268,16 +282,16 @@ func file_report_v1_report_proto_rawDescGZIP() []byte {
 
 var file_report_v1_report_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_report_v1_report_proto_goTypes = []any{
-	(*CreateReportRequest)(nil),       // 0: report.v1.CreateReportRequest
-	(*CreateReportResponse)(nil),      // 1: report.v1.CreateReportResponse
-	(*CheckReportStatusRequest)(nil),  // 2: report.v1.CheckReportStatusRequest
-	(*CheckReportStatusResponse)(nil), // 3: report.v1.CheckReportStatusResponse
+	(*CreateReportRequest)(nil),  // 0: report.v1.CreateReportRequest
+	(*CreateReportResponse)(nil), // 1: report.v1.CreateReportResponse
+	(*ReportStatusRequest)(nil),  // 2: report.v1.ReportStatusRequest
+	(*ReportStatusResponse)(nil), // 3: report.v1.ReportStatusResponse
 }
 var file_report_v1_report_proto_depIdxs = []int32{
 	0, // 0: report.v1.ReportService.CreateReport:input_type -> report.v1.CreateReportRequest
-	2, // 1: report.v1.ReportService.CheckReportStatus:input_type -> report.v1.CheckReportStatusRequest
+	2, // 1: report.v1.ReportService.ReportStatus:input_type -> report.v1.ReportStatusRequest
 	1, // 2: report.v1.ReportService.CreateReport:output_type -> report.v1.CreateReportResponse
-	3, // 3: report.v1.ReportService.CheckReportStatus:output_type -> report.v1.CheckReportStatusResponse
+	3, // 3: report.v1.ReportService.ReportStatus:output_type -> report.v1.ReportStatusResponse
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

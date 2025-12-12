@@ -40,9 +40,8 @@ func NewAuthDB(ctx context.Context, baseLogger zerolog.Logger) (AuthDB, error) {
 	logger := baseLogger.With().Str("component", "db").Logger()
 
 	return &authDB{
-		logger:    logger,
-		pool:      pool,
-		adminUUID: "92eac12a-2df0-46ce-9307-f53ab18c79c9",
+		logger: logger,
+		pool:   pool,
 	}, nil
 }
 
@@ -71,7 +70,6 @@ func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.
 
 	uuid := uuid.New().String()
 
-	fmt.Println(in)
 	if _, err := db.pool.Exec(qctx, createUserQuery, uuid, in.Username, in.Password, in.Role); err != nil {
 		db.logger.Error().Err(err).Str("evt", "call CreateBaseAdmin").Msg("")
 		return dto.CreateUserResult{}, err

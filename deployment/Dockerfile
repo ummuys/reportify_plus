@@ -25,6 +25,35 @@ COPY --from=auth-builder ./svc/app .
 EXPOSE ${AUTH_SERVICE_PORT}
 CMD ["./app"]
 
+
+##############################################################
+########################### REPORT ###########################
+##############################################################
+
+# BUILDER
+FROM golang:1.25.1-alpine AS report-builder
+WORKDIR /svc
+
+COPY go.mod go.sum ./ 
+
+COPY ./api ./api
+COPY ./pkg ./pkg
+COPY ./services/report ./services/report
+
+
+RUN go mod download \
+    && go mod tidy \
+    && go build -o /svc/app ./services/report/cmd
+
+
+# RUNNER
+FROM alpine:3.22 AS report
+WORKDIR /root/
+COPY --from=report-builder ./svc/app .
+EXPOSE ${REPORT_SERVICE_PORT}
+CMD ["./app"]
+
+
 ##############################################################
 ########################## GATEWAY ###########################
 ##############################################################

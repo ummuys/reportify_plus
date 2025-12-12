@@ -11,6 +11,9 @@ import (
 	reportv1 "github.com/ummuys/reportify/api/pb/report/v1"
 	"github.com/ummuys/reportify/pkg/config"
 	"github.com/ummuys/reportify/pkg/logger"
+	"github.com/ummuys/reportify/services/report/internal/adapter"
+	"github.com/ummuys/reportify/services/report/internal/repository"
+	"github.com/ummuys/reportify/services/report/internal/service"
 	"google.golang.org/grpc"
 )
 
@@ -33,8 +36,16 @@ func main() {
 		logs.Fatal().Err(err).Msg("listener")
 	}
 
+	db, err := repository.NewReportDB(ctx, logs)
+	if err != nil {
+		logs.Fatal().Err(err).Msg("report-db")
+	}
+
+	svc := service.NewReportService(db, logs)
+
 	srv := grpc.NewServer()
-	reportv1.RegisterReportServiceServer(srv, nil)
+	adapter := adapter.NewReportAdapter(svc, logs)
+	reportv1.RegisterReportServiceServer(srv, adapter)
 
 	wg := sync.WaitGroup{}
 

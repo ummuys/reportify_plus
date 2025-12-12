@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS report_metadata.report_requests;

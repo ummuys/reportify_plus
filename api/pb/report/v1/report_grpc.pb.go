@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ReportService_CreateReport_FullMethodName      = "/report.v1.ReportService/CreateReport"
-	ReportService_CheckReportStatus_FullMethodName = "/report.v1.ReportService/CheckReportStatus"
+	ReportService_CreateReport_FullMethodName = "/report.v1.ReportService/CreateReport"
+	ReportService_ReportStatus_FullMethodName = "/report.v1.ReportService/ReportStatus"
 )
 
 // ReportServiceClient is the client API for ReportService service.
@@ -28,7 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ReportServiceClient interface {
 	CreateReport(ctx context.Context, in *CreateReportRequest, opts ...grpc.CallOption) (*CreateReportResponse, error)
-	CheckReportStatus(ctx context.Context, in *CheckReportStatusRequest, opts ...grpc.CallOption) (*CheckReportStatusResponse, error)
+	ReportStatus(ctx context.Context, in *ReportStatusRequest, opts ...grpc.CallOption) (*ReportStatusResponse, error)
 }
 
 type reportServiceClient struct {
@@ -49,10 +49,10 @@ func (c *reportServiceClient) CreateReport(ctx context.Context, in *CreateReport
 	return out, nil
 }
 
-func (c *reportServiceClient) CheckReportStatus(ctx context.Context, in *CheckReportStatusRequest, opts ...grpc.CallOption) (*CheckReportStatusResponse, error) {
+func (c *reportServiceClient) ReportStatus(ctx context.Context, in *ReportStatusRequest, opts ...grpc.CallOption) (*ReportStatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CheckReportStatusResponse)
-	err := c.cc.Invoke(ctx, ReportService_CheckReportStatus_FullMethodName, in, out, cOpts...)
+	out := new(ReportStatusResponse)
+	err := c.cc.Invoke(ctx, ReportService_ReportStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (c *reportServiceClient) CheckReportStatus(ctx context.Context, in *CheckRe
 // for forward compatibility.
 type ReportServiceServer interface {
 	CreateReport(context.Context, *CreateReportRequest) (*CreateReportResponse, error)
-	CheckReportStatus(context.Context, *CheckReportStatusRequest) (*CheckReportStatusResponse, error)
+	ReportStatus(context.Context, *ReportStatusRequest) (*ReportStatusResponse, error)
 	mustEmbedUnimplementedReportServiceServer()
 }
 
@@ -78,8 +78,8 @@ type UnimplementedReportServiceServer struct{}
 func (UnimplementedReportServiceServer) CreateReport(context.Context, *CreateReportRequest) (*CreateReportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateReport not implemented")
 }
-func (UnimplementedReportServiceServer) CheckReportStatus(context.Context, *CheckReportStatusRequest) (*CheckReportStatusResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CheckReportStatus not implemented")
+func (UnimplementedReportServiceServer) ReportStatus(context.Context, *ReportStatusRequest) (*ReportStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReportStatus not implemented")
 }
 func (UnimplementedReportServiceServer) mustEmbedUnimplementedReportServiceServer() {}
 func (UnimplementedReportServiceServer) testEmbeddedByValue()                       {}
@@ -120,20 +120,20 @@ func _ReportService_CreateReport_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ReportService_CheckReportStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CheckReportStatusRequest)
+func _ReportService_ReportStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportStatusRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ReportServiceServer).CheckReportStatus(ctx, in)
+		return srv.(ReportServiceServer).ReportStatus(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ReportService_CheckReportStatus_FullMethodName,
+		FullMethod: ReportService_ReportStatus_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ReportServiceServer).CheckReportStatus(ctx, req.(*CheckReportStatusRequest))
+		return srv.(ReportServiceServer).ReportStatus(ctx, req.(*ReportStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -150,8 +150,8 @@ var ReportService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ReportService_CreateReport_Handler,
 		},
 		{
-			MethodName: "CheckReportStatus",
-			Handler:    _ReportService_CheckReportStatus_Handler,
+			MethodName: "ReportStatus",
+			Handler:    _ReportService_ReportStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

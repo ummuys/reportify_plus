@@ -102,6 +102,26 @@ services:
 ##############################################################
 ########################### REPORT ###########################
 ##############################################################
+
+  report-service:
+    build: 
+      context: ../
+      dockerfile: deployment/Dockerfile
+      target: report
+    image: report-service
+    container_name: ${REPORT_SERVICE_CONTAINER_NAME}
+    env_file:
+      - ./../.env
+      - ./../services/report/.env
+    ports:
+      - ${REPORT_SERVICE_OUT_PORT}:${REPORT_SERVICE_IN_PORT}
+    restart: always
+    depends_on:
+      report-migration:
+        condition: service_completed_successfully
+    networks:
+      - reportify-network
+
   report-minio:
     image: quay.io/minio/minio:latest
     container_name: ${REPORT_MINIO_CONTAINER_NAME}
@@ -117,6 +137,47 @@ services:
     restart: always
     networks:
       - reportify-network
+
+  report-db:
+    image: postgres:17
+    env_file:
+      - ./../.env
+    container_name: ${REPORT_DB_CONTAINER_NAME}
+    environment: 
+      POSTGRES_USER: ${REPORT_DB_USER}
+      POSTGRES_PASSWORD: ${REPORT_DB_PASSWORD}
+      POSTGRES_DB: ${REPORT_DB_NAME}
+    ports:
+      - ${REPORT_DB_OUT_PORT}:${REPORT_DB_IN_PORT}
+    networks:
+      - reportify-network
+    volumes:
+      - report-db:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${REPORT_DB_USER} -d ${REPORT_DB_NAME}" ]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    restart: unless-stopped
+
+  report-migration:
+    image: migrate/migrate
+    env_file:
+      - ./../.env
+    container_name: report-migration
+    environment:
+      REPORT_DB_MIG: ${REPORT_DB_MIG}
+    volumes:
+      - ./assets/db/report/migrations:/migrations
+    command: ["-path", "/migrations", "-database", "${REPORT_DB_MIG}", "up"]
+    depends_on:
+      report-db:
+        condition: service_healthy
+    restart: no
+    networks:
+      - reportify-network
+
+
 
   report-kafka:
     image: apache/kafka:latest
@@ -149,6 +210,7 @@ services:
 ##############################################################
 
 volumes:
+  report-db:
   auth-db:
   report-minio-data:
 

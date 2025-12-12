@@ -36,7 +36,12 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 	api.Use(gin.Recovery())
 
 	admPass := []string{"admin"}
-	_ = []string{"user", "admin"}
+	basePass := []string{"user", "admin"}
+
+	// REPORT
+	report := api.Group("")
+	report.Use(middleware.CheckJWT(tm, basePass))
+	report.POST(CreateReportPath, rh.Report.CreateReport)
 
 	// AUTH
 	auth := api.Group("")

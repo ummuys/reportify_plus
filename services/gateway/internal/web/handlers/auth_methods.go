@@ -40,7 +40,7 @@ func (a *authHandler) Login(refreshTime time.Duration) gin.HandlerFunc {
 		if gErr != nil {
 			st, ok := errs.GRPCtoREST(gErr)
 			if !ok {
-				g.Set("non-gprc-msg", gErr.Error())
+				g.Set("msg", gErr.Error())
 				g.AbortWithStatusJSON(http.StatusInternalServerError,
 					webdto.ErrResponse{Error: errs.ErrInternal.Error()})
 				return

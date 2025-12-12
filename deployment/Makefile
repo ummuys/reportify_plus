@@ -25,25 +25,27 @@ update:
 status:
 	@$(BASE_COMMAND) -f $(COMPOSE) ps -a
 
-drop-auth-volume:
+drop-all-volume:
 	@$(BASE_COMMAND) -f $(COMPOSE) down -v
 	
 
 update-gateway-image:
 	@$(BASE_COMMAND) -f $(COMPOSE) down
 	@-docker image rm gateway-service
-	@$(BASE_COMMAND) -f $(COMPOSE) up -d
 
 update-auth-image:
 	@$(BASE_COMMAND) -f $(COMPOSE) down
 	@-docker image rm auth-service
-	@$(BASE_COMMAND) -f $(COMPOSE) up -d
+
+update-report-image:
+	@$(BASE_COMMAND) -f $(COMPOSE) down
+	@-docker image rm report-service
 
 update-all-images:
 	@$(BASE_COMMAND) -f $(COMPOSE) down
 	@-docker image rm auth-service
 	@-docker image rm gateway-service
-	@$(BASE_COMMAND) -f $(COMPOSE) up -d
+	@-docker image rm report-service
 
 
 update-all-images: update-auth-image update-gateway-image
