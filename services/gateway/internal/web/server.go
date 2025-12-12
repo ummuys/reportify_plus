@@ -42,6 +42,8 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 	report := api.Group("")
 	report.Use(middleware.CheckJWT(tm, basePass))
 	report.POST(CreateReportPath, rh.Report.CreateReport)
+	report.GET(ListUserReportsPath, rh.Report.ListUserReports)
+	report.GET(ReportStatusPath, rh.Report.ReportStatus)
 
 	// AUTH
 	auth := api.Group("")

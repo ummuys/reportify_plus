@@ -76,6 +76,7 @@ func (db *reportDB) ListUserReports(ctx context.Context, in dto.ListUserReportsP
 			&rmd.Comm, &rmd.Query, &rmd.Format, &rmd.CSVSep, &rmd.Status,
 			&rmd.CreatedAt, &rmd.UpdatedAt, &rmd.FilePath, &rmd.ErrMsg); err != nil {
 			db.logger.Error().Err(err).Str("evt", "call ListUserReports").Msg("")
+			return dto.ListReportsResult{}, nil
 		}
 		out.Reports = append(out.Reports, rmd)
 	}

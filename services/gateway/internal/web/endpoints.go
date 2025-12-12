@@ -4,7 +4,9 @@ package web
 
 // REPORT
 const (
-	CreateReportPath = "report"
+	CreateReportPath    = "report"
+	ListUserReportsPath = "report"
+	ReportStatusPath    = "report/:report_id"
 )
 
 // Metadata

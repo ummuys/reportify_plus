@@ -63,8 +63,6 @@ func (ra *ReportAdapter) ListUserReports(ctx context.Context, in *reportv1.ListU
 	out, err := ra.svc.ListUserReports(ctx, dto.ListUserReportsParams{AuthorID: in.AuthorId})
 	if err != nil {
 		switch {
-		case errors.Is(err, errs.ErrNotFound):
-			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
 		}

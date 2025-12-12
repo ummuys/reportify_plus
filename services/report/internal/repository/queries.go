@@ -10,7 +10,7 @@ const (
 	`
 
 	GetReportStatusQuery = `
-	SEELECT status FROM report_metadata.report_requests
+	SELECT status FROM report_metadata.report_requests
 	where report_id = $1;
 	`
 
