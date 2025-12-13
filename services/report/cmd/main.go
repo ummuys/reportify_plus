@@ -12,6 +12,8 @@ import (
 	"github.com/ummuys/reportify/pkg/config"
 	"github.com/ummuys/reportify/pkg/logger"
 	"github.com/ummuys/reportify/services/report/internal/adapter"
+	"github.com/ummuys/reportify/services/report/internal/dto"
+	"github.com/ummuys/reportify/services/report/internal/kafkacli"
 	"github.com/ummuys/reportify/services/report/internal/repository"
 	"github.com/ummuys/reportify/services/report/internal/service"
 	"google.golang.org/grpc"
@@ -44,7 +46,17 @@ func main() {
 	svc := service.NewReportService(db, logs)
 
 	srv := grpc.NewServer()
-	adapter := adapter.NewReportAdapter(svc, logs)
+
+	tunnel := make(chan dto.KafkaMessage, 10)
+	defer close(tunnel)
+
+	kafkaCli, err := kafkacli.NewKafkaProducer(tunnel, logs)
+	if err != nil {
+		logs.Fatal().Err(err).Msg("kafkacli")
+	}
+	defer kafkaCli.Close()
+
+	adapter := adapter.NewReportAdapter(svc, tunnel, logs)
 	reportv1.RegisterReportServiceServer(srv, adapter)
 
 	wg := sync.WaitGroup{}
@@ -52,6 +64,13 @@ func main() {
 	wg.Go(func() {
 		<-ctx.Done()
 		srv.GracefulStop()
+	})
+
+	wg.Go(func() {
+		err := kafkaCli.Run(ctx)
+		if err != nil {
+			logs.Fatal().Err(err).Msg("shutdown kafka-producer")
+		}
 	})
 
 	wg.Go(func() {

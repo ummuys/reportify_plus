@@ -18,15 +18,18 @@ type ReportAdapter struct {
 	logger zerolog.Logger
 	reportv1.UnimplementedReportServiceServer
 	svc service.ReportService
+
+	// For kafka
+	tunnel chan<- dto.KafkaMessage
 }
 
-func NewReportAdapter(svc service.ReportService, baseLogger zerolog.Logger) *ReportAdapter {
+func NewReportAdapter(svc service.ReportService, tunnelIn chan dto.KafkaMessage, baseLogger zerolog.Logger) *ReportAdapter {
 	logger := baseLogger.With().Str("component", "adpt").Logger()
-	return &ReportAdapter{svc: svc, logger: logger}
+	return &ReportAdapter{svc: svc, tunnel: tunnelIn, logger: logger}
 }
 
 func (ra *ReportAdapter) CreateReport(ctx context.Context, in *reportv1.CreateReportRequest) (*reportv1.CreateReportResponse, error) {
-	ra.logger.Debug().Str("evt", "call CreateLogin").Msg("")
+	ra.logger.Debug().Str("evt", "call CreateReport").Msg("")
 	out, err := ra.svc.CreateReport(ctx, dto.CreateReportParams{
 		AuthorID: in.AuthorId,
 		Name:     in.Name,
@@ -35,12 +38,21 @@ func (ra *ReportAdapter) CreateReport(ctx context.Context, in *reportv1.CreateRe
 		Format:   in.Format,
 		CSVSep:   in.CsvSep,
 	})
+
 	if err != nil {
 		switch {
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
+
+	ra.tunnel <- dto.KafkaMessage{
+		Key:   nil,
+		Value: []byte(out.UUID),
+	}
+
+	ra.logger.Info().Str("uuid", out.UUID).Str("author_id", in.AuthorId).Str("format", in.Format).Msg("report task created")
+
 	return &reportv1.CreateReportResponse{Uuid: out.UUID, Status: out.Status}, nil
 }
 

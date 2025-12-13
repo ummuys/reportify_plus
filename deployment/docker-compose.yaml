@@ -182,7 +182,11 @@ services:
   report-kafka:
     image: apache/kafka:latest
     container_name: ${REPORT_KAFKA_CONTAINER_NAME}
+    env_file:
+      - ./../.env
     hostname: ${REPORT_KAFKA_CONTAINER_NAME}
+    ports:
+      - ${REPORT_KAFKA_OUT_PORT}:${REPORT_KAFKA_IN_PORT}
     environment:
 
       KAFKA_BROKER_ID: ${REPORT_KAFKA_BROKER_ID}
@@ -205,6 +209,34 @@ services:
       KAFKA_LOG_DIRS: ${REPORT_KAFKA_LOG_DIRS}
       CLUSTER_ID: ${REPORT_KAFKA_CLUSTER_ID}
 
+    healthcheck:
+      test:  ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1 || exit 1"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+      start_period: 5s
+    volumes:
+      - report-kafka-data:/var/lib/kafka/data
+    restart: on-failure
+    networks:
+      - reportify-network
+
+  report-kafka-topics:
+    image: apache/kafka:3.7.0
+    container_name: report-kafka-topics
+    entrypoint: ["/bin/bash","-lc"]
+    env_file:
+      - ./../.env
+    command: ["/usr/local/bin/init-topics.sh"]
+    volumes:
+      - ./scripts/init_topics.sh:/usr/local/bin/init-topics.sh:ro
+    restart: "no"
+    depends_on:
+      report-kafka:
+        condition: service_healthy
+    networks:
+      - reportify-network
+
 ##############################################################
 ######################## REPORT-WORKER #######################
 ##############################################################
@@ -213,6 +245,7 @@ volumes:
   report-db:
   auth-db:
   report-minio-data:
+  report-kafka-data:
 
 networks:
   reportify-network:

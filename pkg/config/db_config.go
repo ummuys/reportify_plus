@@ -80,3 +80,4 @@ func parseDBEnv(prefix string) (DBConfig, error) {
 
 func ParseAuthDBEnv() (DBConfig, error)   { return parseDBEnv("AUTH_DB") }
 func ParseReportDBEnv() (DBConfig, error) { return parseDBEnv("REPORT_DB") }
+func ParseDataDBEnv() (DBConfig, error)   { return parseDBEnv("DATA_DB") }

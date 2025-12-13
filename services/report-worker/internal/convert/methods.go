@@ -12,6 +12,7 @@ import (
 	"baliance.com/gooxml/schema/soo/wml"
 	"github.com/phpdave11/gofpdf"
 	"github.com/rs/zerolog"
+	"github.com/ummuys/reportify/services/report-worker/internal/dto"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -19,11 +20,11 @@ type repConv struct {
 	logger *zerolog.Logger
 }
 
-func NewReportConvert(logger *zerolog.Logger, SSUser bool) ReportConvert {
+func NewReportConvert(logger *zerolog.Logger) ReportConvert {
 	return &repConv{logger: logger}
 }
 
-func (rc *repConv) ToDOCX(headers []string, data [][]any, f *os.File) error {
+func (rc *repConv) ToDOCX(in dto.ConvParams) error {
 	rc.logger.Debug().Str("env", "call toDOCX").Msg("")
 
 	doc := document.New()
@@ -37,7 +38,7 @@ func (rc *repConv) ToDOCX(headers []string, data [][]any, f *os.File) error {
 	tblBorders.SetInsideHorizontal(wml.ST_BorderSingle, color.Auto, th)
 
 	header := table.AddRow()
-	for _, h := range headers {
+	for _, h := range in.Colums {
 		cell := header.AddCell()
 		para := cell.AddParagraph()
 		run := para.AddRun()
@@ -45,7 +46,7 @@ func (rc *repConv) ToDOCX(headers []string, data [][]any, f *os.File) error {
 		run.Properties().SetBold(true)
 	}
 
-	for _, rowData := range data {
+	for _, rowData := range in.Rows {
 		row := table.AddRow()
 		for _, d := range rowData {
 			cell := row.AddCell()
@@ -53,7 +54,7 @@ func (rc *repConv) ToDOCX(headers []string, data [][]any, f *os.File) error {
 		}
 	}
 
-	if err := doc.Save(f); err != nil {
+	if err := doc.Save(in.File); err != nil {
 		rc.logger.Error().Err(err).Msg("fatal create DOCX")
 		return fmt.Errorf("can't save in DOCX file: %v", err)
 	}
@@ -61,19 +62,19 @@ func (rc *repConv) ToDOCX(headers []string, data [][]any, f *os.File) error {
 	return nil
 }
 
-func (rc *repConv) ToJSON(headers []string, data [][]any, f *os.File) error {
+func (rc *repConv) ToJSON(in dto.ConvParams) error {
 	rc.logger.Debug().Str("env", "call toJSON").Msg("")
 
-	res := make([]map[string]any, len(data))
-	for i, row := range data {
+	res := make([]map[string]any, len(in.Rows))
+	for i, row := range in.Rows {
 		m := make(map[string]any)
 		for j, d := range row {
-			m[headers[j]] = d
+			m[in.Colums[j]] = d
 		}
 		res[i] = m
 	}
 
-	if err := json.NewEncoder(f).Encode(res); err != nil {
+	if err := json.NewEncoder(in.File).Encode(res); err != nil {
 		rc.logger.Error().Err(err).Msg("fatal create JSON")
 		return fmt.Errorf("can't save in JSON file: %v", err)
 	}
@@ -81,7 +82,7 @@ func (rc *repConv) ToJSON(headers []string, data [][]any, f *os.File) error {
 	return nil
 }
 
-func (rc *repConv) ToXLSX(headers []string, data [][]any, f *os.File) error {
+func (rc *repConv) ToXLSX(in dto.ConvParams) error {
 	rc.logger.Debug().Str("env", "call toXLSX").Msg("")
 
 	fx := excelize.NewFile()
@@ -103,7 +104,7 @@ func (rc *repConv) ToXLSX(headers []string, data [][]any, f *os.File) error {
 		return fmt.Errorf("get new sheet: %w", err)
 	}
 
-	for col, head := range headers {
+	for col, head := range in.Colums {
 		cell, err := excelize.CoordinatesToCellName(col+1, 1)
 		if err != nil {
 			return fmt.Errorf("can't conv int -> cell: %v", err)
@@ -113,7 +114,7 @@ func (rc *repConv) ToXLSX(headers []string, data [][]any, f *os.File) error {
 		}
 	}
 
-	for row, record := range data {
+	for row, record := range in.Rows {
 		for col, val := range record {
 			cell, err := excelize.CoordinatesToCellName(col+1, row+2)
 			if err != nil {
@@ -127,7 +128,7 @@ func (rc *repConv) ToXLSX(headers []string, data [][]any, f *os.File) error {
 
 	fx.SetActiveSheet(idx)
 
-	if err := fx.Write(f); err != nil {
+	if err := fx.Write(in.File); err != nil {
 		rc.logger.Error().Err(err).Msg("fatal create XLSX")
 		return fmt.Errorf("can't save in XLSX file: %v", err)
 	}
@@ -136,23 +137,23 @@ func (rc *repConv) ToXLSX(headers []string, data [][]any, f *os.File) error {
 	return nil
 }
 
-func (rc *repConv) ToCSV(headers []string, rows [][]any, f *os.File, sep rune) error {
+func (rc *repConv) ToCSV(in dto.ConvParams) error {
 	rc.logger.Debug().Str("env", "call toCSV").Msg("")
-	if len(headers) == 0 {
+	if len(in.Colums) == 0 {
 		return fmt.Errorf("empty headers")
 	}
 
-	w := csv.NewWriter(f)
-	if sep != ' ' {
-		w.Comma = sep
+	w := csv.NewWriter(in.File)
+	if in.Sep != ' ' {
+		w.Comma = in.Sep
 	}
 	defer w.Flush()
 
-	if err := w.Write(headers); err != nil {
+	if err := w.Write(in.Colums); err != nil {
 		return fmt.Errorf("write headers: %w", err)
 	}
 
-	for _, row := range rows {
+	for _, row := range in.Rows {
 		strs := make([]string, len(row))
 		for i, r := range row {
 			strs[i] = fmt.Sprint(r)
@@ -171,10 +172,10 @@ func (rc *repConv) ToCSV(headers []string, rows [][]any, f *os.File, sep rune) e
 	return nil
 }
 
-func (rc *repConv) ToPDF(headers []string, rows [][]any, f *os.File) error {
+func (rc *repConv) ToPDF(in dto.ConvParams) error {
 	rc.logger.Debug().Str("env", "call toPDF").Msg("")
 
-	if len(headers) == 0 {
+	if len(in.Colums) == 0 {
 		return fmt.Errorf("empty headers")
 	}
 
@@ -195,8 +196,8 @@ func (rc *repConv) ToPDF(headers []string, rows [][]any, f *os.File) error {
 	)
 
 	sampleN := sampleRows
-	if len(rows) < sampleN {
-		sampleN = len(rows)
+	if len(in.Rows) < sampleN {
+		sampleN = len(in.Rows)
 	}
 
 	ttf, err := os.ReadFile("internal/convert/fonts/DejaVuSans.ttf")
@@ -217,11 +218,11 @@ func (rc *repConv) ToPDF(headers []string, rows [][]any, f *os.File) error {
 		{"A3", "L", 8, 10},
 	}
 	switch {
-	case len(headers) >= 18:
+	case len(in.Colums) >= 18:
 		for i := range presets {
 			presets[i].leftRight = 6
 		}
-	case len(headers) >= 12:
+	case len(in.Colums) >= 12:
 		for i := range presets {
 			if presets[i].leftRight > 8 {
 				presets[i].leftRight = 8
@@ -263,8 +264,8 @@ func (rc *repConv) ToPDF(headers []string, rows [][]any, f *os.File) error {
 
 	measure := func(pdf *gofpdf.Fpdf, fontSize float64) ([]float64, float64) {
 		pdf.SetFont("DejaVu", "", fontSize)
-		colW := make([]float64, len(headers))
-		for i, htxt := range headers {
+		colW := make([]float64, len(in.Colums))
+		for i, htxt := range in.Colums {
 			sw := pdf.GetStringWidth(htxt) + 2*cellPad
 			if sw < minColWidthMM {
 				sw = minColWidthMM
@@ -275,8 +276,8 @@ func (rc *repConv) ToPDF(headers []string, rows [][]any, f *os.File) error {
 			colW[i] = sw
 		}
 		for r := 0; r < sampleN; r++ {
-			row := rows[r]
-			for c := 0; c < len(headers) && c < len(row); c++ {
+			row := in.Rows[r]
+			for c := 0; c < len(in.Colums) && c < len(row); c++ {
 				sw := pdf.GetStringWidth(fmt.Sprint(row[c])) + 2*cellPad
 				if sw > colW[c] {
 					if sw > maxColWidthMM {
@@ -406,20 +407,20 @@ func (rc *repConv) ToPDF(headers []string, rows [][]any, f *os.File) error {
 
 	pdf.SetFillColor(240, 240, 240)
 	pdf.SetDrawColor(200, 200, 200)
-	for i, htxt := range headers {
+	for i, htxt := range in.Colums {
 		pdf.CellFormat(chosen.colW[i], headerH, htxt, "1", 0, "C", true, 0, "")
 	}
 	pdf.Ln(-1)
 
 	alt := false
-	for _, row := range rows {
+	for _, row := range in.Rows {
 		alt = !alt
 		if alt {
 			pdf.SetFillColor(248, 248, 248)
 		} else {
 			pdf.SetFillColor(255, 255, 255)
 		}
-		for i := range headers {
+		for i := range in.Colums {
 			var txt string
 			if i < len(row) {
 				txt = fmt.Sprint(row[i])
@@ -429,7 +430,7 @@ func (rc *repConv) ToPDF(headers []string, rows [][]any, f *os.File) error {
 		pdf.Ln(-1)
 	}
 
-	if err := pdf.Output(f); err != nil {
+	if err := pdf.Output(in.File); err != nil {
 		rc.logger.Error().Err(err).Msg("fatal create PDF")
 		return err
 	}

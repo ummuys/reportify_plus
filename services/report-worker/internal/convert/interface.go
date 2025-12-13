@@ -1,13 +1,15 @@
 package convert
 
-import "os"
+import (
+	"github.com/ummuys/reportify/services/report-worker/internal/dto"
+)
 
 type ReportConvert interface {
-	ToPDF(headers []string, data [][]any, f *os.File) error
-	ToXLSX(headers []string, data [][]any, f *os.File) error
-	ToJSON(headers []string, data [][]any, f *os.File) error
-	ToCSV(headers []string, data [][]any, f *os.File, sep rune) error
-	ToDOCX(headers []string, data [][]any, f *os.File) error
+	ToPDF(in dto.ConvParams) error
+	ToXLSX(in dto.ConvParams) error
+	ToJSON(in dto.ConvParams) error
+	ToCSV(in dto.ConvParams) error
+	ToDOCX(in dto.ConvParams) error
 
 	// ToMD()
 

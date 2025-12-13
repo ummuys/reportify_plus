@@ -1,7 +1,13 @@
 package repository
 
-import "context"
+import (
+	"context"
+
+	"github.com/ummuys/reportify/services/report-worker/internal/dto"
+)
 
 type ReportDB interface {
-	CreateReport(pCtx context.Context, script string) ([]string, [][]any, error)
+	GetReportInfo(ctx context.Context, in dto.GetReportInfoParams) (dto.GetReportInfoResult, error)
+	SetReportStatus(ctx context.Context, in dto.SetReportStatusParams) error
+	FinalizeReport(ctx context.Context, in dto.FinalizeReportParams) error
 }
