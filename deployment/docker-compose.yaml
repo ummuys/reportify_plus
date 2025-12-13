@@ -234,6 +234,8 @@ services:
     depends_on:
       report-kafka:
         condition: service_healthy
+      report-db:
+        condition: service_healthy
     networks:
       - reportify-network
 
@@ -241,11 +243,76 @@ services:
 ######################## REPORT-WORKER #######################
 ##############################################################
 
+  report-worker:
+    build: 
+      context: ../
+      dockerfile: deployment/Dockerfile
+      target: report-worker
+    image: report-worker
+    env_file:
+     - ./../services/report/.env
+     - ./../.env
+     - ./../services/report-worker/.env
+    depends_on:
+      report-kafka:
+        condition: service_healthy
+    networks:
+      - reportify-network
+    deploy:
+      replicas: 3
+
+
+
+##############################################################
+############################ DATA ############################
+##############################################################
+
+  data-db:
+    image: postgres:17
+    env_file:
+      - ./../.env
+    container_name: ${DATA_DB_CONTAINER_NAME}
+    environment:
+      POSTGRES_USER: ${DATA_DB_USER}
+      POSTGRES_PASSWORD: ${DATA_DB_PASSWORD}
+      POSTGRES_DB: ${DATA_DB_NAME}
+    ports:
+      - ${DATA_DB_OUT_PORT}:${DATA_DB_IN_PORT}
+    networks:
+      - reportify-network
+    volumes:
+      - data-db:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DATA_DB_USER} -d ${DATA_DB_NAME}" ]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    restart: unless-stopped
+
+  data-migration:
+    image: migrate/migrate
+    env_file:
+      - ./../.env
+    container_name: data-migration
+    environment:
+      DATA_DB_MIG: ${DATA_DB_MIG}
+    volumes:
+      - ./assets/db/data/migrations:/migrations
+    command: ["-path", "/migrations", "-database", "${DATA_DB_MIG}", "up"]
+    depends_on:
+      data-db:
+        condition: service_healthy
+    restart: no
+    networks:
+      - reportify-network
+
+
 volumes:
   report-db:
   auth-db:
   report-minio-data:
   report-kafka-data:
+  data-db:
 
 networks:
   reportify-network:

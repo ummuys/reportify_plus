@@ -1,3 +1,7 @@
 package kafkacli
 
-type KafkaConsumer interface{}
+import "context"
+
+type KafkaConsumer interface {
+	Run(ctx context.Context) error
+}

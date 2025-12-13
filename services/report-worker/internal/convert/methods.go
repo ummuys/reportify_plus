@@ -17,10 +17,10 @@ import (
 )
 
 type repConv struct {
-	logger *zerolog.Logger
+	logger zerolog.Logger
 }
 
-func NewReportConvert(logger *zerolog.Logger) ReportConvert {
+func NewReportConvert(logger zerolog.Logger) ReportConvert {
 	return &repConv{logger: logger}
 }
 
@@ -145,7 +145,7 @@ func (rc *repConv) ToCSV(in dto.ConvParams) error {
 
 	w := csv.NewWriter(in.File)
 	if in.Sep != ' ' {
-		w.Comma = in.Sep
+		w.Comma = rune(in.Sep)
 	}
 	defer w.Flush()
 

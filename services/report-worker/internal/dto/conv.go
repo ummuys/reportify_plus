@@ -6,5 +6,5 @@ type ConvParams struct {
 	Colums []string
 	Rows   [][]any
 	File   *os.File
-	Sep    rune
+	Sep    byte
 }

@@ -23,7 +23,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	logs, err := logger.InitLogger("report", "LOG_LEVEL_AUTH")
+	logs, err := logger.InitLogger("report", "LOG_LEVEL_REPORT")
 	if err != nil {
 		log.Fatal(err)
 	}

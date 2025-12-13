@@ -33,9 +33,16 @@ func NewPublishService(dataDB repository.DataDB, reportDB repository.ReportDB, c
 func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	if err := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
 		UUID:         in.UUID,
-		UpdateStatus: "RUNNING",
-		BeforeStatus: "CREATED",
+		UpdateStatus: repository.StatusRunnig,
+		BeforeStatus: repository.StatusCreated,
 	}); err != nil {
+		if ferr := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
+			UUID:         in.UUID,
+			UpdateStatus: repository.StatusFailed,
+			BeforeStatus: repository.StatusCreated,
+		}); ferr != nil {
+			p.logger.Error().Err(ferr).Msg("can't change to failed")
+		}
 		return errs.ParsePgError(err)
 	}
 
@@ -44,6 +51,13 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	})
 
 	if err != nil {
+		if ferr := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
+			UUID:         in.UUID,
+			UpdateStatus: repository.StatusFailed,
+			BeforeStatus: repository.StatusRunnig,
+		}); ferr != nil {
+			p.logger.Error().Err(ferr).Msg("can't change to failed")
+		}
 		return errs.ParsePgError(err)
 	}
 
@@ -52,6 +66,13 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	})
 
 	if err != nil {
+		if ferr := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
+			UUID:         in.UUID,
+			UpdateStatus: repository.StatusFailed,
+			BeforeStatus: repository.StatusRunnig,
+		}); ferr != nil {
+			p.logger.Error().Err(ferr).Msg("can't change to failed")
+		}
 		return errs.ParsePgError(err)
 	}
 
@@ -76,6 +97,13 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	}
 
 	if err != nil {
+		if ferr := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
+			UUID:         in.UUID,
+			UpdateStatus: repository.StatusFailed,
+			BeforeStatus: repository.StatusRunnig,
+		}); ferr != nil {
+			p.logger.Error().Err(ferr).Msg("can't change to failed")
+		}
 		return err
 	}
 
@@ -83,8 +111,8 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 
 	p.reportDB.FinalizeReport(ctx, dto.FinalizeReportParams{
 		UUID:         in.UUID,
-		UpdateStatus: "COMPLETED",
-		BeforeStatus: "RUNNIG",
+		UpdateStatus: repository.StatusCompleted,
+		BeforeStatus: repository.StatusRunnig,
 		FilePath:     "this must be a file path :)",
 	})
 

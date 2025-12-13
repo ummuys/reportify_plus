@@ -17,7 +17,7 @@ type dDB struct {
 	pool   *pgxpool.Pool
 }
 
-func NewDataDB(ctx context.Context, baseLogger *zerolog.Logger) (DataDB, error) {
+func NewDataDB(ctx context.Context, baseLogger zerolog.Logger) (DataDB, error) {
 	qctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
@@ -26,7 +26,7 @@ func NewDataDB(ctx context.Context, baseLogger *zerolog.Logger) (DataDB, error) 
 		return nil, err
 	}
 
-	pool, err := db.PoolFromConfig(qctx, cfg, "report")
+	pool, err := db.PoolFromConfig(qctx, cfg, "DATA_DB")
 	if err != nil {
 		return nil, err
 	}
@@ -39,13 +39,14 @@ func NewDataDB(ctx context.Context, baseLogger *zerolog.Logger) (DataDB, error) 
 	}, nil
 }
 
-func (d *dDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.GetDataResult, error) {
-	d.logger.Debug().Str("evt", "call CreateReport").Str("Query", in.Query).Msg("")
+func (db *dDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.GetDataResult, error) {
+	db.logger.Debug().Str("evt", "call GetData").Str("Query", in.Query).Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*180)
 	defer cancel()
 
-	rows, err := d.pool.Query(qctx, in.Query)
+	rows, err := db.pool.Query(qctx, in.Query)
 	if err != nil {
+		db.logger.Error().Err(err).Str("evt", "call GetData").Msg("")
 		return dto.GetDataResult{}, err
 	}
 	defer rows.Close()
@@ -61,6 +62,7 @@ func (d *dDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.GetDataRes
 	for rows.Next() {
 		vals, err := rows.Values()
 		if err != nil {
+			db.logger.Error().Err(err).Str("evt", "call GetData").Msg("")
 			return dto.GetDataResult{}, err
 		}
 
@@ -72,6 +74,7 @@ func (d *dDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.GetDataRes
 	}
 
 	if err := rows.Err(); err != nil {
+		db.logger.Error().Err(err).Str("evt", "call GetData").Msg("")
 		return dto.GetDataResult{}, err
 	}
 

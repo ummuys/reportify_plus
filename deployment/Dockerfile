@@ -80,3 +80,29 @@ WORKDIR /root/
 COPY --from=gateway-builder ./svc/app .
 EXPOSE ${AUTH_SERVICE_PORT}
 CMD ["./app"]
+
+
+##############################################################
+####################### REPORT-WORKER ########################
+##############################################################
+# BUILDER
+FROM golang:1.25.1-alpine AS report-worker-builder
+WORKDIR /svc
+
+COPY go.mod go.sum ./ 
+
+COPY ./api ./api
+COPY ./pkg ./pkg
+COPY ./services/report-worker ./services/report-worker
+
+
+RUN go mod download \
+    && go mod tidy \
+    && go build -o /svc/app ./services/report-worker/cmd
+
+
+# RUNNER
+FROM alpine:3.22 AS report-worker
+WORKDIR /root/
+COPY --from=report-worker-builder ./svc/app .
+CMD ["./app"]

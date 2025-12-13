@@ -17,7 +17,7 @@ type reportDB struct {
 }
 
 func NewReportDB(ctx context.Context, baseLogger zerolog.Logger) (ReportDB, error) {
-	dctx, cancel := context.WithTimeout(ctx, time.Second*5)
+	qctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
 	cfg, err := config.ParseReportDBEnv()
@@ -25,7 +25,7 @@ func NewReportDB(ctx context.Context, baseLogger zerolog.Logger) (ReportDB, erro
 		return nil, err
 	}
 
-	pool, err := db.PoolFromConfig(dctx, cfg, "REPORT_DB")
+	pool, err := db.PoolFromConfig(qctx, cfg, "REPORT_DB")
 	if err != nil {
 		return nil, err
 	}
@@ -43,10 +43,15 @@ func (db *reportDB) GetReportInfo(ctx context.Context, in dto.GetReportInfoParam
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
+	var sep string
 	out := dto.GetReportInfoResult{}
 	if err := db.pool.QueryRow(qctx, ReportInfoQuery, in.UUID).Scan(&out.AuthorID,
-		&out.Name, &out.Comm, &out.Query, &out.Format, &out.CSVSep); err != nil {
+		&out.Name, &out.Comm, &out.Query, &out.Format, &sep); err != nil {
+		db.logger.Error().Err(err).Str("evt", "call GetReportInfo").Msg("")
 		return dto.GetReportInfoResult{}, err
+	}
+	if sep != "" {
+		out.CSVSep = sep[0]
 	}
 	return out, nil
 }
@@ -56,7 +61,8 @@ func (db *reportDB) SetReportStatus(ctx context.Context, in dto.SetReportStatusP
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
-	if _, err := db.pool.Exec(qctx, SetReportStatusQuery, in.UUID, in.UpdateStatus, in.BeforeStatus); err != nil {
+	if _, err := db.pool.Exec(qctx, SetReportStatusQuery, in.UpdateStatus, in.UUID, in.BeforeStatus); err != nil {
+		db.logger.Error().Err(err).Str("evt", "call SetReportStatus").Msg("")
 		return err
 	}
 	return nil
@@ -68,6 +74,7 @@ func (db *reportDB) FinalizeReport(ctx context.Context, in dto.FinalizeReportPar
 	defer cancel()
 
 	if _, err := db.pool.Exec(qctx, FinalizeReportQuery, in.UpdateStatus, in.FilePath, in.UUID, in.BeforeStatus); err != nil {
+		db.logger.Error().Err(err).Str("evt", "call FinalizeReport").Msg("")
 		return err
 	}
 	return nil

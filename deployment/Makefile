@@ -41,11 +41,17 @@ update-report-image:
 	@$(BASE_COMMAND) -f $(COMPOSE) down
 	@-docker image rm report-service
 
+update-report-worker-image:
+	@$(BASE_COMMAND) -f $(COMPOSE) down
+	@-docker image rm report-worker
+
 update-all-images:
 	@$(BASE_COMMAND) -f $(COMPOSE) down
 	@-docker image rm auth-service
 	@-docker image rm gateway-service
 	@-docker image rm report-service
+	@-docker image rm report-worker
+
 
 
 update-all-images: update-auth-image update-gateway-image

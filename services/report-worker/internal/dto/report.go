@@ -11,7 +11,7 @@ type GetReportInfoResult struct {
 	Comm     string
 	Query    string
 	Format   string
-	CSVSep   rune
+	CSVSep   byte
 }
 
 type SetReportStatusParams struct {
