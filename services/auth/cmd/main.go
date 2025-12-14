@@ -69,6 +69,8 @@ func main() {
 	authv1.RegisterAuthServiceServer(srv, adp)
 
 	wg := sync.WaitGroup{}
+	SDChan := make(chan errs.SDMsg, 2)
+
 	wg.Go(func() {
 		<-ctx.Done()
 		srv.GracefulStop()
@@ -77,10 +79,14 @@ func main() {
 	wg.Go(func() {
 		logs.Info().Msg("run the grpc-server")
 		if err := srv.Serve(lis); err != nil {
-			logs.Fatal().Err(err).Msg("shutdown grpc-server")
+			SDChan <- errs.SDMsg{
+				Err:  err,
+				From: "grpc-server",
+			}
 		}
 	})
 
 	wg.Wait()
-	logs.Info().Msg("graceful shutdown")
+	close(SDChan)
+	errs.ShutdownStatus(logs, SDChan)
 }

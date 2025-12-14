@@ -7,6 +7,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/pkg/logger"
 	"github.com/ummuys/reportify/services/report-worker/internal/convert"
 	"github.com/ummuys/reportify/services/report-worker/internal/kafkacli"
@@ -45,16 +46,21 @@ func main() {
 		logs.Fatal().Err(err).Msg("kafka-consumer")
 	}
 
+	SDChan := make(chan errs.SDMsg, 2)
+
 	wg := sync.WaitGroup{}
 	wg.Go(func() {
 		logs.Info().Msg("run the report-worker")
 		err := kafkacli.Run(ctx)
 		if err != nil {
-			logs.Error().Err(err).Msg("kafka-consumer")
+			SDChan <- errs.SDMsg{
+				Err:  err,
+				From: "kafka-consumer",
+			}
 		}
 	})
 
 	wg.Wait()
-	logs.Info().Msg("graceful shutdown")
-
+	close(SDChan)
+	errs.ShutdownStatus(logs, SDChan)
 }

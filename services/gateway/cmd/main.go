@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os/signal"
 	"sync"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ummuys/reportify/pkg/config"
+	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/pkg/logger"
 	pkg "github.com/ummuys/reportify/pkg/tm"
 	"github.com/ummuys/reportify/services/gateway/internal/di"
@@ -43,10 +43,8 @@ func main() {
 		logs.Fatal().Err(err).Msg("token-manager")
 	}
 
-	// START SERVER
 	server := web.CreateServer(cfg, rh, tm, logs)
-	errsCh := make(chan error, 4)
-	srvOff := make(chan struct{})
+	SDChan := make(chan errs.SDMsg, 3)
 
 	var wg sync.WaitGroup
 
@@ -58,32 +56,24 @@ func main() {
 		defer cancel()
 
 		if err := server.Shutdown(sdCtx); err != nil {
-			errsCh <- fmt.Errorf("server shutdown: %w", err)
+			SDChan <- errs.SDMsg{
+				Err:  err,
+				From: "off rest-server",
+			}
 		}
-		close(srvOff)
 	})
 
 	wg.Go(func() {
 		logs.Info().Msg("run the rest-server")
 		if err := web.RunServer(server); err != nil {
-			errsCh <- fmt.Errorf("server start failed: %w", err)
+			SDChan <- errs.SDMsg{
+				Err:  err,
+				From: "rest-server",
+			}
 		}
 	})
 
 	wg.Wait()
-	close(errsCh)
-
-	var hadErr bool
-	for err := range errsCh {
-		if err != nil {
-			hadErr = true
-			logs.Error().Err(err).Send()
-		}
-	}
-
-	if hadErr {
-		logs.Error().Msg("graceful shutdown completed with errors")
-	} else {
-		logs.Info().Msg("graceful shutdown")
-	}
+	close(SDChan)
+	errs.ShutdownStatus(logs, SDChan)
 }

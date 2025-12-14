@@ -10,6 +10,7 @@ import (
 
 	reportv1 "github.com/ummuys/reportify/api/pb/report/v1"
 	"github.com/ummuys/reportify/pkg/config"
+	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/pkg/logger"
 	"github.com/ummuys/reportify/services/report/internal/adapter"
 	"github.com/ummuys/reportify/services/report/internal/dto"
@@ -18,6 +19,11 @@ import (
 	"github.com/ummuys/reportify/services/report/internal/service"
 	"google.golang.org/grpc"
 )
+
+type SDMsg struct {
+	err  error
+	from string
+}
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -60,6 +66,7 @@ func main() {
 	reportv1.RegisterReportServiceServer(srv, adapter)
 
 	wg := sync.WaitGroup{}
+	SDChan := make(chan errs.SDMsg, 2)
 
 	wg.Go(func() {
 		<-ctx.Done()
@@ -69,17 +76,25 @@ func main() {
 	wg.Go(func() {
 		err := kafkaCli.Run(ctx)
 		if err != nil {
-			logs.Fatal().Err(err).Msg("shutdown kafka-producer")
+			SDChan <- errs.SDMsg{
+				Err:  err,
+				From: "kafka-producer",
+			}
 		}
 	})
 
 	wg.Go(func() {
 		logs.Info().Msg("run the grpc-server")
 		if err := srv.Serve(lis); err != nil {
-			logs.Fatal().Err(err).Msg("shutdown grpc-server")
+			SDChan <- errs.SDMsg{
+				Err:  err,
+				From: "grpc-server",
+			}
 		}
 	})
 
 	wg.Wait()
-	logs.Info().Msg("graceful shutdown")
+	close(SDChan)
+	errs.ShutdownStatus(logs, SDChan)
+
 }

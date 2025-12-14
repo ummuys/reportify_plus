@@ -48,7 +48,7 @@ func (p *producer) Run(ctx context.Context) error {
 		select {
 
 		case <-ctx.Done():
-			return ctx.Err()
+			return nil
 		case msg, ok := <-p.tunnel:
 			if !ok {
 				return errors.New("kafka tunnel is closed")
