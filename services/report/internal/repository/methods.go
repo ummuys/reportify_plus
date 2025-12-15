@@ -49,7 +49,7 @@ func (db *reportDB) CreateReport(ctx context.Context, in dto.CreateReportParams)
 	out := dto.CreateReportResult{}
 
 	uuid := uuid.New().String()
-	if err := db.pool.QueryRow(qctx, CreateReportQuery, uuid, in.AuthorID, in.Name, in.Comm, in.Query, in.Format, in.CSVSep).Scan(&out.Status); err != nil {
+	if err := db.pool.QueryRow(qctx, createReportQuery, uuid, in.AuthorID, in.Name, in.Comm, in.Query, in.Format, in.CSVSep).Scan(&out.Status); err != nil {
 		db.logger.Error().Err(err).Str("evt", "call CreateReport").Msg("")
 		return dto.CreateReportResult{}, err
 	}
@@ -64,7 +64,7 @@ func (db *reportDB) ListUserReports(ctx context.Context, in dto.ListUserReportsP
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
-	rows, err := db.pool.Query(qctx, ListUserReportsQuery, in.AuthorID)
+	rows, err := db.pool.Query(qctx, listUserReportsQuery, in.AuthorID)
 	if err != nil {
 		db.logger.Error().Err(err).Str("evt", "call ListUserReports").Msg("")
 		return dto.ListReportsResult{}, err
@@ -93,7 +93,7 @@ func (db *reportDB) ReportStatus(ctx context.Context, in dto.ReportStatusParams)
 
 	out := dto.ReportStatusResult{}
 
-	if err := db.pool.QueryRow(qctx, GetReportStatusQuery, in.UUID).Scan(&out.Status); err != nil {
+	if err := db.pool.QueryRow(qctx, getReportStatusQuery, in.UUID).Scan(&out.Status); err != nil {
 		db.logger.Error().Err(err).Str("evt", "call CreateReport").Msg("")
 		return dto.ReportStatusResult{}, err
 	}
@@ -113,7 +113,7 @@ func (d *reportDB) GetSchemas(pCtx context.Context) (map[string]string, error) {
 	ctx, cancel := context.WithTimeout(pCtx, time.Second*2)
 	defer cancel()
 
-	rows, err := d.pool.Query(ctx, qSchemaWithComment)
+	rows, err := d.pool.Query(ctx, schemaWithCommentQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func (d *reportDB) GetTables(pCtx context.Context, schemaName string) (map[strin
 	ctx, cancel := context.WithTimeout(pCtx, time.Second*2)
 	defer cancel()
 
-	rows, err := d.pool.Query(ctx, qTablesWithComment, schemaName)
+	rows, err := d.pool.Query(ctx, tablesWithCommentQuery, schemaName)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (d *reportDB) GetColumns(pCtx context.Context, schemaName, tableName string
 	ctx, cancel := context.WithTimeout(pCtx, 5*time.Second)
 	defer cancel()
 
-	rows, err := d.pool.Query(ctx, qColumnsWithComment, schemaName, tableName)
+	rows, err := d.pool.Query(ctx, columnsWithCommentQuery, schemaName, tableName)
 	if err != nil {
 		return nil, err
 	}
@@ -215,9 +215,9 @@ func (d *reportDB) SetCacheQueries(pCtx context.Context, cache map[string][]byte
 	for _, uid := range usersID {
 		val, ok := cache[uid]
 		if !ok {
-			b.Queue(qSetCacheQuery, uid, []byte("[]"))
+			b.Queue(setCacheQuery, uid, []byte("[]"))
 		} else {
-			b.Queue(qSetCacheQuery, uid, val)
+			b.Queue(setCacheQuery, uid, val)
 		}
 	}
 
@@ -247,7 +247,7 @@ func (d *reportDB) GetCacheQueries(pCtx context.Context) (map[string][]byte, err
 	ctx, cancel := context.WithTimeout(pCtx, 5*time.Second)
 	defer cancel()
 
-	rows, err := d.pool.Query(ctx, qGetCacheQuery)
+	rows, err := d.pool.Query(ctx, getCacheQuery)
 	if err != nil {
 		return nil, err
 	}

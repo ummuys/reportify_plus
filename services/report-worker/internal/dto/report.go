@@ -20,6 +20,12 @@ type SetReportStatusParams struct {
 	BeforeStatus string
 }
 
+type SetReportFailedStatusParams struct {
+	UUID         string
+	Err          string
+	BeforeStatus string
+}
+
 type FinalizeReportParams struct {
 	UUID         string
 	UpdateStatus string

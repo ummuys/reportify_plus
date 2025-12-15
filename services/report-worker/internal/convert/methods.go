@@ -54,7 +54,7 @@ func (rc *repConv) ToDOCX(in dto.ConvParams) error {
 		}
 	}
 
-	if err := doc.Save(in.File); err != nil {
+	if err := doc.Save(in.Writer); err != nil {
 		rc.logger.Error().Err(err).Msg("fatal create DOCX")
 		return fmt.Errorf("can't save in DOCX file: %v", err)
 	}
@@ -74,7 +74,7 @@ func (rc *repConv) ToJSON(in dto.ConvParams) error {
 		res[i] = m
 	}
 
-	if err := json.NewEncoder(in.File).Encode(res); err != nil {
+	if err := json.NewEncoder(in.Writer).Encode(res); err != nil {
 		rc.logger.Error().Err(err).Msg("fatal create JSON")
 		return fmt.Errorf("can't save in JSON file: %v", err)
 	}
@@ -128,7 +128,7 @@ func (rc *repConv) ToXLSX(in dto.ConvParams) error {
 
 	fx.SetActiveSheet(idx)
 
-	if err := fx.Write(in.File); err != nil {
+	if err := fx.Write(in.Writer); err != nil {
 		rc.logger.Error().Err(err).Msg("fatal create XLSX")
 		return fmt.Errorf("can't save in XLSX file: %v", err)
 	}
@@ -143,7 +143,7 @@ func (rc *repConv) ToCSV(in dto.ConvParams) error {
 		return fmt.Errorf("empty headers")
 	}
 
-	w := csv.NewWriter(in.File)
+	w := csv.NewWriter(in.Writer)
 	if in.Sep != ' ' {
 		w.Comma = rune(in.Sep)
 	}
@@ -430,7 +430,7 @@ func (rc *repConv) ToPDF(in dto.ConvParams) error {
 		pdf.Ln(-1)
 	}
 
-	if err := pdf.Output(in.File); err != nil {
+	if err := pdf.Output(in.Writer); err != nil {
 		rc.logger.Error().Err(err).Msg("fatal create PDF")
 		return err
 	}

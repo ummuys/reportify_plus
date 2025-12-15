@@ -37,7 +37,7 @@ func (rh *reportHandler) CreateReport(g *gin.Context) {
 		AuthorId: id,
 		Name:     req.Name,
 		Comm:     req.Comm,
-		Query:    req.Comm,
+		Query:    req.Query,
 		Format:   req.Format,
 		CsvSep:   req.CSVSep,
 	})

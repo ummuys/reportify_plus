@@ -62,8 +62,10 @@ func (c *consumer) Run(ctx context.Context) error {
 					UUID: uuid,
 				}); err != nil {
 					c.toDLQ(ctx, uuid, r, err)
+					continue
 				}
 				c.cli.MarkCommitRecords(r)
+				c.logger.Info().Str("topic", r.Topic).Str("report-uuid", uuid).Msg("report created")
 			}
 		})
 	}

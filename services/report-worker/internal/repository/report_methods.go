@@ -68,6 +68,18 @@ func (db *reportDB) SetReportStatus(ctx context.Context, in dto.SetReportStatusP
 	return nil
 }
 
+func (db *reportDB) SetReportFailedStatus(ctx context.Context, in dto.SetReportFailedStatusParams) error {
+	db.logger.Debug().Str("evt", "call SetReportStatus")
+	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
+
+	if _, err := db.pool.Exec(qctx, SetReportFailedStatusQuery, in.Err, in.UUID, in.BeforeStatus); err != nil {
+		db.logger.Error().Err(err).Str("evt", "call SetReportStatus").Msg("")
+		return err
+	}
+	return nil
+}
+
 func (db *reportDB) FinalizeReport(ctx context.Context, in dto.FinalizeReportParams) error {
 	db.logger.Debug().Str("evt", "call FinalizeReport")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)

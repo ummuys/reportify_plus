@@ -11,6 +11,7 @@ import (
 	"github.com/ummuys/reportify/pkg/logger"
 	"github.com/ummuys/reportify/services/report-worker/internal/convert"
 	"github.com/ummuys/reportify/services/report-worker/internal/kafkacli"
+	"github.com/ummuys/reportify/services/report-worker/internal/miniocli"
 	"github.com/ummuys/reportify/services/report-worker/internal/repository"
 	"github.com/ummuys/reportify/services/report-worker/internal/service"
 )
@@ -19,7 +20,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	logs, err := logger.InitLogger("report", "LOG_LEVEL_REPORT_WORKER")
+	logs, err := logger.InitLogger("report-worker", "LOG_LEVEL_REPORT_WORKER")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,9 +37,14 @@ func main() {
 	}
 	defer dataDB.Close()
 
+	minioCli, err := miniocli.NewMinIOCli(logs)
+	if err != nil {
+		logs.Fatal().Err(err).Msg("miniocli")
+	}
+
 	conv := convert.NewReportConvert(logs)
 
-	svc, err := service.NewPublishService(dataDB, reportDB, conv, logs)
+	svc, err := service.NewPublishService(dataDB, reportDB, conv, minioCli, logs)
 	if err != nil {
 		logs.Fatal().Err(err).Msg("service")
 	}

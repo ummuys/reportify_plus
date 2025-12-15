@@ -15,6 +15,16 @@ const (
 		and status = $3
 	`
 
+	SetReportFailedStatusQuery = `
+	UPDATE report_metadata.report_requests
+	SET 
+		status = 'FAILED',
+		updated_at = NOW(),
+		error_message = $1
+	WHERE report_id = $2
+		and status = $3
+	`
+
 	FinalizeReportQuery = `
 	UPDATE report_metadata.report_requests
 	SET 

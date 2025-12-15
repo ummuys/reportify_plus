@@ -1,10 +1,11 @@
 package dto
 
-import "os"
+import "io"
 
 type ConvParams struct {
+	Writer io.Writer
+
 	Colums []string
 	Rows   [][]any
-	File   *os.File
 	Sep    byte
 }

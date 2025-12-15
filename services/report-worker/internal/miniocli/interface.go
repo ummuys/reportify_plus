@@ -1,5 +1,11 @@
 package miniocli
 
+import (
+	"context"
+
+	"github.com/ummuys/reportify/services/report-worker/internal/dto"
+)
+
 type MinIOClient interface {
-	LoadFile()
+	UploadAndPresign(ctx context.Context, in dto.PutReportIn) (string, error)
 }
