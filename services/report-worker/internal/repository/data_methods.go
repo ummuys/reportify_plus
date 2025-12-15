@@ -12,7 +12,7 @@ import (
 	"github.com/ummuys/reportify/services/report-worker/internal/dto"
 )
 
-type dDB struct {
+type dataDB struct {
 	logger zerolog.Logger
 	pool   *pgxpool.Pool
 }
@@ -33,13 +33,13 @@ func NewDataDB(ctx context.Context, baseLogger zerolog.Logger) (DataDB, error) {
 
 	logger := baseLogger.With().Str("component", "data-db").Logger()
 
-	return &dDB{
+	return &dataDB{
 		logger: logger,
 		pool:   pool,
 	}, nil
 }
 
-func (db *dDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.GetDataResult, error) {
+func (db *dataDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.GetDataResult, error) {
 	db.logger.Debug().Str("evt", "call GetData").Str("Query", in.Query).Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*180)
 	defer cancel()
@@ -140,4 +140,8 @@ func convertPGIntoGo(v any) any {
 	default:
 		return v
 	}
+}
+
+func (db *dataDB) Close() {
+	db.pool.Close()
 }

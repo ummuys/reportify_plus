@@ -8,4 +8,5 @@ import (
 
 type DataDB interface {
 	GetData(ctx context.Context, in dto.GetDataParams) (dto.GetDataResult, error)
+	Close()
 }

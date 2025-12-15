@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 	"github.com/ummuys/reportify/pkg/config"
@@ -98,4 +100,170 @@ func (db *reportDB) ReportStatus(ctx context.Context, in dto.ReportStatusParams)
 
 	out.UUID = in.UUID
 	return out, nil
+}
+
+func (db *reportDB) Close() {
+	db.pool.Close()
+}
+
+// TO CHECK AND FIX
+func (d *reportDB) GetSchemas(pCtx context.Context) (map[string]string, error) {
+	d.logger.Debug().Str("evt", "GetSchemas").Msg("")
+
+	ctx, cancel := context.WithTimeout(pCtx, time.Second*2)
+	defer cancel()
+
+	rows, err := d.pool.Query(ctx, qSchemaWithComment)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return unpackingRows(rows)
+}
+
+// TO CHECK AND FIX
+func (d *reportDB) GetTables(pCtx context.Context, schemaName string) (map[string]string, error) {
+	d.logger.Debug().Str("evt", "GetTables").Msg("")
+
+	ctx, cancel := context.WithTimeout(pCtx, time.Second*2)
+	defer cancel()
+
+	rows, err := d.pool.Query(ctx, qTablesWithComment, schemaName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return unpackingRows(rows)
+}
+
+// TO CHECK AND FIX
+func (d *reportDB) GetColumns(pCtx context.Context, schemaName, tableName string) (map[string]string, error) {
+	d.logger.Debug().Str("evt", "call GetColumns").Msg("")
+
+	ctx, cancel := context.WithTimeout(pCtx, 5*time.Second)
+	defer cancel()
+
+	rows, err := d.pool.Query(ctx, qColumnsWithComment, schemaName, tableName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return unpackingRows(rows)
+}
+
+// TO CHECK AND FIX
+func unpackingRows(rows pgx.Rows) (map[string]string, error) {
+	res := make(map[string]string)
+	for rows.Next() {
+		var key, value string
+		err := rows.Scan(&key, &value)
+		if err != nil {
+			return nil, err
+		}
+		res[key] = value
+	}
+
+	return res, rows.Err()
+}
+
+// TO CHECK AND FIX
+func (d *reportDB) SetCacheQueries(pCtx context.Context, cache map[string][]byte) (err error) {
+	d.logger.Debug().Str("evt", "call SetCacheQuerys").Msg("")
+	ctx, cancel := context.WithTimeout(pCtx, 30*time.Second)
+	defer cancel()
+
+	var rows pgx.Rows
+	allID := `select user_id from identity.users`
+	rows, err = d.pool.Query(ctx, allID)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	usersID := make([]string, 0, 64)
+	for rows.Next() {
+		var uid string
+		if err = rows.Scan(&uid); err != nil {
+			return err
+		}
+		usersID = append(usersID, uid)
+	}
+
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	var tx pgx.Tx
+	tx, err = d.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(ctx); rbErr != nil && !errors.Is(rbErr, pgx.ErrTxClosed) {
+				d.logger.Error().Err(rbErr).Msg("rollback failed")
+			}
+		}
+	}()
+
+	b := &pgx.Batch{}
+
+	for _, uid := range usersID {
+		val, ok := cache[uid]
+		if !ok {
+			b.Queue(qSetCacheQuery, uid, []byte("[]"))
+		} else {
+			b.Queue(qSetCacheQuery, uid, val)
+		}
+	}
+
+	br := tx.SendBatch(ctx, b)
+
+	for range usersID {
+		if _, err = br.Exec(); err != nil {
+			_ = br.Close()
+			return err
+		}
+	}
+
+	if err = br.Close(); err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return
+	}
+
+	return nil
+}
+
+// TO CHECK AND FIX
+func (d *reportDB) GetCacheQueries(pCtx context.Context) (map[string][]byte, error) {
+	d.logger.Debug().Str("evt", "call SaveCacheQuerys").Msg("")
+	ctx, cancel := context.WithTimeout(pCtx, 5*time.Second)
+	defer cancel()
+
+	rows, err := d.pool.Query(ctx, qGetCacheQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	quer := make(map[string][]byte)
+	for rows.Next() {
+		var (
+			key   string
+			value []byte
+		)
+		err := rows.Scan(&key, &value)
+		if err != nil {
+			return nil, err
+		}
+		quer[key] = value
+	}
+	return quer, nil
 }

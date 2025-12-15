@@ -48,6 +48,7 @@ func main() {
 	if err != nil {
 		logs.Fatal().Err(err).Msg("report-db")
 	}
+	defer db.Close()
 
 	svc := service.NewReportService(db, logs)
 

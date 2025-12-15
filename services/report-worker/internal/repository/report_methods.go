@@ -79,3 +79,7 @@ func (db *reportDB) FinalizeReport(ctx context.Context, in dto.FinalizeReportPar
 	}
 	return nil
 }
+
+func (db *reportDB) Close() {
+	db.pool.Close()
+}

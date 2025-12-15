@@ -28,11 +28,13 @@ func main() {
 	if err != nil {
 		logs.Fatal().Err(err).Msg("report-db")
 	}
+	defer reportDB.Close()
 
 	dataDB, err := repository.NewDataDB(ctx, logs)
 	if err != nil {
 		logs.Fatal().Err(err).Msg("data-db")
 	}
+	defer dataDB.Close()
 
 	conv := convert.NewReportConvert(logs)
 
