@@ -16,19 +16,8 @@ type GetReportInfoResult struct {
 
 type SetReportStatusParams struct {
 	UUID         string
+	FilePath     *string
+	ErrMsg       *string
 	UpdateStatus string
 	BeforeStatus string
-}
-
-type SetReportFailedStatusParams struct {
-	UUID         string
-	Err          string
-	BeforeStatus string
-}
-
-type FinalizeReportParams struct {
-	UUID         string
-	UpdateStatus string
-	BeforeStatus string
-	FilePath     string
 }

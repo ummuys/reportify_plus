@@ -106,6 +106,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 
 	// Read data from pipe reader
 	go func() {
+		defer pr.Close()
 		defer close(prCh)
 		var (
 			path string
@@ -143,11 +144,11 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	}
 
 	// Change status: running -> completed & save file path
-	if err := p.reportDB.FinalizeReport(ctx, dto.FinalizeReportParams{
+	if err := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
 		UUID:         in.UUID,
 		UpdateStatus: repository.StatusCompleted,
 		BeforeStatus: repository.StatusRunnig,
-		FilePath:     res.path,
+		FilePath:     &res.path,
 	}); err != nil {
 		// Change status: created -> failed
 		p.stepFailed(ctx, in.UUID, err, repository.StatusRunnig)
@@ -158,9 +159,10 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 }
 
 func (p *publish) stepFailed(ctx context.Context, uuid string, err error, befStat string) {
-	if ferr := p.reportDB.SetReportFailedStatus(ctx, dto.SetReportFailedStatusParams{
+	errMsg := err.Error()
+	if ferr := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
 		UUID:         uuid,
-		Err:          err.Error(),
+		ErrMsg:       &errMsg,
 		BeforeStatus: befStat,
 	}); ferr != nil {
 		p.logger.Error().Err(ferr).Msg("can't change to failed")

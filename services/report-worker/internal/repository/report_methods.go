@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -61,32 +62,10 @@ func (db *reportDB) SetReportStatus(ctx context.Context, in dto.SetReportStatusP
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
-	if _, err := db.pool.Exec(qctx, SetReportStatusQuery, in.UpdateStatus, in.UUID, in.BeforeStatus); err != nil {
+	query, vars := buildStatusQuery(in)
+
+	if _, err := db.pool.Exec(qctx, query, vars...); err != nil {
 		db.logger.Error().Err(err).Str("evt", "call SetReportStatus").Msg("")
-		return err
-	}
-	return nil
-}
-
-func (db *reportDB) SetReportFailedStatus(ctx context.Context, in dto.SetReportFailedStatusParams) error {
-	db.logger.Debug().Str("evt", "call SetReportStatus")
-	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
-	defer cancel()
-
-	if _, err := db.pool.Exec(qctx, SetReportFailedStatusQuery, in.Err, in.UUID, in.BeforeStatus); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call SetReportStatus").Msg("")
-		return err
-	}
-	return nil
-}
-
-func (db *reportDB) FinalizeReport(ctx context.Context, in dto.FinalizeReportParams) error {
-	db.logger.Debug().Str("evt", "call FinalizeReport")
-	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
-	defer cancel()
-
-	if _, err := db.pool.Exec(qctx, FinalizeReportQuery, in.UpdateStatus, in.FilePath, in.UUID, in.BeforeStatus); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call FinalizeReport").Msg("")
 		return err
 	}
 	return nil
@@ -94,4 +73,39 @@ func (db *reportDB) FinalizeReport(ctx context.Context, in dto.FinalizeReportPar
 
 func (db *reportDB) Close() {
 	db.pool.Close()
+}
+
+func buildStatusQuery(in dto.SetReportStatusParams) (string, []any) {
+	c := 1
+	vars := []any{}
+
+	base := `UPDATE report_metadata.report_requests
+	SET
+		updated_at = NOW()`
+
+	base += fmt.Sprintf("\n status = %d", c)
+	c++
+	vars = append(vars, in.UpdateStatus)
+
+	if in.FilePath != nil {
+		base += fmt.Sprintf(",\n file_path = %d", c)
+		c++
+		vars = append(vars, in.FilePath)
+	}
+
+	if in.ErrMsg != nil {
+		base += fmt.Sprintf(",\n error_message = %d", c)
+		vars = append(vars, in.ErrMsg)
+		c++
+	}
+
+	base += fmt.Sprintf("\n where report_id = %d", c)
+	vars = append(vars, in.UUID)
+	c++
+
+	base += fmt.Sprintf("\n and status = %d", c)
+	vars = append(vars, in.BeforeStatus)
+	c++
+
+	return base, vars
 }
