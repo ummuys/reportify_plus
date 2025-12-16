@@ -474,6 +474,426 @@ func (x *ReportMetadata) GetErrMsg() string {
 	return ""
 }
 
+type ListSchemasRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSchemasRequest) Reset() {
+	*x = ListSchemasRequest{}
+	mi := &file_report_v1_report_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSchemasRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSchemasRequest) ProtoMessage() {}
+
+func (x *ListSchemasRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_report_v1_report_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSchemasRequest.ProtoReflect.Descriptor instead.
+func (*ListSchemasRequest) Descriptor() ([]byte, []int) {
+	return file_report_v1_report_proto_rawDescGZIP(), []int{7}
+}
+
+type ListSchemasResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Schemas       []*Schema              `protobuf:"bytes,1,rep,name=schemas,proto3" json:"schemas,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSchemasResponse) Reset() {
+	*x = ListSchemasResponse{}
+	mi := &file_report_v1_report_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSchemasResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSchemasResponse) ProtoMessage() {}
+
+func (x *ListSchemasResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_report_v1_report_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSchemasResponse.ProtoReflect.Descriptor instead.
+func (*ListSchemasResponse) Descriptor() ([]byte, []int) {
+	return file_report_v1_report_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListSchemasResponse) GetSchemas() []*Schema {
+	if x != nil {
+		return x.Schemas
+	}
+	return nil
+}
+
+type Schema struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SchemaName    string                 `protobuf:"bytes,1,opt,name=schema_name,json=schemaName,proto3" json:"schema_name,omitempty"`
+	SchemaComm    string                 `protobuf:"bytes,2,opt,name=schema_comm,json=schemaComm,proto3" json:"schema_comm,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Schema) Reset() {
+	*x = Schema{}
+	mi := &file_report_v1_report_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Schema) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Schema) ProtoMessage() {}
+
+func (x *Schema) ProtoReflect() protoreflect.Message {
+	mi := &file_report_v1_report_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Schema.ProtoReflect.Descriptor instead.
+func (*Schema) Descriptor() ([]byte, []int) {
+	return file_report_v1_report_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *Schema) GetSchemaName() string {
+	if x != nil {
+		return x.SchemaName
+	}
+	return ""
+}
+
+func (x *Schema) GetSchemaComm() string {
+	if x != nil {
+		return x.SchemaComm
+	}
+	return ""
+}
+
+type ListTablesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SchemaName    string                 `protobuf:"bytes,1,opt,name=schema_name,json=schemaName,proto3" json:"schema_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTablesRequest) Reset() {
+	*x = ListTablesRequest{}
+	mi := &file_report_v1_report_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTablesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTablesRequest) ProtoMessage() {}
+
+func (x *ListTablesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_report_v1_report_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTablesRequest.ProtoReflect.Descriptor instead.
+func (*ListTablesRequest) Descriptor() ([]byte, []int) {
+	return file_report_v1_report_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ListTablesRequest) GetSchemaName() string {
+	if x != nil {
+		return x.SchemaName
+	}
+	return ""
+}
+
+type ListTablesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tables        []*Table               `protobuf:"bytes,1,rep,name=tables,proto3" json:"tables,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTablesResponse) Reset() {
+	*x = ListTablesResponse{}
+	mi := &file_report_v1_report_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTablesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTablesResponse) ProtoMessage() {}
+
+func (x *ListTablesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_report_v1_report_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTablesResponse.ProtoReflect.Descriptor instead.
+func (*ListTablesResponse) Descriptor() ([]byte, []int) {
+	return file_report_v1_report_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ListTablesResponse) GetTables() []*Table {
+	if x != nil {
+		return x.Tables
+	}
+	return nil
+}
+
+type Table struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TableName     string                 `protobuf:"bytes,1,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
+	TableComm     string                 `protobuf:"bytes,2,opt,name=table_comm,json=tableComm,proto3" json:"table_comm,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Table) Reset() {
+	*x = Table{}
+	mi := &file_report_v1_report_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Table) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Table) ProtoMessage() {}
+
+func (x *Table) ProtoReflect() protoreflect.Message {
+	mi := &file_report_v1_report_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Table.ProtoReflect.Descriptor instead.
+func (*Table) Descriptor() ([]byte, []int) {
+	return file_report_v1_report_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *Table) GetTableName() string {
+	if x != nil {
+		return x.TableName
+	}
+	return ""
+}
+
+func (x *Table) GetTableComm() string {
+	if x != nil {
+		return x.TableComm
+	}
+	return ""
+}
+
+type ListColumnsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SchemaName    string                 `protobuf:"bytes,1,opt,name=schema_name,json=schemaName,proto3" json:"schema_name,omitempty"`
+	TableName     string                 `protobuf:"bytes,2,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListColumnsRequest) Reset() {
+	*x = ListColumnsRequest{}
+	mi := &file_report_v1_report_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListColumnsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListColumnsRequest) ProtoMessage() {}
+
+func (x *ListColumnsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_report_v1_report_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListColumnsRequest.ProtoReflect.Descriptor instead.
+func (*ListColumnsRequest) Descriptor() ([]byte, []int) {
+	return file_report_v1_report_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListColumnsRequest) GetSchemaName() string {
+	if x != nil {
+		return x.SchemaName
+	}
+	return ""
+}
+
+func (x *ListColumnsRequest) GetTableName() string {
+	if x != nil {
+		return x.TableName
+	}
+	return ""
+}
+
+type ListColumnsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Columns       []*Column              `protobuf:"bytes,1,rep,name=columns,proto3" json:"columns,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListColumnsResponse) Reset() {
+	*x = ListColumnsResponse{}
+	mi := &file_report_v1_report_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListColumnsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListColumnsResponse) ProtoMessage() {}
+
+func (x *ListColumnsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_report_v1_report_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListColumnsResponse.ProtoReflect.Descriptor instead.
+func (*ListColumnsResponse) Descriptor() ([]byte, []int) {
+	return file_report_v1_report_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListColumnsResponse) GetColumns() []*Column {
+	if x != nil {
+		return x.Columns
+	}
+	return nil
+}
+
+type Column struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ColumnName    string                 `protobuf:"bytes,1,opt,name=column_name,json=columnName,proto3" json:"column_name,omitempty"`
+	ColumnComm    string                 `protobuf:"bytes,2,opt,name=column_comm,json=columnComm,proto3" json:"column_comm,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Column) Reset() {
+	*x = Column{}
+	mi := &file_report_v1_report_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Column) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Column) ProtoMessage() {}
+
+func (x *Column) ProtoReflect() protoreflect.Message {
+	mi := &file_report_v1_report_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Column.ProtoReflect.Descriptor instead.
+func (*Column) Descriptor() ([]byte, []int) {
+	return file_report_v1_report_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *Column) GetColumnName() string {
+	if x != nil {
+		return x.ColumnName
+	}
+	return ""
+}
+
+func (x *Column) GetColumnComm() string {
+	if x != nil {
+		return x.ColumnComm
+	}
+	return ""
+}
+
 var File_report_v1_report_proto protoreflect.FileDescriptor
 
 const file_report_v1_report_proto_rawDesc = "" +
@@ -513,11 +933,45 @@ const file_report_v1_report_proto_rawDesc = "" +
 	"updated_at\x18\n" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1b\n" +
 	"\tfile_path\x18\v \x01(\tR\bfilePath\x12\x17\n" +
-	"\aerr_msg\x18\f \x01(\tR\x06errMsg2\x8b\x02\n" +
+	"\aerr_msg\x18\f \x01(\tR\x06errMsg\"\x14\n" +
+	"\x12ListSchemasRequest\"B\n" +
+	"\x13ListSchemasResponse\x12+\n" +
+	"\aschemas\x18\x01 \x03(\v2\x11.report.v1.SchemaR\aschemas\"J\n" +
+	"\x06Schema\x12\x1f\n" +
+	"\vschema_name\x18\x01 \x01(\tR\n" +
+	"schemaName\x12\x1f\n" +
+	"\vschema_comm\x18\x02 \x01(\tR\n" +
+	"schemaComm\"4\n" +
+	"\x11ListTablesRequest\x12\x1f\n" +
+	"\vschema_name\x18\x01 \x01(\tR\n" +
+	"schemaName\">\n" +
+	"\x12ListTablesResponse\x12(\n" +
+	"\x06tables\x18\x01 \x03(\v2\x10.report.v1.TableR\x06tables\"E\n" +
+	"\x05Table\x12\x1d\n" +
+	"\n" +
+	"table_name\x18\x01 \x01(\tR\ttableName\x12\x1d\n" +
+	"\n" +
+	"table_comm\x18\x02 \x01(\tR\ttableComm\"T\n" +
+	"\x12ListColumnsRequest\x12\x1f\n" +
+	"\vschema_name\x18\x01 \x01(\tR\n" +
+	"schemaName\x12\x1d\n" +
+	"\n" +
+	"table_name\x18\x02 \x01(\tR\ttableName\"B\n" +
+	"\x13ListColumnsResponse\x12+\n" +
+	"\acolumns\x18\x01 \x03(\v2\x11.report.v1.ColumnR\acolumns\"J\n" +
+	"\x06Column\x12\x1f\n" +
+	"\vcolumn_name\x18\x01 \x01(\tR\n" +
+	"columnName\x12\x1f\n" +
+	"\vcolumn_comm\x18\x02 \x01(\tR\n" +
+	"columnComm2\xf2\x03\n" +
 	"\rReportService\x12O\n" +
 	"\fCreateReport\x12\x1e.report.v1.CreateReportRequest\x1a\x1f.report.v1.CreateReportResponse\x12O\n" +
 	"\fReportStatus\x12\x1e.report.v1.ReportStatusRequest\x1a\x1f.report.v1.ReportStatusResponse\x12X\n" +
-	"\x0fListUserReports\x12!.report.v1.ListUserReportsRequest\x1a\".report.v1.ListUserReportsResponseB7Z5github.com/ummuys/reportify/api/pb/report/v1;reportv1b\x06proto3"
+	"\x0fListUserReports\x12!.report.v1.ListUserReportsRequest\x1a\".report.v1.ListUserReportsResponse\x12L\n" +
+	"\vListSchemas\x12\x1d.report.v1.ListSchemasRequest\x1a\x1e.report.v1.ListSchemasResponse\x12I\n" +
+	"\n" +
+	"ListTables\x12\x1c.report.v1.ListTablesRequest\x1a\x1d.report.v1.ListTablesResponse\x12L\n" +
+	"\vListColumns\x12\x1d.report.v1.ListColumnsRequest\x1a\x1e.report.v1.ListColumnsResponseB7Z5github.com/ummuys/reportify/api/pb/report/v1;reportv1b\x06proto3"
 
 var (
 	file_report_v1_report_proto_rawDescOnce sync.Once
@@ -531,7 +985,7 @@ func file_report_v1_report_proto_rawDescGZIP() []byte {
 	return file_report_v1_report_proto_rawDescData
 }
 
-var file_report_v1_report_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_report_v1_report_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_report_v1_report_proto_goTypes = []any{
 	(*CreateReportRequest)(nil),     // 0: report.v1.CreateReportRequest
 	(*CreateReportResponse)(nil),    // 1: report.v1.CreateReportResponse
@@ -540,23 +994,41 @@ var file_report_v1_report_proto_goTypes = []any{
 	(*ListUserReportsRequest)(nil),  // 4: report.v1.ListUserReportsRequest
 	(*ListUserReportsResponse)(nil), // 5: report.v1.ListUserReportsResponse
 	(*ReportMetadata)(nil),          // 6: report.v1.ReportMetadata
-	(*timestamppb.Timestamp)(nil),   // 7: google.protobuf.Timestamp
+	(*ListSchemasRequest)(nil),      // 7: report.v1.ListSchemasRequest
+	(*ListSchemasResponse)(nil),     // 8: report.v1.ListSchemasResponse
+	(*Schema)(nil),                  // 9: report.v1.Schema
+	(*ListTablesRequest)(nil),       // 10: report.v1.ListTablesRequest
+	(*ListTablesResponse)(nil),      // 11: report.v1.ListTablesResponse
+	(*Table)(nil),                   // 12: report.v1.Table
+	(*ListColumnsRequest)(nil),      // 13: report.v1.ListColumnsRequest
+	(*ListColumnsResponse)(nil),     // 14: report.v1.ListColumnsResponse
+	(*Column)(nil),                  // 15: report.v1.Column
+	(*timestamppb.Timestamp)(nil),   // 16: google.protobuf.Timestamp
 }
 var file_report_v1_report_proto_depIdxs = []int32{
-	6, // 0: report.v1.ListUserReportsResponse.reports:type_name -> report.v1.ReportMetadata
-	7, // 1: report.v1.ReportMetadata.created_at:type_name -> google.protobuf.Timestamp
-	7, // 2: report.v1.ReportMetadata.updated_at:type_name -> google.protobuf.Timestamp
-	0, // 3: report.v1.ReportService.CreateReport:input_type -> report.v1.CreateReportRequest
-	2, // 4: report.v1.ReportService.ReportStatus:input_type -> report.v1.ReportStatusRequest
-	4, // 5: report.v1.ReportService.ListUserReports:input_type -> report.v1.ListUserReportsRequest
-	1, // 6: report.v1.ReportService.CreateReport:output_type -> report.v1.CreateReportResponse
-	3, // 7: report.v1.ReportService.ReportStatus:output_type -> report.v1.ReportStatusResponse
-	5, // 8: report.v1.ReportService.ListUserReports:output_type -> report.v1.ListUserReportsResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	6,  // 0: report.v1.ListUserReportsResponse.reports:type_name -> report.v1.ReportMetadata
+	16, // 1: report.v1.ReportMetadata.created_at:type_name -> google.protobuf.Timestamp
+	16, // 2: report.v1.ReportMetadata.updated_at:type_name -> google.protobuf.Timestamp
+	9,  // 3: report.v1.ListSchemasResponse.schemas:type_name -> report.v1.Schema
+	12, // 4: report.v1.ListTablesResponse.tables:type_name -> report.v1.Table
+	15, // 5: report.v1.ListColumnsResponse.columns:type_name -> report.v1.Column
+	0,  // 6: report.v1.ReportService.CreateReport:input_type -> report.v1.CreateReportRequest
+	2,  // 7: report.v1.ReportService.ReportStatus:input_type -> report.v1.ReportStatusRequest
+	4,  // 8: report.v1.ReportService.ListUserReports:input_type -> report.v1.ListUserReportsRequest
+	7,  // 9: report.v1.ReportService.ListSchemas:input_type -> report.v1.ListSchemasRequest
+	10, // 10: report.v1.ReportService.ListTables:input_type -> report.v1.ListTablesRequest
+	13, // 11: report.v1.ReportService.ListColumns:input_type -> report.v1.ListColumnsRequest
+	1,  // 12: report.v1.ReportService.CreateReport:output_type -> report.v1.CreateReportResponse
+	3,  // 13: report.v1.ReportService.ReportStatus:output_type -> report.v1.ReportStatusResponse
+	5,  // 14: report.v1.ReportService.ListUserReports:output_type -> report.v1.ListUserReportsResponse
+	8,  // 15: report.v1.ReportService.ListSchemas:output_type -> report.v1.ListSchemasResponse
+	11, // 16: report.v1.ReportService.ListTables:output_type -> report.v1.ListTablesResponse
+	14, // 17: report.v1.ReportService.ListColumns:output_type -> report.v1.ListColumnsResponse
+	12, // [12:18] is the sub-list for method output_type
+	6,  // [6:12] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_report_v1_report_proto_init() }
@@ -570,7 +1042,7 @@ func file_report_v1_report_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_report_v1_report_proto_rawDesc), len(file_report_v1_report_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

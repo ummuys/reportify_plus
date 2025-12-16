@@ -12,9 +12,9 @@ type ReportDB interface {
 	ReportStatus(ctx context.Context, in dto.ReportStatusParams) (dto.ReportStatusResult, error)
 
 	// REPORT
-	GetSchemas(pCtx context.Context) (map[string]string, error)
-	GetTables(pCtx context.Context, schemaName string) (map[string]string, error)
-	GetColumns(pCtx context.Context, schemaName, tableName string) (map[string]string, error)
+	ListSchemas(pCtx context.Context) (dto.ListSchemasResult, error)
+	ListTables(pCtx context.Context, in dto.ListTablesParams) (dto.ListTablesResult, error)
+	ListColumns(pCtx context.Context, in dto.ListColumnsParams) (dto.ListColumnsResult, error)
 
 	// QUERIES
 	SetCacheQueries(pCtx context.Context, cache map[string][]byte) error

@@ -11,12 +11,9 @@ const (
 
 // Metadata
 const (
-	GetSchemasPath       = "db/schemas"
-	GetTablesPath        = "db/tables"
-	GetColumnsPath       = "db/columns"
-	GetAllQueriesPath    = "cache"
-	DeleteAllQueriesPath = "cache/all"
-	DeleteQueryPath      = "cache"
+	ListSchemasPath = "db/schemas"
+	ListTablesPath  = "db/tables"
+	ListColumnsPath = "db/columns"
 )
 
 // ADMIN

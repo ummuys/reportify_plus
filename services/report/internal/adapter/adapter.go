@@ -104,3 +104,80 @@ func (ra *ReportAdapter) ListUserReports(ctx context.Context, in *reportv1.ListU
 
 	return &resp, nil
 }
+
+func (ra *ReportAdapter) ListSchemas(ctx context.Context, in *reportv1.ListSchemasRequest) (*reportv1.ListSchemasResponse, error) {
+	ra.logger.Debug().Str("evt", "call ListSchemas").Msg("")
+
+	out, err := ra.svc.ListSchemas(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	resp := &reportv1.ListSchemasResponse{
+		Schemas: make([]*reportv1.Schema, 0, len(out.Schemas)),
+	}
+
+	for _, s := range out.Schemas {
+		resp.Schemas = append(resp.Schemas, &reportv1.Schema{
+			SchemaName: s.Name,
+			SchemaComm: s.Comment,
+		})
+	}
+
+	return resp, nil
+}
+
+func (ra *ReportAdapter) ListTables(ctx context.Context, in *reportv1.ListTablesRequest) (*reportv1.ListTablesResponse, error) {
+	ra.logger.Debug().
+		Str("evt", "call ListTables").
+		Str("schema", in.SchemaName).
+		Msg("")
+
+	out, err := ra.svc.ListTables(ctx, dto.ListTablesParams{Schema: in.SchemaName})
+	if err != nil {
+		// если хочешь отдельно обрабатывать "нет такой схемы" — добавь errs.ErrNotFound
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	resp := &reportv1.ListTablesResponse{
+		Tables: make([]*reportv1.Table, 0, len(out.Tables)),
+	}
+
+	for _, t := range out.Tables {
+		resp.Tables = append(resp.Tables, &reportv1.Table{
+			TableName: t.Name,
+			TableComm: t.Comment,
+		})
+	}
+
+	return resp, nil
+}
+
+func (ra *ReportAdapter) ListColumns(ctx context.Context, in *reportv1.ListColumnsRequest) (*reportv1.ListColumnsResponse, error) {
+	ra.logger.Debug().
+		Str("evt", "call ListColumns").
+		Str("schema", in.SchemaName).
+		Str("table", in.TableName).
+		Msg("")
+
+	out, err := ra.svc.ListColumns(ctx, dto.ListColumnsParams{
+		Schema: in.SchemaName,
+		Table:  in.TableName,
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	resp := &reportv1.ListColumnsResponse{
+		Columns: make([]*reportv1.Column, 0, len(out.Columns)),
+	}
+
+	for _, c := range out.Columns {
+		resp.Columns = append(resp.Columns, &reportv1.Column{
+			ColumnName: c.Name,
+			ColumnComm: c.Comment,
+		})
+	}
+
+	return resp, nil
+}

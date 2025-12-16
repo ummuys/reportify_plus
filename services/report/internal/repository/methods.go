@@ -106,67 +106,96 @@ func (db *reportDB) Close() {
 	db.pool.Close()
 }
 
-// TO CHECK AND FIX
-func (d *reportDB) GetSchemas(pCtx context.Context) (map[string]string, error) {
-	d.logger.Debug().Str("evt", "GetSchemas").Msg("")
+func (db *reportDB) ListSchemas(pCtx context.Context) (dto.ListSchemasResult, error) {
+	db.logger.Debug().Str("evt", "call ListSchemas").Msg("")
 
 	ctx, cancel := context.WithTimeout(pCtx, time.Second*2)
 	defer cancel()
 
-	rows, err := d.pool.Query(ctx, schemaWithCommentQuery)
+	rows, err := db.pool.Query(ctx, schemaWithCommentQuery)
 	if err != nil {
-		return nil, err
+		return dto.ListSchemasResult{}, err
 	}
 	defer rows.Close()
 
-	return unpackingRows(rows)
+	out := dto.ListSchemasResult{Schemas: make([]dto.Schema, 0, 16)}
+	for rows.Next() {
+		var s dto.Schema
+		if err := rows.Scan(&s.Name, &s.Comment); err != nil {
+			db.logger.Error().Err(err).Str("evt", "call ListSchemas").Msg("")
+			return dto.ListSchemasResult{}, err
+		}
+		out.Schemas = append(out.Schemas, s)
+	}
+
+	if err := rows.Err(); err != nil {
+		return dto.ListSchemasResult{}, err
+	}
+
+	return out, nil
 }
 
-// TO CHECK AND FIX
-func (d *reportDB) GetTables(pCtx context.Context, schemaName string) (map[string]string, error) {
-	d.logger.Debug().Str("evt", "GetTables").Msg("")
+func (db *reportDB) ListTables(pCtx context.Context, in dto.ListTablesParams) (dto.ListTablesResult, error) {
+	db.logger.Debug().
+		Str("evt", "call ListTables").
+		Str("schema", in.Schema).
+		Msg("")
 
-	ctx, cancel := context.WithTimeout(pCtx, time.Second*2)
+	ctx, cancel := context.WithTimeout(pCtx, 2*time.Second)
 	defer cancel()
 
-	rows, err := d.pool.Query(ctx, tablesWithCommentQuery, schemaName)
+	rows, err := db.pool.Query(ctx, tablesWithCommentQuery, in.Schema)
 	if err != nil {
-		return nil, err
+		return dto.ListTablesResult{}, err
 	}
 	defer rows.Close()
 
-	return unpackingRows(rows)
+	out := dto.ListTablesResult{Tables: make([]dto.Table, 0, 128)}
+	for rows.Next() {
+		var t dto.Table
+		if err := rows.Scan(&t.Name, &t.Comment); err != nil {
+			db.logger.Error().Err(err).Str("evt", "call ListTables").Msg("")
+			return dto.ListTablesResult{}, err
+		}
+		out.Tables = append(out.Tables, t)
+	}
+	if err := rows.Err(); err != nil {
+		return dto.ListTablesResult{}, err
+	}
+
+	return out, nil
 }
 
-// TO CHECK AND FIX
-func (d *reportDB) GetColumns(pCtx context.Context, schemaName, tableName string) (map[string]string, error) {
-	d.logger.Debug().Str("evt", "call GetColumns").Msg("")
+func (db *reportDB) ListColumns(pCtx context.Context, in dto.ListColumnsParams) (dto.ListColumnsResult, error) {
+	db.logger.Debug().
+		Str("evt", "call ListColumns").
+		Str("schema", in.Schema).
+		Str("table", in.Table).
+		Msg("")
 
 	ctx, cancel := context.WithTimeout(pCtx, 5*time.Second)
 	defer cancel()
 
-	rows, err := d.pool.Query(ctx, columnsWithCommentQuery, schemaName, tableName)
+	rows, err := db.pool.Query(ctx, columnsWithCommentQuery, in.Schema, in.Table)
 	if err != nil {
-		return nil, err
+		return dto.ListColumnsResult{}, err
 	}
 	defer rows.Close()
 
-	return unpackingRows(rows)
-}
-
-// TO CHECK AND FIX
-func unpackingRows(rows pgx.Rows) (map[string]string, error) {
-	res := make(map[string]string)
+	out := dto.ListColumnsResult{Columns: make([]dto.Column, 0, 256)}
 	for rows.Next() {
-		var key, value string
-		err := rows.Scan(&key, &value)
-		if err != nil {
-			return nil, err
+		var c dto.Column
+		if err := rows.Scan(&c.Name, &c.Comment); err != nil {
+			db.logger.Error().Err(err).Str("evt", "call ListColumns").Msg("")
+			return dto.ListColumnsResult{}, err
 		}
-		res[key] = value
+		out.Columns = append(out.Columns, c)
+	}
+	if err := rows.Err(); err != nil {
+		return dto.ListColumnsResult{}, err
 	}
 
-	return res, rows.Err()
+	return out, nil
 }
 
 // TO CHECK AND FIX

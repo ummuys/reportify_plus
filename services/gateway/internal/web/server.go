@@ -44,6 +44,9 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 	report.POST(CreateReportPath, rh.Report.CreateReport)
 	report.GET(ListUserReportsPath, rh.Report.ListUserReports)
 	report.GET(ReportStatusPath, rh.Report.ReportStatus)
+	report.GET(ListSchemasPath, rh.Report.ListSchemas)
+	report.GET(ListTablesPath, rh.Report.ListTables)
+	report.GET(ListColumnsPath, rh.Report.ListColumns)
 
 	// AUTH
 	auth := api.Group("")

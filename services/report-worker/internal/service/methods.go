@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/ummuys/reportify/services/report-worker/internal/dto"
 	"github.com/ummuys/reportify/services/report-worker/internal/miniocli"
 	"github.com/ummuys/reportify/services/report-worker/internal/repository"
+	"golang.org/x/sync/errgroup"
 )
 
 type publish struct {
@@ -71,13 +73,10 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	}
 
 	pr, pw := io.Pipe()
-	pwCh := make(chan error, 1)
-	prCh := make(chan prResMsg, 1)
 
-	// Write data to pipe writter
-	go func() {
+	eg, gctx := errgroup.WithContext(ctx)
+	eg.Go(func() error {
 		defer pw.Close()
-		defer close(pwCh)
 		params := dto.ConvParams{
 			Writer: pw,
 			Colums: data.Columns,
@@ -96,49 +95,37 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 			err = p.conv.ToCSV(params)
 		case "DOCX":
 			err = p.conv.ToDOCX(params)
+		default:
+			err = fmt.Errorf("unsupported format: %s", info.Format)
 		}
 
 		if err != nil {
 			_ = pw.CloseWithError(err)
 		}
-		pwCh <- err
-	}()
+		return err
+	})
 
 	// Read data from pipe reader
-	go func() {
+	var path string
+	eg.Go(func() error {
 		defer pr.Close()
-		defer close(prCh)
-		var (
-			path string
-			err  error
-		)
-		path, err = p.minioCli.UploadAndPresign(ctx, dto.PutReportIn{
+		pth, perr := p.minioCli.UploadAndPresign(gctx, dto.PutReportIn{
 			Reader:      pr,
-			FileName:    info.Name,
+			FileName:    in.UUID,
 			Bucket:      "report",
 			ContentType: convert.ContentTypeByFormat(info.Format),
 			Expire:      time.Hour * 1,
 		})
 
-		if err != nil {
-			_ = pr.CloseWithError(err)
+		if perr != nil {
+			_ = pr.CloseWithError(perr)
+			return perr
 		}
+		path = pth
+		return nil
+	})
 
-		prCh <- prResMsg{
-			path: path,
-			err:  err,
-		}
-	}()
-
-	res := <-prCh
-	if res.err != nil {
-		// Change status: created -> failed
-		p.stepFailed(ctx, in.UUID, res.err, repository.StatusRunnig)
-		return res.err
-	}
-
-	if err := <-pwCh; err != nil {
-		// Change status: created -> failed
+	if err := eg.Wait(); err != nil {
 		p.stepFailed(ctx, in.UUID, err, repository.StatusRunnig)
 		return err
 	}
@@ -148,11 +135,11 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 		UUID:         in.UUID,
 		UpdateStatus: repository.StatusCompleted,
 		BeforeStatus: repository.StatusRunnig,
-		FilePath:     &res.path,
+		FilePath:     &path,
 	}); err != nil {
 		// Change status: created -> failed
 		p.stepFailed(ctx, in.UUID, err, repository.StatusRunnig)
-		return err
+		return errs.ParsePgError(err)
 	}
 
 	return nil
@@ -160,9 +147,14 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 
 func (p *publish) stepFailed(ctx context.Context, uuid string, err error, befStat string) {
 	errMsg := err.Error()
-	if ferr := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
+
+	fctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if ferr := p.reportDB.SetReportStatus(fctx, dto.SetReportStatusParams{
 		UUID:         uuid,
 		ErrMsg:       &errMsg,
+		UpdateStatus: repository.StatusFailed,
 		BeforeStatus: befStat,
 	}); ferr != nil {
 		p.logger.Error().Err(ferr).Msg("can't change to failed")

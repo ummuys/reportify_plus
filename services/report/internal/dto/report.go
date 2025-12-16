@@ -33,6 +33,7 @@ type ListReportsResult struct {
 	Reports []ReportMetadata
 }
 
+// METADATA
 type ReportMetadata struct {
 	ReportID  string
 	AuthorID  string
@@ -46,4 +47,38 @@ type ReportMetadata struct {
 	UpdatedAt time.Time
 	FilePath  string
 	ErrMsg    string
+}
+
+type ListTablesParams struct {
+	Schema string
+}
+type ListTablesResult struct {
+	Tables []Table
+}
+
+type Table struct {
+	Name    string
+	Comment string
+}
+
+type ListSchemasResult struct {
+	Schemas []Schema
+}
+
+type Schema struct {
+	Name    string
+	Comment string
+}
+
+type ListColumnsParams struct {
+	Schema string
+	Table  string
+}
+type ListColumnsResult struct {
+	Columns []Column
+}
+
+type Column struct {
+	Name    string
+	Comment string
 }
