@@ -145,7 +145,12 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 		return
 	}
 
-	out = dto.UpdateUserResult(in)
+	out = dto.UpdateUserResult{
+		UserID:   in.UserID,
+		Username: in.Username,
+		Role:     in.Role,
+		IsActive: in.IsActive,
+	}
 	return
 }
 

@@ -11,7 +11,6 @@ type UpdateUserParams struct {
 type UpdateUserResult struct {
 	UserID   string
 	Username string
-	Password string
 	Role     string
 	IsActive bool
 }
