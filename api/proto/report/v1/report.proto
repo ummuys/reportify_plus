@@ -38,6 +38,8 @@ message ReportStatusRequest {
 message ReportStatusResponse {
     string uuid = 1;
     string status = 2;
+    string err_msg = 3;
+    string file_path = 4;
 }
 
 message ListUserReportsRequest {

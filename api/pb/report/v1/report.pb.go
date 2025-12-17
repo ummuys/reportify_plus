@@ -206,6 +206,8 @@ type ReportStatusResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Uuid          string                 `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
 	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	ErrMsg        string                 `protobuf:"bytes,3,opt,name=err_msg,json=errMsg,proto3" json:"err_msg,omitempty"`
+	FilePath      string                 `protobuf:"bytes,4,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -250,6 +252,20 @@ func (x *ReportStatusResponse) GetUuid() string {
 func (x *ReportStatusResponse) GetStatus() string {
 	if x != nil {
 		return x.Status
+	}
+	return ""
+}
+
+func (x *ReportStatusResponse) GetErrMsg() string {
+	if x != nil {
+		return x.ErrMsg
+	}
+	return ""
+}
+
+func (x *ReportStatusResponse) GetFilePath() string {
+	if x != nil {
+		return x.FilePath
 	}
 	return ""
 }
@@ -910,10 +926,12 @@ const file_report_v1_report_proto_rawDesc = "" +
 	"\x04uuid\x18\x01 \x01(\tR\x04uuid\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\")\n" +
 	"\x13ReportStatusRequest\x12\x12\n" +
-	"\x04uuid\x18\x01 \x01(\tR\x04uuid\"B\n" +
+	"\x04uuid\x18\x01 \x01(\tR\x04uuid\"x\n" +
 	"\x14ReportStatusResponse\x12\x12\n" +
 	"\x04uuid\x18\x01 \x01(\tR\x04uuid\x12\x16\n" +
-	"\x06status\x18\x02 \x01(\tR\x06status\"5\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x12\x17\n" +
+	"\aerr_msg\x18\x03 \x01(\tR\x06errMsg\x12\x1b\n" +
+	"\tfile_path\x18\x04 \x01(\tR\bfilePath\"5\n" +
 	"\x16ListUserReportsRequest\x12\x1b\n" +
 	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\"N\n" +
 	"\x17ListUserReportsResponse\x123\n" +

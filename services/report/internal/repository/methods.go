@@ -93,7 +93,7 @@ func (db *reportDB) ReportStatus(ctx context.Context, in dto.ReportStatusParams)
 
 	out := dto.ReportStatusResult{}
 
-	if err := db.pool.QueryRow(qctx, getReportStatusQuery, in.UUID).Scan(&out.Status); err != nil {
+	if err := db.pool.QueryRow(qctx, getReportStatusQuery, in.UUID).Scan(&out.Status, &out.ErrMsg, &out.FilePath); err != nil {
 		db.logger.Error().Err(err).Str("evt", "call CreateReport").Msg("")
 		return dto.ReportStatusResult{}, err
 	}

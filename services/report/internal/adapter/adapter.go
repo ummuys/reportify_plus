@@ -67,7 +67,7 @@ func (ra *ReportAdapter) ReportStatus(ctx context.Context, in *reportv1.ReportSt
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
-	return &reportv1.ReportStatusResponse{Uuid: out.UUID, Status: out.Status}, nil
+	return &reportv1.ReportStatusResponse{Uuid: out.UUID, Status: out.Status, ErrMsg: out.ErrMsg, FilePath: out.FilePath}, nil
 }
 
 func (ra *ReportAdapter) ListUserReports(ctx context.Context, in *reportv1.ListUserReportsRequest) (*reportv1.ListUserReportsResponse, error) {

@@ -5,6 +5,8 @@ type ReportStatusParams struct {
 }
 
 type ReportStatusResult struct {
-	UUID   string
-	Status string
+	UUID     string
+	Status   string
+	ErrMsg   string
+	FilePath string
 }

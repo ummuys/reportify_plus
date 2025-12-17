@@ -173,8 +173,10 @@ func (rh *reportHandler) ReportStatus(g *gin.Context) {
 
 	g.Set("msg", "report status returned")
 	g.JSON(http.StatusOK, webdto.ReportStatusResponse{
-		UUID:   out.Uuid,
-		Status: out.Status,
+		UUID:     out.Uuid,
+		Status:   out.Status,
+		ErrMsg:   out.ErrMsg,
+		FilePath: out.FilePath,
 	})
 }
 

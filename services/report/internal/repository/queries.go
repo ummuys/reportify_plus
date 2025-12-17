@@ -10,7 +10,7 @@ const (
 	`
 
 	getReportStatusQuery = `
-	SELECT status FROM report_metadata.report_requests
+	SELECT status, error_message, file_path FROM report_metadata.report_requests
 	where report_id = $1;
 	`
 
