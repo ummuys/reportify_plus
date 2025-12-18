@@ -44,13 +44,20 @@ func main() {
 		logs.Fatal().Err(err).Msg("listener")
 	}
 
-	db, err := repository.NewReportDB(ctx, logs)
+	reportDB, err := repository.NewReportDB(ctx, logs)
 	if err != nil {
 		logs.Fatal().Err(err).Msg("report-db")
 	}
-	defer db.Close()
+	defer reportDB.Close()
 
-	svc := service.NewReportService(db, logs)
+	dataDB, err := repository.NewDataDB(ctx, logs)
+	if err != nil {
+		logs.Fatal().Err(err).Msg("report-db")
+	}
+	defer dataDB.Close()
+
+	reportSVC := service.NewReportService(reportDB, logs)
+	dataSVC := service.NewDataService(dataDB, logs)
 
 	srv := grpc.NewServer()
 
@@ -63,7 +70,7 @@ func main() {
 	}
 	defer kafkaCli.Close()
 
-	adapter := adapter.NewReportAdapter(svc, tunnel, logs)
+	adapter := adapter.NewReportAdapter(reportSVC, dataSVC, tunnel, logs)
 	reportv1.RegisterReportServiceServer(srv, adapter)
 
 	wg := sync.WaitGroup{}

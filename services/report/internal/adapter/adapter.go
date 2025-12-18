@@ -17,20 +17,22 @@ import (
 type ReportAdapter struct {
 	logger zerolog.Logger
 	reportv1.UnimplementedReportServiceServer
-	svc service.ReportService
+	reportSVC service.ReportService
+	dataSVC   service.DataService
 
 	// For kafka
 	tunnel chan<- dto.KafkaMessage
 }
 
-func NewReportAdapter(svc service.ReportService, tunnelIn chan dto.KafkaMessage, baseLogger zerolog.Logger) *ReportAdapter {
+func NewReportAdapter(reportSVC service.ReportService,
+	dataSVC service.DataService, tunnelIn chan dto.KafkaMessage, baseLogger zerolog.Logger) *ReportAdapter {
 	logger := baseLogger.With().Str("component", "adpt").Logger()
-	return &ReportAdapter{svc: svc, tunnel: tunnelIn, logger: logger}
+	return &ReportAdapter{reportSVC: reportSVC, dataSVC: dataSVC, tunnel: tunnelIn, logger: logger}
 }
 
 func (ra *ReportAdapter) CreateReport(ctx context.Context, in *reportv1.CreateReportRequest) (*reportv1.CreateReportResponse, error) {
 	ra.logger.Debug().Str("evt", "call CreateReport").Msg("")
-	out, err := ra.svc.CreateReport(ctx, dto.CreateReportParams{
+	out, err := ra.reportSVC.CreateReport(ctx, dto.CreateReportParams{
 		AuthorID: in.AuthorId,
 		Name:     in.Name,
 		Comm:     in.Comm,
@@ -58,7 +60,7 @@ func (ra *ReportAdapter) CreateReport(ctx context.Context, in *reportv1.CreateRe
 
 func (ra *ReportAdapter) ReportStatus(ctx context.Context, in *reportv1.ReportStatusRequest) (*reportv1.ReportStatusResponse, error) {
 	ra.logger.Debug().Str("evt", "call ReportStatus").Msg("")
-	out, err := ra.svc.ReportStatus(ctx, dto.ReportStatusParams{UUID: in.Uuid})
+	out, err := ra.reportSVC.ReportStatus(ctx, dto.ReportStatusParams{UUID: in.Uuid})
 	if err != nil {
 		switch {
 		case errors.Is(err, errs.ErrNotFound):
@@ -72,7 +74,7 @@ func (ra *ReportAdapter) ReportStatus(ctx context.Context, in *reportv1.ReportSt
 
 func (ra *ReportAdapter) ListUserReports(ctx context.Context, in *reportv1.ListUserReportsRequest) (*reportv1.ListUserReportsResponse, error) {
 	ra.logger.Debug().Str("evt", "call ListUserReports").Msg("")
-	out, err := ra.svc.ListUserReports(ctx, dto.ListUserReportsParams{AuthorID: in.AuthorId})
+	out, err := ra.reportSVC.ListUserReports(ctx, dto.ListUserReportsParams{AuthorID: in.AuthorId})
 	if err != nil {
 		switch {
 		default:
@@ -108,7 +110,7 @@ func (ra *ReportAdapter) ListUserReports(ctx context.Context, in *reportv1.ListU
 func (ra *ReportAdapter) ListSchemas(ctx context.Context, in *reportv1.ListSchemasRequest) (*reportv1.ListSchemasResponse, error) {
 	ra.logger.Debug().Str("evt", "call ListSchemas").Msg("")
 
-	out, err := ra.svc.ListSchemas(ctx)
+	out, err := ra.dataSVC.ListSchemas(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -133,9 +135,8 @@ func (ra *ReportAdapter) ListTables(ctx context.Context, in *reportv1.ListTables
 		Str("schema", in.SchemaName).
 		Msg("")
 
-	out, err := ra.svc.ListTables(ctx, dto.ListTablesParams{Schema: in.SchemaName})
+	out, err := ra.dataSVC.ListTables(ctx, dto.ListTablesParams{Schema: in.SchemaName})
 	if err != nil {
-		// если хочешь отдельно обрабатывать "нет такой схемы" — добавь errs.ErrNotFound
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -160,7 +161,7 @@ func (ra *ReportAdapter) ListColumns(ctx context.Context, in *reportv1.ListColum
 		Str("table", in.TableName).
 		Msg("")
 
-	out, err := ra.svc.ListColumns(ctx, dto.ListColumnsParams{
+	out, err := ra.dataSVC.ListColumns(ctx, dto.ListColumnsParams{
 		Schema: in.SchemaName,
 		Table:  in.TableName,
 	})
