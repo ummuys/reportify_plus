@@ -111,7 +111,8 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 		defer pr.Close()
 		pth, perr := p.minioCli.UploadAndPresign(gctx, dto.PutReportIn{
 			Reader:      pr,
-			FileName:    in.UUID,
+			ObjectName:  in.UUID,
+			FileName:    info.Name + "." + info.Format,
 			Bucket:      "report",
 			ContentType: convert.ContentTypeByFormat(info.Format),
 			Expire:      time.Hour * 1,

@@ -250,7 +250,6 @@ services:
       target: report-worker
     image: report-worker
     env_file:
-     - ./../services/report/.env
      - ./../.env
      - ./../services/report-worker/.env
     depends_on:

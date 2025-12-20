@@ -1,5 +1,5 @@
 import { state, el, buildSQL } from '../core/index.js';
-import { loadTables, loadColumns, postReportAndGetBlob, saveBlob, openBlob } from '../api/index.js';
+import { loadTables, loadColumns, postReportAndCreateTask, postReportAndGetBlob, saveBlob, openBlob } from '../api/index.js';
 import { updateButtons, createFilterRow, createSortRow, updateFilterFields } from './index.js';
 import { showToast, showAlert, showConfirm } from './index.js';
 import { saveHistoryEntry, renderHistory, getReportHistory, toggleShowOnlyFavorites, setShowOnlyFavorites, clearHistory, toggleFavoriteEntry, deleteHistoryEntry, hydrateHistoryEntry } from './history.js';
@@ -509,7 +509,7 @@ export function setupEventListeners() {
         btnDownload.textContent = 'Готовим...';
 
         try {
-            const { blob, filename } = await postReportAndGetBlob({
+            const result = await postReportAndCreateTask({
                 format: state.format,
                 sql: sqlText.value.trim(),
                 reportName: reportName.value.trim(),
@@ -517,7 +517,24 @@ export function setupEventListeners() {
                 csvSep: csvSeparator?.value || ",",
                 createdAt: new Date().toISOString(),
             });
-            saveBlob(blob, filename);
+
+            if (result?.task && (result.task.uuid || result.task.status)) {
+                const lines = [
+                    'Задача на формирование отчёта создана и выполняется.',
+                    '',
+                    `UUID: ${result.task.uuid || '—'}`,
+                    `Статус: ${result.task.status || '—'}`,
+                    `Формат: ${state.format || '—'}`,
+                    `Название: ${reportName.value.trim() || '—'}`,
+                ];
+                await showAlert(lines.join('\n'), 'Отчёт поставлен в очередь');
+            } else if (result?.blob) {
+                saveBlob(result.blob, result.filename || `report.${(result.format || 'pdf')}`);
+            } else {
+                const details = typeof result === "string" ? result : JSON.stringify(result);
+                throw new Error(`Неожиданный ответ сервера: ${details?.slice?.(0, 300) || ""}`);
+            }
+
             await saveHistoryEntry();
             updateReportHistory();
         } catch (e) {

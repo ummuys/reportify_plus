@@ -15,6 +15,7 @@ import (
 
 type minioCli struct {
 	cli        *minio.Client
+	pcli       *minio.Client
 	logger     zerolog.Logger
 	bucketName string
 }
@@ -30,11 +31,18 @@ func NewMinIOCli(baseLogger zerolog.Logger) (MinIOClient, error) {
 	cli, err := minio.New(cfg.EndPoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
 		Secure: false,
+		Region: "us-east-1",
 	})
 
 	if err != nil {
 		return nil, err
 	}
+
+	pcli, err := minio.New("localhost:9000", &minio.Options{
+		Creds:  credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
+		Secure: false,
+		Region: "us-east-1",
+	})
 
 	if err != nil {
 		return nil, err
@@ -42,6 +50,7 @@ func NewMinIOCli(baseLogger zerolog.Logger) (MinIOClient, error) {
 
 	return &minioCli{
 		cli:        cli,
+		pcli:       pcli,
 		logger:     logger,
 		bucketName: "report",
 	}, nil
@@ -53,7 +62,7 @@ func (c *minioCli) UploadAndPresign(ctx context.Context, in dto.PutReportIn) (st
 	fctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	_, err := c.cli.PutObject(fctx, in.Bucket, in.FileName, in.Reader, -1, minio.PutObjectOptions{
+	_, err := c.cli.PutObject(fctx, in.Bucket, in.ObjectName, in.Reader, -1, minio.PutObjectOptions{
 		ContentType: in.ContentType,
 	})
 	if err != nil {
@@ -63,7 +72,7 @@ func (c *minioCli) UploadAndPresign(ctx context.Context, in dto.PutReportIn) (st
 	q := make(url.Values)
 	q.Set("response-content-disposition", fmt.Sprintf(`attachment; filename="%s"`, in.FileName))
 
-	u, err := c.cli.PresignedGetObject(fctx, in.Bucket, in.FileName, in.Expire, q)
+	u, err := c.pcli.PresignedGetObject(fctx, in.Bucket, in.ObjectName, in.Expire, q)
 	if err != nil {
 		return "", err
 	}

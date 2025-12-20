@@ -1,6 +1,67 @@
 import { fetchWithToken } from './fetchWithToken.js';
 import { API_BASE } from '../config/index.js';
 
+export async function postReportAndCreateTask({
+    format = "PDF",
+    sql = "",
+    reportName,
+    reportComment,
+    csvSep,
+    createdAt
+} = {}) {
+    const formatValue = (format || "PDF");
+    const fileFormat = String(formatValue).toLowerCase();
+    const url = `${API_BASE}/api/v1/report`;
+    const sepSource = csvSep ?? document.getElementById('csvSeparator')?.value ?? ",";
+    const normalizedSep = (typeof sepSource === "string" && sepSource.length) ? sepSource : ",";
+    const resolvedName = (reportName ?? document.getElementById('reportName')?.value ?? "").trim();
+    const resolvedComment = (reportComment ?? document.getElementById('reportComment')?.value ?? "").trim();
+
+    const payload = {
+        name: resolvedName,
+        comment: resolvedComment,
+        query_sql: (sql || "").trim(),
+        format: String(formatValue),
+    };
+    if (fileFormat === "csv" && normalizedSep) {
+        payload.csv_separator = normalizedSep;
+    }
+
+    const res = await fetchWithToken(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(payload),
+    });
+
+    // Fallback: если сервер всё ещё возвращает файл, поддержим старое поведение.
+    if (res && typeof res.blob === "function") {
+        const blob = await res.blob();
+        const fallbackNameByFormat = {
+            pdf:  "report.pdf",
+            csv:  "report.csv",
+            xlsx: "report.xlsx",
+            json: "report.json",
+            chart: "chart.json",
+            docx: "report.docx"
+        };
+        const filename = pickFilename(res.headers, fallbackNameByFormat[fileFormat] || `report.${fileFormat}`);
+        return { blob, filename, format: fileFormat };
+    }
+
+    const payloadObj = (res && typeof res === "string") ? JSON.parse(res) : res;
+    const uuid = payloadObj?.uuid ?? payloadObj?.UUID ?? payloadObj?.id ?? payloadObj?.report_id ?? payloadObj?.reportId;
+    const status = payloadObj?.status ?? payloadObj?.Status;
+
+    return {
+        format: fileFormat,
+        task: {
+            uuid: uuid != null ? String(uuid) : "",
+            status: status != null ? String(status) : "",
+        },
+        raw: payloadObj
+    };
+}
+
 export async function postReportAndGetBlob({
     format = "PDF",
     sql = "",

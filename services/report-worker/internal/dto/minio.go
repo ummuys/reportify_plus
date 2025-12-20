@@ -7,6 +7,7 @@ import (
 
 type PutReportIn struct {
 	Reader      io.Reader
+	ObjectName  string
 	FileName    string
 	Bucket      string
 	ContentType string

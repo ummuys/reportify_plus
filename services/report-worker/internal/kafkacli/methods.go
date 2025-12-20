@@ -12,10 +12,9 @@ import (
 )
 
 type consumer struct {
-	svc    service.PublishService
-	logger zerolog.Logger
-	cli    *kgo.Client
-
+	svc      service.PublishService
+	logger   zerolog.Logger
+	cli      *kgo.Client
 	topic    string
 	topicDLQ string
 	cWorkers int

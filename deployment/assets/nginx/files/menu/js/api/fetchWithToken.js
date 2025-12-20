@@ -53,8 +53,14 @@ export async function fetchWithToken(url, options = {}) {
     }
 
     if (token) opts.headers["Authorization"] = "Bearer " + token;
-    opts.credentials = "include";
-    const res = await fetch(url, opts);
+    if (!("credentials" in opts)) opts.credentials = "include";
+    let res;
+    try {
+      res = await fetch(url, opts);
+    } catch (e) {
+      const msg = (e && (e.message || e.toString())) ? (e.message || e.toString()) : String(e);
+      throw new Error(`Network error while fetching ${url}: ${msg}`);
+    }
     return { res, requestedAccept };
   };
 
