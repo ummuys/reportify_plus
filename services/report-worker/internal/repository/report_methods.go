@@ -2,8 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -74,45 +72,4 @@ func (db *reportDB) SetReportStatus(ctx context.Context, in dto.SetReportStatusP
 
 func (db *reportDB) Close() {
 	db.pool.Close()
-}
-
-func buildStatusQuery(in dto.SetReportStatusParams) (string, []any) {
-	args := make([]any, 0, 5)
-	set := make([]string, 0, 4)
-
-	// updated_at
-	set = append(set, "updated_at = NOW()")
-
-	// status
-	args = append(args, in.UpdateStatus)
-	set = append(set, fmt.Sprintf("status = $%d", len(args)))
-
-	if in.FilePath != nil {
-		args = append(args, *in.FilePath) // или sql.NullString
-		set = append(set, fmt.Sprintf("file_path = $%d", len(args)))
-	}
-
-	if in.ErrMsg != nil {
-		args = append(args, *in.ErrMsg)
-		set = append(set, fmt.Sprintf("error_message = $%d", len(args)))
-	}
-
-	// WHERE
-	args = append(args, in.UUID)
-	whereReportID := fmt.Sprintf("report_id = $%d", len(args))
-
-	args = append(args, in.BeforeStatus)
-	whereBeforeStatus := fmt.Sprintf("status = $%d", len(args))
-
-	q := fmt.Sprintf(`
-UPDATE report_metadata.report_requests
-SET %s
-WHERE %s
-  AND %s`,
-		strings.Join(set, ",\n    "),
-		whereReportID,
-		whereBeforeStatus,
-	)
-
-	return q, args
 }

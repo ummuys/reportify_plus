@@ -107,6 +107,8 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 
 	// Read data from pipe reader
 	var path string
+	reportTTL := time.Hour * 1
+
 	eg.Go(func() error {
 		defer pr.Close()
 		pth, perr := p.minioCli.UploadAndPresign(gctx, dto.PutReportIn{
@@ -115,7 +117,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 			FileName:    info.Name + "." + info.Format,
 			Bucket:      "report",
 			ContentType: convert.ContentTypeByFormat(info.Format),
-			Expire:      time.Hour * 1,
+			Expire:      reportTTL,
 		})
 
 		if perr != nil {
@@ -131,12 +133,14 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 		return err
 	}
 
+	expireAt := time.Now().Add(reportTTL)
 	// Change status: running -> completed & save file path
 	if err := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
 		UUID:         in.UUID,
 		UpdateStatus: repository.StatusCompleted,
 		BeforeStatus: repository.StatusRunnig,
 		FilePath:     &path,
+		ExpireAt:     &expireAt,
 	}); err != nil {
 		// Change status: created -> failed
 		p.stepFailed(ctx, in.UUID, err, repository.StatusRunnig)

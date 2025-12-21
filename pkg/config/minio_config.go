@@ -6,7 +6,8 @@ import (
 )
 
 type MinIOCliConfig struct {
-	EndPoint        string
+	DockerEndpoint  string
+	PublicEndpoint  string
 	AccessKeyID     string
 	SecretAccessKey string
 }
@@ -20,6 +21,9 @@ func ParseMinIOCliConfig() (MinIOCliConfig, error) {
 	}
 
 	name, err := parseStr("REPORT_MINIO_CONTAINER_NAME")
+	add(err)
+
+	pe, err := parseStr("REPORT_MINIO_PUBLIC_IP")
 	add(err)
 
 	port, err := parseStr("REPORT_MINIO_IN_API_PORT")
@@ -36,7 +40,8 @@ func ParseMinIOCliConfig() (MinIOCliConfig, error) {
 	}
 
 	return MinIOCliConfig{
-		EndPoint:        name + ":" + port,
+		DockerEndpoint:  name + ":" + port,
+		PublicEndpoint:  pe + ":" + port,
 		AccessKeyID:     user,
 		SecretAccessKey: pass,
 	}, nil

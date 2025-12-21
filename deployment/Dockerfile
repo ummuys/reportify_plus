@@ -104,5 +104,11 @@ RUN go mod download \
 # RUNNER
 FROM alpine:3.22 AS report-worker
 WORKDIR /root/
+
+
 COPY --from=report-worker-builder ./svc/app .
+COPY --from=report-worker-builder /svc/services/report-worker/internal/convert/fonts ./internal/convert/fonts
+COPY --from=report-worker-builder /svc/services/report-worker/internal/convert/pgups_icon.png ./internal/convert/
+
+
 CMD ["./app"]

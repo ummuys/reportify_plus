@@ -1,5 +1,7 @@
 package dto
 
+import "time"
+
 type GetReportInfoParams struct {
 	UUID string
 }
@@ -16,8 +18,9 @@ type GetReportInfoResult struct {
 
 type SetReportStatusParams struct {
 	UUID         string
-	FilePath     *string
-	ErrMsg       *string
 	UpdateStatus string
 	BeforeStatus string
+	FilePath     *string
+	ErrMsg       *string
+	ExpireAt     *time.Time
 }

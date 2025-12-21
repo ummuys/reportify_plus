@@ -28,7 +28,7 @@ func NewMinIOCli(baseLogger zerolog.Logger) (MinIOClient, error) {
 
 	logger := baseLogger.With().Str("component", "minio").Logger()
 
-	cli, err := minio.New(cfg.EndPoint, &minio.Options{
+	cli, err := minio.New(cfg.DockerEndpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
 		Secure: false,
 		Region: "us-east-1",
@@ -38,7 +38,7 @@ func NewMinIOCli(baseLogger zerolog.Logger) (MinIOClient, error) {
 		return nil, err
 	}
 
-	pcli, err := minio.New("localhost:9000", &minio.Options{
+	pcli, err := minio.New(cfg.PublicEndpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
 		Secure: false,
 		Region: "us-east-1",
