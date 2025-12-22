@@ -263,55 +263,54 @@ services:
 
 
 ##############################################################
-############################ DATA ############################
+############################ DATASOURCE #######################
 ##############################################################
 
-  data-db:
+  datasource-db:
     image: postgres:17
     env_file:
       - ./../.env
-    container_name: ${DATA_DB_CONTAINER_NAME}
+    container_name: ${DATASOURCE_DB_CONTAINER_NAME}
     environment:
-      POSTGRES_USER: ${DATA_DB_USER}
-      POSTGRES_PASSWORD: ${DATA_DB_PASSWORD}
-      POSTGRES_DB: ${DATA_DB_NAME}
+      POSTGRES_USER: ${DATASOURCE_DB_USER}
+      POSTGRES_PASSWORD: ${DATASOURCE_DB_PASSWORD}
+      POSTGRES_DB: ${DATASOURCE_DB_NAME}
     ports:
-      - ${DATA_DB_OUT_PORT}:${DATA_DB_IN_PORT}
+      - ${DATASOURCE_DB_OUT_PORT}:${DATASOURCE_DB_IN_PORT}
     networks:
       - reportify-network
     volumes:
-      - data-db:/var/lib/postgresql/data
+      - datasource-db:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DATA_DB_USER} -d ${DATA_DB_NAME}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DATASOURCE_DB_USER} -d ${DATASOURCE_DB_NAME}" ]
       interval: 2s
       timeout: 2s
       retries: 10
     restart: unless-stopped
 
-  data-migration:
+  datasource-migration:
     image: migrate/migrate
     env_file:
       - ./../.env
-    container_name: data-migration
+    container_name: datasource-migration
     environment:
-      DATA_DB_MIG: ${DATA_DB_MIG}
+      DATASOURCE_DB_MIG: ${DATASOURCE_DB_MIG}
     volumes:
-      - ./assets/db/data/migrations:/migrations
-    command: ["-path", "/migrations", "-database", "${DATA_DB_MIG}", "up"]
+      - ./assets/db/datasource/migrations:/migrations
+    command: ["-path", "/migrations", "-database", "${DATASOURCE_DB_MIG}", "up"]
     depends_on:
-      data-db:
+      datasource-db:
         condition: service_healthy
     restart: no
     networks:
       - reportify-network
-
 
 volumes:
   report-db:
   auth-db:
   report-minio-data:
   report-kafka-data:
-  data-db:
+  datasource-db:
 
 networks:
   reportify-network:

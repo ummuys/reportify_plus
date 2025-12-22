@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             v3.21.12
-// source: report/v1/report.proto
+// source: report/service/v1/report_service.proto
 
-package reportv1
+package reportservicev1
 
 import (
 	context "context"
@@ -19,12 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ReportService_CreateReport_FullMethodName    = "/report.v1.ReportService/CreateReport"
-	ReportService_ReportStatus_FullMethodName    = "/report.v1.ReportService/ReportStatus"
-	ReportService_ListUserReports_FullMethodName = "/report.v1.ReportService/ListUserReports"
-	ReportService_ListSchemas_FullMethodName     = "/report.v1.ReportService/ListSchemas"
-	ReportService_ListTables_FullMethodName      = "/report.v1.ReportService/ListTables"
-	ReportService_ListColumns_FullMethodName     = "/report.v1.ReportService/ListColumns"
+	ReportService_CreateReport_FullMethodName    = "/report.service.v1.ReportService/CreateReport"
+	ReportService_ReportStatus_FullMethodName    = "/report.service.v1.ReportService/ReportStatus"
+	ReportService_ListUserReports_FullMethodName = "/report.service.v1.ReportService/ListUserReports"
 )
 
 // ReportServiceClient is the client API for ReportService service.
@@ -34,10 +31,6 @@ type ReportServiceClient interface {
 	CreateReport(ctx context.Context, in *CreateReportRequest, opts ...grpc.CallOption) (*CreateReportResponse, error)
 	ReportStatus(ctx context.Context, in *ReportStatusRequest, opts ...grpc.CallOption) (*ReportStatusResponse, error)
 	ListUserReports(ctx context.Context, in *ListUserReportsRequest, opts ...grpc.CallOption) (*ListUserReportsResponse, error)
-	// metadata discovery
-	ListSchemas(ctx context.Context, in *ListSchemasRequest, opts ...grpc.CallOption) (*ListSchemasResponse, error)
-	ListTables(ctx context.Context, in *ListTablesRequest, opts ...grpc.CallOption) (*ListTablesResponse, error)
-	ListColumns(ctx context.Context, in *ListColumnsRequest, opts ...grpc.CallOption) (*ListColumnsResponse, error)
 }
 
 type reportServiceClient struct {
@@ -78,36 +71,6 @@ func (c *reportServiceClient) ListUserReports(ctx context.Context, in *ListUserR
 	return out, nil
 }
 
-func (c *reportServiceClient) ListSchemas(ctx context.Context, in *ListSchemasRequest, opts ...grpc.CallOption) (*ListSchemasResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListSchemasResponse)
-	err := c.cc.Invoke(ctx, ReportService_ListSchemas_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *reportServiceClient) ListTables(ctx context.Context, in *ListTablesRequest, opts ...grpc.CallOption) (*ListTablesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListTablesResponse)
-	err := c.cc.Invoke(ctx, ReportService_ListTables_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *reportServiceClient) ListColumns(ctx context.Context, in *ListColumnsRequest, opts ...grpc.CallOption) (*ListColumnsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListColumnsResponse)
-	err := c.cc.Invoke(ctx, ReportService_ListColumns_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // ReportServiceServer is the server API for ReportService service.
 // All implementations must embed UnimplementedReportServiceServer
 // for forward compatibility.
@@ -115,10 +78,6 @@ type ReportServiceServer interface {
 	CreateReport(context.Context, *CreateReportRequest) (*CreateReportResponse, error)
 	ReportStatus(context.Context, *ReportStatusRequest) (*ReportStatusResponse, error)
 	ListUserReports(context.Context, *ListUserReportsRequest) (*ListUserReportsResponse, error)
-	// metadata discovery
-	ListSchemas(context.Context, *ListSchemasRequest) (*ListSchemasResponse, error)
-	ListTables(context.Context, *ListTablesRequest) (*ListTablesResponse, error)
-	ListColumns(context.Context, *ListColumnsRequest) (*ListColumnsResponse, error)
 	mustEmbedUnimplementedReportServiceServer()
 }
 
@@ -137,15 +96,6 @@ func (UnimplementedReportServiceServer) ReportStatus(context.Context, *ReportSta
 }
 func (UnimplementedReportServiceServer) ListUserReports(context.Context, *ListUserReportsRequest) (*ListUserReportsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListUserReports not implemented")
-}
-func (UnimplementedReportServiceServer) ListSchemas(context.Context, *ListSchemasRequest) (*ListSchemasResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListSchemas not implemented")
-}
-func (UnimplementedReportServiceServer) ListTables(context.Context, *ListTablesRequest) (*ListTablesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListTables not implemented")
-}
-func (UnimplementedReportServiceServer) ListColumns(context.Context, *ListColumnsRequest) (*ListColumnsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListColumns not implemented")
 }
 func (UnimplementedReportServiceServer) mustEmbedUnimplementedReportServiceServer() {}
 func (UnimplementedReportServiceServer) testEmbeddedByValue()                       {}
@@ -222,65 +172,11 @@ func _ReportService_ListUserReports_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ReportService_ListSchemas_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListSchemasRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ReportServiceServer).ListSchemas(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ReportService_ListSchemas_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ReportServiceServer).ListSchemas(ctx, req.(*ListSchemasRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ReportService_ListTables_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListTablesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ReportServiceServer).ListTables(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ReportService_ListTables_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ReportServiceServer).ListTables(ctx, req.(*ListTablesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ReportService_ListColumns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListColumnsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ReportServiceServer).ListColumns(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ReportService_ListColumns_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ReportServiceServer).ListColumns(ctx, req.(*ListColumnsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // ReportService_ServiceDesc is the grpc.ServiceDesc for ReportService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ReportService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "report.v1.ReportService",
+	ServiceName: "report.service.v1.ReportService",
 	HandlerType: (*ReportServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -295,19 +191,7 @@ var ReportService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ListUserReports",
 			Handler:    _ReportService_ListUserReports_Handler,
 		},
-		{
-			MethodName: "ListSchemas",
-			Handler:    _ReportService_ListSchemas_Handler,
-		},
-		{
-			MethodName: "ListTables",
-			Handler:    _ReportService_ListTables_Handler,
-		},
-		{
-			MethodName: "ListColumns",
-			Handler:    _ReportService_ListColumns_Handler,
-		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "report/v1/report.proto",
+	Metadata: "report/service/v1/report_service.proto",
 }
