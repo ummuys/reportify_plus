@@ -6,7 +6,7 @@ import (
 	"github.com/ummuys/reportify/services/report-worker/internal/dto"
 )
 
-type DataDB interface {
+type DatasourceDB interface {
 	GetData(ctx context.Context, in dto.GetDataParams) (dto.GetDataResult, error)
 	Close()
 }

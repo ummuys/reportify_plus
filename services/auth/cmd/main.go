@@ -9,7 +9,7 @@ import (
 	"sync"
 	"syscall"
 
-	authv1 "github.com/ummuys/reportify/api/pb/auth/v1"
+	authv1 "github.com/ummuys/reportify/api/pb/auth/service/v1"
 	"github.com/ummuys/reportify/pkg/config"
 	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/pkg/logger"

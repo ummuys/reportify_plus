@@ -1,32 +1,30 @@
 package web
 
-// BASE PATH
-
-// REPORT
 const (
 	CreateReportPath    = "report"
 	ListUserReportsPath = "report"
 	ReportStatusPath    = "report/:report_id"
 )
 
-// Metadata
 const (
 	ListSchemasPath = "db/schemas"
 	ListTablesPath  = "db/tables"
 	ListColumnsPath = "db/columns"
 )
 
-// ADMIN
 const (
+	GetCacheQueriesPath       = "cache"
+	DeleteAllCacheQueriesPath = "cache/all"
+	DeleteCacheQueryPath      = "cache"
+)
 
-	// Collection
-	ListUsersPath  = "/admin/users" // GET
-	CreateUserPath = "/admin/users" // POST
-	UpdateUserPath = "/admin/users" // PATCH
+const (
+	ListUsersPath  = "/admin/users"
+	CreateUserPath = "/admin/users"
+	UpdateUserPath = "/admin/users"
 
-	// Item
-	GetUserInfoPath = "/admin/users/:user_id" // GET
-	DeleteUserPath  = "/admin/users/:user_id" // DELETE
+	GetUserInfoPath = "/admin/users/:user_id"
+	DeleteUserPath  = "/admin/users/:user_id"
 )
 
 const (

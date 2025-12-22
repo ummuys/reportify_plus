@@ -12,34 +12,34 @@ import (
 	"github.com/ummuys/reportify/services/report-worker/internal/dto"
 )
 
-type dataDB struct {
+type datasourceDB struct {
 	logger zerolog.Logger
 	pool   *pgxpool.Pool
 }
 
-func NewDataDB(ctx context.Context, baseLogger zerolog.Logger) (DataDB, error) {
+func NewDatasourceDB(ctx context.Context, baseLogger zerolog.Logger) (DatasourceDB, error) {
 	qctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
-	cfg, err := config.ParseDataDBEnv()
+	cfg, err := config.ParseDatasourceDBEnv()
 	if err != nil {
 		return nil, err
 	}
 
-	pool, err := db.PoolFromConfig(qctx, cfg, "DATA_DB")
+	pool, err := db.PoolFromConfig(qctx, cfg, "DATASOURCE_DB")
 	if err != nil {
 		return nil, err
 	}
 
-	logger := baseLogger.With().Str("component", "data-db").Logger()
+	logger := baseLogger.With().Str("component", "datasource-db").Logger()
 
-	return &dataDB{
+	return &datasourceDB{
 		logger: logger,
 		pool:   pool,
 	}, nil
 }
 
-func (db *dataDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.GetDataResult, error) {
+func (db *datasourceDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.GetDataResult, error) {
 	db.logger.Debug().Str("evt", "call GetData").Str("Query", in.Query).Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*180)
 	defer cancel()
@@ -142,6 +142,6 @@ func convertPGIntoGo(v any) any {
 	}
 }
 
-func (db *dataDB) Close() {
+func (db *datasourceDB) Close() {
 	db.pool.Close()
 }

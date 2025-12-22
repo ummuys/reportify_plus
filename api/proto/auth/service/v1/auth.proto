@@ -4,7 +4,7 @@ package auth.v1;
 
 import "google/protobuf/empty.proto";
 
-option go_package = "github.com/ummuys/reportify/api/pb/auth/v1;authv1";
+option go_package = "github.com/ummuys/reportify/api/pb/auth/service/v1;authv1";
 
 service AuthService {
     rpc Login (LoginRequest) returns (LoginResponse);

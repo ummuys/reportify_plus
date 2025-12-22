@@ -22,13 +22,16 @@ func ParseReportCacheEnv() (ReportCacheConfig, error) {
 		}
 	}
 
-	addr, err := parseStr("REPORT_CACHE_ADDR")
+	name, err := parseStr("REPORT_CACHE_CONTAINER_NAME")
+	add(err)
+
+	port, err := parseStr("REPORT_CACHE_IN_PORT")
 	add(err)
 
 	pass, err := parseStr("REPORT_CACHE_PASSWORD")
 	add(err)
 
-	db, err := parseInt("REPORT_CACHE_DB", true)
+	db, err := parseInt("REPORT_CACHE_DB_IDX", true)
 	add(err)
 
 	ttl, err := parseInt("REPORT_CACHE_TTL", true)
@@ -39,7 +42,7 @@ func ParseReportCacheEnv() (ReportCacheConfig, error) {
 	}
 
 	return ReportCacheConfig{
-		Addr:     addr,
+		Addr:     name + ":" + port,
 		Password: pass,
 		DB:       db,
 		TTL:      time.Duration(int64(ttl)),

@@ -30,7 +30,6 @@ func main() {
 		logs.Fatal().Err(err).Msg("config")
 	}
 
-	// CLIENTS
 	sc, err := di.NewGRPCServiceClients(cfg.AuthServiceAddr, cfg.ReportServiceAddr)
 	if err != nil {
 		logs.Fatal().Err(err).Msg("clients")
@@ -48,7 +47,11 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	wg.Go(func() {
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
 		<-ctx.Done()
 		defer func() { _ = server.Close() }()
 
@@ -61,9 +64,11 @@ func main() {
 				From: "off rest-server",
 			}
 		}
-	})
+	}()
 
-	wg.Go(func() {
+	go func() {
+		defer wg.Done()
+
 		logs.Info().Msg("run the rest-server")
 		if err := web.RunServer(server); err != nil {
 			SDChan <- errs.SDMsg{
@@ -71,7 +76,7 @@ func main() {
 				From: "rest-server",
 			}
 		}
-	})
+	}()
 
 	wg.Wait()
 	close(SDChan)

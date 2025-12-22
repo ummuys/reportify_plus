@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package report.cache.v1;
+
+option go_package = "github.com/ummuys/reportify/api/pb/report/cache/v1;rcv1";
+
+service ReportCacheService {
+  rpc Get       (GetRequest)       returns (GetResponse);
+  rpc Delete    (DeleteRequest)    returns (DeleteResponse);
+  rpc DeleteAll (DeleteAllRequest) returns (DeleteAllResponse);
+}
+
+message GetRequest {
+  string key = 1;
+}
+
+message GetResponse {
+  repeated bytes values = 1;
+}
+
+message DeleteRequest {
+  string key = 1;
+  string value = 2;
+}
+
+message DeleteResponse {}
+
+message DeleteAllRequest {
+  string key = 1;
+}
+
+message DeleteAllResponse {}

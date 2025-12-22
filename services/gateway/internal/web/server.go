@@ -38,27 +38,34 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 	admPass := []string{"admin"}
 	basePass := []string{"user", "admin"}
 
-	// REPORT
 	report := api.Group("")
 	report.Use(middleware.CheckJWT(tm, basePass))
-	report.POST(CreateReportPath, rh.Report.CreateReport)
-	report.GET(ListUserReportsPath, rh.Report.ListUserReports)
-	report.GET(ReportStatusPath, rh.Report.ReportStatus)
-	report.GET(ListSchemasPath, rh.Report.ListSchemas)
-	report.GET(ListTablesPath, rh.Report.ListTables)
-	report.GET(ListColumnsPath, rh.Report.ListColumns)
+	report.POST(CreateReportPath, rh.ReportService.CreateReport)
+	report.GET(ListUserReportsPath, rh.ReportService.ListUserReports)
+	report.GET(ReportStatusPath, rh.ReportService.ReportStatus)
 
-	// AUTH
+	datasource := api.Group("")
+	datasource.Use(middleware.CheckJWT(tm, basePass))
+	datasource.GET(ListSchemasPath, rh.DatasourceService.ListSchemas)
+	datasource.GET(ListTablesPath, rh.DatasourceService.ListTables)
+	datasource.GET(ListColumnsPath, rh.DatasourceService.ListColumns)
+
+	cache := api.Group("")
+	cache.Use(middleware.CheckJWT(tm, basePass))
+	cache.GET(GetCacheQueriesPath, rh.ReportCache.Get)
+	cache.DELETE(DeleteCacheQueryPath, rh.ReportCache.Delete)
+	cache.DELETE(DeleteAllCacheQueriesPath, rh.ReportCache.DeleteAll)
+
 	auth := api.Group("")
-	auth.POST(LoginPath, rh.Auth.Login(tm.GetRefreshLifetime()))
-	auth.GET(RefreshTokenPath, rh.Auth.RefreshToken)
+	auth.POST(LoginPath, rh.AuthService.Login(tm.GetRefreshLifetime()))
+	auth.GET(RefreshTokenPath, rh.AuthService.RefreshToken)
 
 	authAdm := api.Group("")
 	authAdm.Use(middleware.CheckJWT(tm, admPass))
-	authAdm.POST(CreateUserPath, rh.Auth.CreateUser)
-	authAdm.PUT(UpdateUserPath, rh.Auth.UpdateUser)
-	authAdm.GET(ListUsersPath, rh.Auth.ListUsers)
-	authAdm.DELETE(DeleteUserPath, rh.Auth.DeleteUser)
+	authAdm.POST(CreateUserPath, rh.AuthService.CreateUser)
+	authAdm.PUT(UpdateUserPath, rh.AuthService.UpdateUser)
+	authAdm.GET(ListUsersPath, rh.AuthService.ListUsers)
+	authAdm.DELETE(DeleteUserPath, rh.AuthService.DeleteUser)
 
 	server := &http.Server{
 		Addr:              net.JoinHostPort(cfg.Host, cfg.Port),

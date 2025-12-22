@@ -239,6 +239,27 @@ services:
     networks:
       - reportify-network
 
+  report-cache:
+    image: redis:7.2.11-alpine3.21
+    env_file:
+      - ./../.env
+    container_name: ${REPORT_CACHE_CONTAINER_NAME}
+    environment:
+      REPORT_CACHE_PASSWORD: ${REPORT_CACHE_PASSWORD}
+      REPORT_CACHE_USER: ${REPORT_CACHE_USER}
+      REPORT_CACHE_USER_PASSWORD: ${REPORT_CACHE_USER_PASSWORD}
+    command: ["redis-server", "--requirepass", "${REPORT_CACHE_PASSWORD}"]
+    ports:
+      - ${REPORT_CACHE_OUT_PORT}:${REPORT_CACHE_IN_PORT}
+    networks:
+      - reportify-network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"${REPORT_CACHE_PASSWORD}\" ping | grep PONG"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    restart: unless-stopped
+
 ##############################################################
 ######################## REPORT-WORKER #######################
 ##############################################################

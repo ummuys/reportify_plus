@@ -31,7 +31,7 @@ func main() {
 	}
 	defer reportDB.Close()
 
-	dataDB, err := repository.NewDataDB(ctx, logs)
+	dataDB, err := repository.NewDatasourceDB(ctx, logs)
 	if err != nil {
 		logs.Fatal().Err(err).Msg("data-db")
 	}

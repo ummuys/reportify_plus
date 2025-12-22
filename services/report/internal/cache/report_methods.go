@@ -16,8 +16,8 @@ type repCache struct {
 	ttl    time.Duration
 }
 
-func NewReportCache(pCtx context.Context, baseLogger zerolog.Logger) (ReportCache, error) {
-	ctx, cancel := context.WithTimeout(pCtx, time.Second*5)
+func NewReportCache(ctx context.Context, baseLogger zerolog.Logger) (ReportCache, error) {
+	qctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	cfg, err := config.ParseReportCacheEnv()
@@ -31,7 +31,7 @@ func NewReportCache(pCtx context.Context, baseLogger zerolog.Logger) (ReportCach
 		DB:       cfg.DB,
 	})
 
-	if err := cli.Ping(ctx).Err(); err != nil {
+	if err := cli.Ping(qctx).Err(); err != nil {
 		return nil, fmt.Errorf("redis didn't pinged: %v", err)
 	}
 
@@ -44,15 +44,14 @@ func NewReportCache(pCtx context.Context, baseLogger zerolog.Logger) (ReportCach
 	}, nil
 }
 
-func (rc *repCache) Init(pCtx context.Context, queries map[string][]byte) error {
+func (rc *repCache) Init(ctx context.Context, queries map[string][]byte) error {
 	rc.logger.Debug().Str("evt", "call Init").Msg("")
-	ctx, cancel := context.WithTimeout(pCtx, 5*time.Second)
+	qctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	for key, values := range queries {
 		for _, val := range values {
-			err := rc.cli.LPush(ctx, key, val).Err()
-			if err != nil {
+			if err := rc.cli.LPush(qctx, key, val).Err(); err != nil {
 				return fmt.Errorf("can't add a query (Init): %v", err)
 			}
 		}
@@ -61,54 +60,53 @@ func (rc *repCache) Init(pCtx context.Context, queries map[string][]byte) error 
 	return nil
 }
 
-func (rc *repCache) Set(pCtx context.Context, key string, value []byte) error {
+func (rc *repCache) Set(ctx context.Context, key string, value []byte) error {
 	rc.logger.Debug().Str("evt", "call Set").Msg("")
-
-	ctx, cancel := context.WithTimeout(pCtx, time.Second)
+	qctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
-	err := rc.cli.LPush(ctx, key, value).Err()
-	if err != nil {
+	if err := rc.cli.LPush(qctx, key, value).Err(); err != nil {
 		return fmt.Errorf("can't add a query: %v", err)
 	}
 	return nil
 }
 
-// Make it into [][]byte, because need for api :(
-func (rc *repCache) Get(pCtx context.Context, key string) ([][]byte, error) {
+func (rc *repCache) Get(ctx context.Context, key string) ([][]byte, error) {
 	rc.logger.Debug().Str("evt", "call Get").Msg("")
-	ctx, cancel := context.WithTimeout(pCtx, time.Second)
+	qctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
-	value, err := rc.cli.LRange(ctx, key, 0, -1).Result()
+	value, err := rc.cli.LRange(qctx, key, 0, -1).Result()
 	if err != nil {
 		return nil, fmt.Errorf("can't get a value: %v", err)
 	}
 
-	bytes := make([][]byte, len(value))
+	out := make([][]byte, len(value))
 	for i, v := range value {
-		bytes[i] = []byte(v)
+		out[i] = []byte(v)
 	}
 
-	return bytes, nil
+	return out, nil
 }
 
-func (rc *repCache) GetAll(pCtx context.Context) (map[string][]byte, error) {
+func (rc *repCache) GetAll(ctx context.Context) (map[string][]byte, error) {
 	rc.logger.Debug().Str("evt", "call GetAll").Msg("")
-	ctx, cancel := context.WithTimeout(pCtx, time.Second*5)
+	qctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	keys, err := rc.cli.Keys(ctx, "*").Result()
+	keys, err := rc.cli.Keys(qctx, "*").Result()
 	if err != nil {
 		return nil, err
 	}
-	m := make(map[string][]byte)
+
+	m := make(map[string][]byte, len(keys))
 
 	for _, k := range keys {
-		val, err := rc.cli.LRange(ctx, k, 0, -1).Result()
+		val, err := rc.cli.LRange(qctx, k, 0, -1).Result()
 		if err != nil {
 			return nil, fmt.Errorf("can't get a value: %v", err)
 		}
+
 		var queries []byte
 		queries = append(queries, '[')
 		for i, q := range val {
@@ -118,30 +116,31 @@ func (rc *repCache) GetAll(pCtx context.Context) (map[string][]byte, error) {
 			}
 		}
 		queries = append(queries, ']')
+
 		m[k] = queries
 	}
 
 	return m, nil
 }
 
-func (rc *repCache) Delete(pCtx context.Context, key string, value []byte) error {
+func (rc *repCache) Delete(ctx context.Context, key string, value []byte) error {
 	rc.logger.Debug().Str("evt", "call Delete").Msg("")
-	ctx, cancel := context.WithTimeout(pCtx, time.Second*1)
+	qctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
-	if _, err := rc.cli.LRem(ctx, key, 0, value).Result(); err != nil {
+	if _, err := rc.cli.LRem(qctx, key, 0, value).Result(); err != nil {
 		return fmt.Errorf("can't delete a value: %v", err)
 	}
 
 	return nil
 }
 
-func (rc *repCache) DeleteAll(pCtx context.Context, key string) error {
+func (rc *repCache) DeleteAll(ctx context.Context, key string) error {
 	rc.logger.Debug().Str("evt", "call DeleteAll").Msg("")
-	ctx, cancel := context.WithTimeout(pCtx, time.Second*1)
+	qctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
-	if _, err := rc.cli.Del(ctx, key).Result(); err != nil {
+	if _, err := rc.cli.Del(qctx, key).Result(); err != nil {
 		return fmt.Errorf("can't delete all values: %v", err)
 	}
 

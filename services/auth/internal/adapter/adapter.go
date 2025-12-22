@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/rs/zerolog"
-	authv1 "github.com/ummuys/reportify/api/pb/auth/v1"
+	authv1 "github.com/ummuys/reportify/api/pb/auth/service/v1"
 	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/services/auth/internal/dto"
 	"github.com/ummuys/reportify/services/auth/internal/service"

@@ -6,12 +6,22 @@ import (
 )
 
 type RESTHandlers struct {
-	Auth   handlers.AuthHandler
-	Report handlers.ReportHandler
+	AuthService       handlers.AuthHandler
+	ReportService     handlers.ReportServiceHandler
+	DatasourceService handlers.DatasourceHandler
+	ReportCache       handlers.ReportCacheHandler
 }
 
 func NewRESTHandlers(scs GRPCSC, baseLogger zerolog.Logger) RESTHandlers {
-	auth := handlers.NewAuthHandler(scs.Auth, baseLogger)
-	report := handlers.NewReportHandler(scs.Report, baseLogger)
-	return RESTHandlers{Auth: auth, Report: report}
+	auth := handlers.NewAuthHandler(scs.AuthService, baseLogger)
+	reportSvc := handlers.NewReportServiceHandler(scs.ReportService, baseLogger)
+	datasourceSvc := handlers.NewDatasourceHandler(scs.DatasourceService, baseLogger)
+	reportCch := handlers.NewReportCacheHandler(scs.ReportCache, baseLogger)
+
+	return RESTHandlers{
+		AuthService:       auth,
+		ReportService:     reportSvc,
+		DatasourceService: datasourceSvc,
+		ReportCache:       reportCch,
+	}
 }

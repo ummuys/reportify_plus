@@ -8,22 +8,20 @@ import (
 	"sync"
 	"syscall"
 
-	reportv1 "github.com/ummuys/reportify/api/pb/report/v1"
+	dsv1 "github.com/ummuys/reportify/api/pb/datasource/service/v1"
+	rcv1 "github.com/ummuys/reportify/api/pb/report/cache/v1"
+	rsv1 "github.com/ummuys/reportify/api/pb/report/service/v1"
 	"github.com/ummuys/reportify/pkg/config"
 	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/pkg/logger"
 	"github.com/ummuys/reportify/services/report/internal/adapter"
+	"github.com/ummuys/reportify/services/report/internal/cache"
 	"github.com/ummuys/reportify/services/report/internal/dto"
 	"github.com/ummuys/reportify/services/report/internal/kafkacli"
 	"github.com/ummuys/reportify/services/report/internal/repository"
 	"github.com/ummuys/reportify/services/report/internal/service"
 	"google.golang.org/grpc"
 )
-
-type SDMsg struct {
-	err  error
-	from string
-}
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -50,14 +48,20 @@ func main() {
 	}
 	defer reportDB.Close()
 
-	dataDB, err := repository.NewDataDB(ctx, logs)
+	datasourceDB, err := repository.NewDatasourceDB(ctx, logs)
 	if err != nil {
-		logs.Fatal().Err(err).Msg("report-db")
+		logs.Fatal().Err(err).Msg("datasource-db")
 	}
-	defer dataDB.Close()
+	defer datasourceDB.Close()
 
-	reportSVC := service.NewReportService(reportDB, logs)
-	dataSVC := service.NewDataService(dataDB, logs)
+	reportCache, err := cache.NewReportCache(ctx, logs)
+	if err != nil {
+		logs.Fatal().Err(err).Msg("report-cache")
+	}
+
+	reportSvc := service.NewReportService(reportDB, reportCache, logs)
+	reportCacheSvc := service.NewReportCacheService(reportCache, logs)
+	datasourceSVC := service.NewDatasourceService(datasourceDB, logs)
 
 	srv := grpc.NewServer()
 
@@ -70,28 +74,37 @@ func main() {
 	}
 	defer kafkaCli.Close()
 
-	adapter := adapter.NewReportAdapter(reportSVC, dataSVC, tunnel, logs)
-	reportv1.RegisterReportServiceServer(srv, adapter)
+	reportAdapter := adapter.NewReportAdapter(reportSvc, tunnel, logs)
+	datasourceAdapter := adapter.NewDatasourceAdapter(datasourceSVC, logs)
+	reportCacheAdapter := adapter.NewReportCacheAdapter(reportCacheSvc, logs)
 
-	wg := sync.WaitGroup{}
+	rsv1.RegisterReportServiceServer(srv, reportAdapter)
+	dsv1.RegisterDatasourceServiceServer(srv, datasourceAdapter)
+	rcv1.RegisterReportCacheServiceServer(srv, reportCacheAdapter)
+
+	var wg sync.WaitGroup
+	wg.Add(3)
+
 	SDChan := make(chan errs.SDMsg, 2)
 
-	wg.Go(func() {
+	go func() {
+		defer wg.Done()
 		<-ctx.Done()
 		srv.GracefulStop()
-	})
+	}()
 
-	wg.Go(func() {
-		err := kafkaCli.Run(ctx)
-		if err != nil {
+	go func() {
+		defer wg.Done()
+		if err := kafkaCli.Run(ctx); err != nil {
 			SDChan <- errs.SDMsg{
 				Err:  err,
 				From: "kafka-producer",
 			}
 		}
-	})
+	}()
 
-	wg.Go(func() {
+	go func() {
+		defer wg.Done()
 		logs.Info().Msg("run the grpc-server")
 		if err := srv.Serve(lis); err != nil {
 			SDChan <- errs.SDMsg{
@@ -99,10 +112,9 @@ func main() {
 				From: "grpc-server",
 			}
 		}
-	})
+	}()
 
 	wg.Wait()
 	close(SDChan)
 	errs.ShutdownStatus(logs, SDChan)
-
 }

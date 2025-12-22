@@ -714,7 +714,7 @@ const file_auth_service_v1_auth_proto_rawDesc = "" +
 	"\n" +
 	"DeleteUser\x12\x1a.auth.v1.DeleteUserRequest\x1a\x1b.auth.v1.DeleteUserResponse\x12?\n" +
 	"\tListUsers\x12\x16.google.protobuf.Empty\x1a\x1a.auth.v1.ListUsersResponse\x12K\n" +
-	"\fRefreshToken\x12\x1c.auth.v1.RefreshTokenRequest\x1a\x1d.auth.v1.RefreshTokenResponseB3Z1github.com/ummuys/reportify/api/pb/auth/v1;authv1b\x06proto3"
+	"\fRefreshToken\x12\x1c.auth.v1.RefreshTokenRequest\x1a\x1d.auth.v1.RefreshTokenResponseB;Z9github.com/ummuys/reportify/api/pb/auth/service/v1;authv1b\x06proto3"
 
 var (
 	file_auth_service_v1_auth_proto_rawDescOnce sync.Once

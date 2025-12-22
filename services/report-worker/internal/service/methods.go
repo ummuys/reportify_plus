@@ -16,11 +16,11 @@ import (
 )
 
 type publish struct {
-	logger   zerolog.Logger
-	dataDB   repository.DataDB
-	reportDB repository.ReportDB
-	conv     convert.ReportConvert
-	minioCli miniocli.MinIOClient
+	logger       zerolog.Logger
+	datasourceDB repository.DatasourceDB
+	reportDB     repository.ReportDB
+	conv         convert.ReportConvert
+	minioCli     miniocli.MinIOClient
 }
 
 type prResMsg struct {
@@ -28,15 +28,15 @@ type prResMsg struct {
 	err  error
 }
 
-func NewPublishService(dataDB repository.DataDB, reportDB repository.ReportDB,
+func NewPublishService(datasourceDB repository.DatasourceDB, reportDB repository.ReportDB,
 	convert convert.ReportConvert, minioCli miniocli.MinIOClient, baseLogger zerolog.Logger) (PublishService, error) {
 	logger := baseLogger.With().Str("component", "svc").Logger()
 	return &publish{
-		dataDB:   dataDB,
-		reportDB: reportDB,
-		conv:     convert,
-		logger:   logger,
-		minioCli: minioCli,
+		datasourceDB: datasourceDB,
+		reportDB:     reportDB,
+		conv:         convert,
+		logger:       logger,
+		minioCli:     minioCli,
 	}, nil
 }
 
@@ -62,7 +62,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	}
 
 	// Get data from query
-	data, err := p.dataDB.GetData(ctx, dto.GetDataParams{
+	data, err := p.datasourceDB.GetData(ctx, dto.GetDataParams{
 		Query: info.Query,
 	})
 
