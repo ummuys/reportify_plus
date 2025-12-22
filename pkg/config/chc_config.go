@@ -1,44 +1,47 @@
 package config
 
-// type RepCacheConfig struct {
-// 	Addr     string
-// 	Password string
-// 	DB       int
-// 	Exp      int
-// }
+import (
+	"errors"
+	"strings"
+	"time"
+)
 
-// func ParseReportCacheEnv() (RepCacheConfig, error) {
-// 	var errs []string
+type ReportCacheConfig struct {
+	Addr     string
+	Password string
+	DB       int
+	TTL      time.Duration
+}
 
-// 	add := func(err error) {
-// 		if err != nil {
-// 			errs = append(errs, err.Error())
-// 		}
-// 	}
+func ParseReportCacheEnv() (ReportCacheConfig, error) {
+	var errs []string
 
-// 	addr, err := parseStr("CACHE_ADDR")
-// 	add("cache_addr")
+	add := func(err error) {
+		if err != nil {
+			errs = append(errs, err.Error())
+		}
+	}
 
-// 	pass, err := parseStr("CACHE_PASSWORD")
+	addr, err := parseStr("REPORT_CACHE_ADDR")
+	add(err)
 
-// 	add("cache_password")
+	pass, err := parseStr("REPORT_CACHE_PASSWORD")
+	add(err)
 
-// 	db, err := parseInt("CACHE_DB", true)
+	db, err := parseInt("REPORT_CACHE_DB", true)
+	add(err)
 
-// 	add("cache_db")
+	ttl, err := parseInt("REPORT_CACHE_TTL", true)
+	add(err)
 
-// 	exp, err := parseInt("CACHE_EXPIRE_TIME", true)
+	if len(errs) > 0 {
+		return ReportCacheConfig{}, errors.New(strings.Join(errs, ", "))
+	}
 
-// 	add("cache_db")
-
-// 	if len(errs) > 0 {
-// 		return {}, errors.New(strings.Join(errs, ", "))
-// 	}
-
-// 	return RepCacheConfig{
-// 		Addr:     addr,
-// 		Password: pass,
-// 		DB:       db,
-// 		Exp:      exp,
-// 	}, nil
-// }
+	return ReportCacheConfig{
+		Addr:     addr,
+		Password: pass,
+		DB:       db,
+		TTL:      time.Duration(int64(ttl)),
+	}, nil
+}
