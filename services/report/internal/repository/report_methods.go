@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -53,6 +54,49 @@ func (db *reportDB) CreateReport(ctx context.Context, in dto.CreateReportParams)
 	}
 
 	out.UUID = uuid
+
+	return out, nil
+}
+
+func (db *reportDB) GetAllReports(ctx context.Context) (map[string][][]byte, error) {
+	db.logger.Debug().Str("evt", "call  GetAllReports")
+	qctx, cancel := context.WithTimeout(ctx, time.Second*20)
+	defer cancel()
+
+	rows, err := db.pool.Query(qctx, getAllReportsQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := make(map[string][][]byte)
+
+	for rows.Next() {
+		var id string
+		var r dto.ReportCacheValue
+		if err := rows.Scan(
+			&id,
+			&r.Name,
+			&r.Comm,
+			&r.Query,
+			&r.CSVSep,
+			&r.Format,
+			&r.Status,
+			&r.FilePath,
+			&r.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		bytes, err := json.Marshal(r)
+		if err != nil {
+			return nil, err
+		}
+		out[id] = append(out[id], bytes)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	return out, nil
 }

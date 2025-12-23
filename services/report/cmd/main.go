@@ -59,6 +59,16 @@ func main() {
 		logs.Fatal().Err(err).Msg("report-cache")
 	}
 
+	queries, err := reportDB.GetAllReports(ctx)
+	if err != nil {
+		logs.Warn().Err(err).Msg("can't get queries from database")
+	}
+	err = reportCache.Init(ctx, queries)
+	if err != nil {
+		logs.Warn().Err(err).Msg("can't load queries to cache")
+	}
+	logs.Info().Msg("successufully load queries to cache")
+
 	reportSvc := service.NewReportService(reportDB, reportCache, logs)
 	reportCacheSvc := service.NewReportCacheService(reportCache, logs)
 	datasourceSVC := service.NewDatasourceService(datasourceDB, logs)

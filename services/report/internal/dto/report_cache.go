@@ -9,7 +9,10 @@ type CacheGetResult struct {
 type ReportCacheValue struct {
 	Name      string
 	Comm      string
-	CreatedAt time.Time
 	Query     string
 	CSVSep    string
+	Format    string
+	Status    string
+	FilePath  string
+	CreatedAt time.Time
 }

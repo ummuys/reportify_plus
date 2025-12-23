@@ -44,7 +44,7 @@ func NewReportCache(ctx context.Context, baseLogger zerolog.Logger) (ReportCache
 	}, nil
 }
 
-func (rc *repCache) Init(ctx context.Context, queries map[string][]byte) error {
+func (rc *repCache) Init(ctx context.Context, queries map[string][][]byte) error {
 	rc.logger.Debug().Str("evt", "call Init").Msg("")
 	qctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()

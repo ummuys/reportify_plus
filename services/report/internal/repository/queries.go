@@ -20,6 +20,23 @@ const (
 	`
 )
 
+const (
+	getAllReportsQuery = `
+		SELECT
+		author_id,
+		name,
+		comment,
+		query_sql,
+		csv_separator,
+		format::text,
+		status::text,
+		file_path,
+		created_at
+	FROM report_metadata.report_requests
+	ORDER BY created_at ASC;
+	`
+)
+
 // COLUMNS QUERY
 const (
 	columnsWithCommentQuery = `
