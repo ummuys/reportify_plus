@@ -1,6 +1,23 @@
-import { BASE_PATH, GET_ACCESS_TOKEN_PATH } from '../config/index.js';
+﻿import { BASE_PATH, GET_ACCESS_TOKEN_PATH } from '../config/index.js';
 import { showAlert, applyRoleRestrictions } from '../ui/index.js';
 import { syncRoleFromToken } from '../core/auth.js';
+
+const AUTH_ALERT_TITLE = "Авторизация";
+const AUTH_ALERT_MESSAGE = "Сессия истекла. Войдите снова.";
+
+let refreshPromise = null;
+let authModalShown = false;
+
+function isRefreshRequest(url) {
+  if (!url) return false;
+  if (url === GET_ACCESS_TOKEN_PATH) return true;
+  try {
+    const parsed = new URL(url, window.location.origin);
+    return parsed.pathname.endsWith('/api/v1/secure/refresh');
+  } catch {
+    return String(url).includes('/api/v1/secure/refresh');
+  }
+}
 
 async function requestNewAccessToken() {
   const res = await fetch(GET_ACCESS_TOKEN_PATH, {
@@ -10,21 +27,18 @@ async function requestNewAccessToken() {
   });
 
   if (res.status === 401) {
-    // refresh недействителен
     return { ok: false, reason: "unauthorized" };
   }
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
-    return { ok: false, reason: `${res.status} ${res.statusText}${txt ? " — " + txt : ""}` };
+    return { ok: false, reason: `${res.status} ${res.statusText}${txt ? " - " + txt : ""}` };
   }
 
-  // достаём токен из JSON (поддержим разные ключи на всякий)
   let token = "";
   try {
     const data = await res.json();
     token = data.access_token || data.token || data.access || "";
   } catch {
-    // иногда сервер может вернуть чистую строку
     const txt = await res.text().catch(() => "");
     token = txt.trim();
   }
@@ -38,13 +52,42 @@ async function requestNewAccessToken() {
   return { ok: false, reason: "empty_token" };
 }
 
+async function refreshAccessToken() {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        return await requestNewAccessToken();
+      } catch (err) {
+        return { ok: false, reason: err?.message || "refresh_error" };
+      }
+    })();
+
+    refreshPromise.finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
+
+async function handleAuthFailure() {
+  if (authModalShown) return;
+  authModalShown = true;
+
+  try {
+    await showAlert(AUTH_ALERT_MESSAGE, AUTH_ALERT_TITLE);
+  } catch {}
+
+  localStorage.removeItem("access_token_v1");
+  document.cookie = "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  location.assign(BASE_PATH);
+}
+
 export async function fetchWithToken(url, options = {}) {
   const doFetch = async () => {
     const token = localStorage.getItem("access_token_v1") || "";
     const opts = { ...options };
     opts.headers = { ...(opts.headers || {}) };
 
-    // Accept: по умолчанию json
     const requestedAccept = String(
       opts.headers["Accept"] || opts.headers["accept"] || "application/json"
     ).toLowerCase();
@@ -54,6 +97,7 @@ export async function fetchWithToken(url, options = {}) {
 
     if (token) opts.headers["Authorization"] = "Bearer " + token;
     if (!("credentials" in opts)) opts.credentials = "include";
+
     let res;
     try {
       res = await fetch(url, opts);
@@ -64,38 +108,35 @@ export async function fetchWithToken(url, options = {}) {
     return { res, requestedAccept };
   };
 
-  // 1-я попытка
   let { res, requestedAccept } = await doFetch();
 
-  // Если 401 — пробуем обновить токен и повторить ровно один раз
   if (res.status === 401) {
-    const refresh = await requestNewAccessToken();
-    if (refresh.ok) {
+    if (isRefreshRequest(url)) {
+      await handleAuthFailure();
+      throw new Error("401 Unauthorized - refresh token expired");
+    }
+
+    const refresh = await refreshAccessToken();
+    if (refresh && refresh.ok) {
       ({ res, requestedAccept } = await doFetch());
+    } else {
+      await handleAuthFailure();
+      throw new Error("401 Unauthorized - refresh failed");
     }
   }
 
-  // После возможного ретрая — если всё ещё 401, уведомляем и уводим на BASE_PATH
   if (res.status === 401) {
-    try {
-      await showAlert("Сессия истекла. Пожалуйста, войдите снова.", "Авторизация");
-    } catch {}
-    // очищаем токен на всякий случай и возвращаем на basepath
-    localStorage.removeItem("access_token_v1");
-    // используем assign, чтобы не оставлять «битую» страницу в истории
-    location.assign(BASE_PATH);
-    // бросаем ошибку, чтобы текущий поток не продолжался
-    throw new Error("401 Unauthorized — redirect to login");
+    await handleAuthFailure();
+    throw new Error("401 Unauthorized - redirect to login");
   }
 
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
-    throw new Error(`${res.status} ${res.statusText}${txt ? " — " + txt : ""}`);
+    throw new Error(`${res.status} ${res.statusText}${txt ? " - " + txt : ""}`);
   }
 
   const ct = (res.headers.get("content-type") || "").toLowerCase();
 
-  // если мы ЯВНО запросили бинарь — отдаём Response как есть
   const isBinaryRequested =
     requestedAccept.includes("application/pdf") ||
     requestedAccept.includes("text/csv") ||
@@ -106,7 +147,6 @@ export async function fetchWithToken(url, options = {}) {
 
   if (isBinaryRequested) return res;
 
-  // если по факту пришёл бинарь (или сервер не указал content-type) — тоже отдаём Response
   const isBinaryResponse =
     ct.includes("application/pdf") ||
     ct.includes("text/csv") ||
@@ -118,12 +158,13 @@ export async function fetchWithToken(url, options = {}) {
 
   if (isBinaryResponse) return res;
 
-  // иначе читаем как текст/JSON
   const txt = await res.text();
   try { return JSON.parse(txt); } catch { return txt; }
 }
 
-
 export async function getJSON(url) {
   return fetchWithToken(url);
 }
+
+
+

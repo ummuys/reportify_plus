@@ -1,4 +1,4 @@
-const API_HOST = "http://127.0.0.1:8088";
+﻿const API_HOST = "http://127.0.0.1:8088";
 const API_PREFIX = `${API_HOST}/api/v1`;
 const ENDPOINTS = {
   users: "/admin/users",
@@ -9,6 +9,13 @@ const state = {
   token: "",
   role: "",
 };
+
+const AUTH_ALERT_TITLE = "Авторизация";
+const AUTH_ALERT_MESSAGE = "Сессия истекла. Войдите снова.";
+const REFRESH_URL = `${API_PREFIX}/secure/refresh`;
+
+let refreshPromise = null;
+let authModalShown = false;
 
 const roleBadge = document.getElementById("roleBadge");
 const statusLog = document.getElementById("statusLog");
@@ -56,6 +63,82 @@ function showAlert(message, title = "Сообщение") {
   });
 }
 
+function isRefreshRequest(pathOrUrl) {
+  if (!pathOrUrl) return false;
+  if (pathOrUrl === REFRESH_URL) return true;
+  return String(pathOrUrl).includes("/api/v1/secure/refresh");
+}
+
+async function requestNewAccessToken() {
+  const res = await fetch(REFRESH_URL, {
+    method: "GET",
+    credentials: "include",
+    headers: { "Accept": "application/json" }
+  });
+
+  if (res.status === 401) {
+    return { ok: false, reason: "unauthorized" };
+  }
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    return { ok: false, reason: `${res.status} ${res.statusText}${txt ? " - " + txt : ""}` };
+  }
+
+  let token = "";
+  try {
+    const data = await res.json();
+    token = data.access_token || data.token || data.access || "";
+  } catch {
+    const txt = await res.text().catch(() => "");
+    token = txt.trim();
+  }
+
+  if (token) {
+    localStorage.setItem("access_token_v1", token);
+    state.token = token;
+
+    const payload = decodeTokenPayload(token);
+    if (payload?.role) {
+      state.role = payload.role;
+      if (roleBadge) {
+        roleBadge.textContent = `role: ${payload.role}`;
+      }
+    }
+    return { ok: true, token };
+  }
+  return { ok: false, reason: "empty_token" };
+}
+
+async function refreshAccessToken() {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        return await requestNewAccessToken();
+      } catch (err) {
+        return { ok: false, reason: err?.message || "refresh_error" };
+      }
+    })();
+
+    refreshPromise.finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
+
+async function handleAuthFailure(message = AUTH_ALERT_MESSAGE) {
+  if (authModalShown) return false;
+  authModalShown = true;
+
+  try {
+    await showAlert(message, AUTH_ALERT_TITLE);
+  } catch {}
+
+  localStorage.removeItem("access_token_v1");
+  document.cookie = "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  window.location.assign("/");
+  return false;
+}
 async function redirectToLogin(message = "") {
   if (message) {
     await showAlert(message, "Авторизация");
@@ -78,7 +161,7 @@ function decodeTokenPayload(token) {
 async function ensureAdminAccess() {
   const token = localStorage.getItem("access_token_v1");
   if (!token) {
-    await redirectToLogin("Токен отсутствует");
+    await redirectToLogin("Требуется авторизация.");
     return false;
   }
 
@@ -110,22 +193,46 @@ function logStatus(message, kind = "info") {
 }
 
 async function fetchJSON(path, options = {}) {
-  const token = state.token || localStorage.getItem("access_token_v1");
+  let token = state.token || localStorage.getItem("access_token_v1");
   if (!token) {
-    await redirectToLogin("Нет токена");
+    await redirectToLogin("Требуется авторизация.");
     return null;
   }
 
-  const opts = { ...options };
-  opts.headers = { "Content-Type": "application/json", ...(options.headers || {}) };
-  opts.credentials = "include";
-  opts.headers["Authorization"] = `Bearer ${token}`;
+  const buildOpts = () => {
+    const opts = { ...options };
+    opts.headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+    opts.credentials = "include";
+    if (token) {
+      opts.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return opts;
+  };
 
-  const res = await fetch(`${API_PREFIX}${path}`, opts);
+  const doFetch = () => fetch(`${API_PREFIX}${path}`, buildOpts());
+
+  let res = await doFetch();
   if (res.status === 401) {
-    await redirectToLogin("Сессия истекла");
+    if (isRefreshRequest(path)) {
+      await handleAuthFailure();
+      return null;
+    }
+
+    const refresh = await refreshAccessToken();
+    if (refresh && refresh.ok) {
+      token = state.token || localStorage.getItem("access_token_v1") || refresh.token;
+      res = await doFetch();
+    } else {
+      await handleAuthFailure();
+      return null;
+    }
+  }
+
+  if (res.status === 401) {
+    await handleAuthFailure();
     return null;
   }
+
   if (res.status === 204) {
     return {};
   }
