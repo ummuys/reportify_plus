@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,9 +20,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ReportService_CreateReport_FullMethodName    = "/report.service.v1.ReportService/CreateReport"
-	ReportService_ReportStatus_FullMethodName    = "/report.service.v1.ReportService/ReportStatus"
-	ReportService_ListUserReports_FullMethodName = "/report.service.v1.ReportService/ListUserReports"
+	ReportService_CreateReport_FullMethodName      = "/report.service.v1.ReportService/CreateReport"
+	ReportService_ReportStatus_FullMethodName      = "/report.service.v1.ReportService/ReportStatus"
+	ReportService_ListUserReports_FullMethodName   = "/report.service.v1.ReportService/ListUserReports"
+	ReportService_ReportInfo_FullMethodName        = "/report.service.v1.ReportService/ReportInfo"
+	ReportService_DeleteUserReports_FullMethodName = "/report.service.v1.ReportService/DeleteUserReports"
+	ReportService_DeleteUserReport_FullMethodName  = "/report.service.v1.ReportService/DeleteUserReport"
 )
 
 // ReportServiceClient is the client API for ReportService service.
@@ -31,6 +35,9 @@ type ReportServiceClient interface {
 	CreateReport(ctx context.Context, in *CreateReportRequest, opts ...grpc.CallOption) (*CreateReportResponse, error)
 	ReportStatus(ctx context.Context, in *ReportStatusRequest, opts ...grpc.CallOption) (*ReportStatusResponse, error)
 	ListUserReports(ctx context.Context, in *ListUserReportsRequest, opts ...grpc.CallOption) (*ListUserReportsResponse, error)
+	ReportInfo(ctx context.Context, in *ReportInfoRequest, opts ...grpc.CallOption) (*ReportInfoResponse, error)
+	DeleteUserReports(ctx context.Context, in *DeleteUserReportsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteUserReport(ctx context.Context, in *DeleteUserReportRequest, opts ...grpc.CallOption) (*DeleteUserReportResponse, error)
 }
 
 type reportServiceClient struct {
@@ -71,6 +78,36 @@ func (c *reportServiceClient) ListUserReports(ctx context.Context, in *ListUserR
 	return out, nil
 }
 
+func (c *reportServiceClient) ReportInfo(ctx context.Context, in *ReportInfoRequest, opts ...grpc.CallOption) (*ReportInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReportInfoResponse)
+	err := c.cc.Invoke(ctx, ReportService_ReportInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportServiceClient) DeleteUserReports(ctx context.Context, in *DeleteUserReportsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ReportService_DeleteUserReports_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportServiceClient) DeleteUserReport(ctx context.Context, in *DeleteUserReportRequest, opts ...grpc.CallOption) (*DeleteUserReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteUserReportResponse)
+	err := c.cc.Invoke(ctx, ReportService_DeleteUserReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReportServiceServer is the server API for ReportService service.
 // All implementations must embed UnimplementedReportServiceServer
 // for forward compatibility.
@@ -78,6 +115,9 @@ type ReportServiceServer interface {
 	CreateReport(context.Context, *CreateReportRequest) (*CreateReportResponse, error)
 	ReportStatus(context.Context, *ReportStatusRequest) (*ReportStatusResponse, error)
 	ListUserReports(context.Context, *ListUserReportsRequest) (*ListUserReportsResponse, error)
+	ReportInfo(context.Context, *ReportInfoRequest) (*ReportInfoResponse, error)
+	DeleteUserReports(context.Context, *DeleteUserReportsRequest) (*emptypb.Empty, error)
+	DeleteUserReport(context.Context, *DeleteUserReportRequest) (*DeleteUserReportResponse, error)
 	mustEmbedUnimplementedReportServiceServer()
 }
 
@@ -96,6 +136,15 @@ func (UnimplementedReportServiceServer) ReportStatus(context.Context, *ReportSta
 }
 func (UnimplementedReportServiceServer) ListUserReports(context.Context, *ListUserReportsRequest) (*ListUserReportsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListUserReports not implemented")
+}
+func (UnimplementedReportServiceServer) ReportInfo(context.Context, *ReportInfoRequest) (*ReportInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReportInfo not implemented")
+}
+func (UnimplementedReportServiceServer) DeleteUserReports(context.Context, *DeleteUserReportsRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteUserReports not implemented")
+}
+func (UnimplementedReportServiceServer) DeleteUserReport(context.Context, *DeleteUserReportRequest) (*DeleteUserReportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteUserReport not implemented")
 }
 func (UnimplementedReportServiceServer) mustEmbedUnimplementedReportServiceServer() {}
 func (UnimplementedReportServiceServer) testEmbeddedByValue()                       {}
@@ -172,6 +221,60 @@ func _ReportService_ListUserReports_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReportService_ReportInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportServiceServer).ReportInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportService_ReportInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportServiceServer).ReportInfo(ctx, req.(*ReportInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportService_DeleteUserReports_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserReportsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportServiceServer).DeleteUserReports(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportService_DeleteUserReports_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportServiceServer).DeleteUserReports(ctx, req.(*DeleteUserReportsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportService_DeleteUserReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportServiceServer).DeleteUserReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportService_DeleteUserReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportServiceServer).DeleteUserReport(ctx, req.(*DeleteUserReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ReportService_ServiceDesc is the grpc.ServiceDesc for ReportService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +293,18 @@ var ReportService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListUserReports",
 			Handler:    _ReportService_ListUserReports_Handler,
+		},
+		{
+			MethodName: "ReportInfo",
+			Handler:    _ReportService_ReportInfo_Handler,
+		},
+		{
+			MethodName: "DeleteUserReports",
+			Handler:    _ReportService_DeleteUserReports_Handler,
+		},
+		{
+			MethodName: "DeleteUserReport",
+			Handler:    _ReportService_DeleteUserReport_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

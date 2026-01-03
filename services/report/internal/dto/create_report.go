@@ -10,6 +10,6 @@ type CreateReportParams struct {
 }
 
 type CreateReportResult struct {
-	UUID   string
-	Status string
+	ReportID string
+	Status   string
 }

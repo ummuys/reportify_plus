@@ -55,16 +55,16 @@ func (c *consumer) Run(ctx context.Context) error {
 	for i := 0; i < c.cWorkers; i++ {
 		wg.Go(func() {
 			for r := range records {
-				uuid := string(r.Value)
-				c.logger.Info().Str("topic", r.Topic).Str("report-uuid", uuid).Msg("catch new message")
+				reportID := string(r.Value)
+				c.logger.Info().Str("topic", r.Topic).Str("report_id", reportID).Msg("catch new message")
 				if err := c.svc.CreateReport(ctx, dto.KafkaMessage{
-					UUID: uuid,
+					ReportID: reportID,
 				}); err != nil {
-					c.toDLQ(ctx, uuid, r, err)
+					c.toDLQ(ctx, reportID, r, err)
 					continue
 				}
 				c.cli.MarkCommitRecords(r)
-				c.logger.Info().Str("topic", r.Topic).Str("report-uuid", uuid).Msg("report created")
+				c.logger.Info().Str("topic", r.Topic).Str("report_id", reportID).Msg("report created")
 			}
 		})
 	}
@@ -89,7 +89,7 @@ func (c *consumer) Run(ctx context.Context) error {
 	}
 }
 
-func (c *consumer) toDLQ(ctx context.Context, uuid string, r *kgo.Record, err error) {
+func (c *consumer) toDLQ(ctx context.Context, reportID string, r *kgo.Record, err error) {
 	rec := &kgo.Record{
 		Topic: c.topicDLQ,
 		Key:   nil,
@@ -104,5 +104,5 @@ func (c *consumer) toDLQ(ctx context.Context, uuid string, r *kgo.Record, err er
 		c.logger.Error().Err(err).Msg("send to dlq failed")
 		return
 	}
-	c.logger.Warn().Err(err).Str("topic", r.Topic).Str("report-uuid", uuid).Int32("partition", r.Partition).Msg("")
+	c.logger.Warn().Err(err).Str("topic", r.Topic).Str("report_id", reportID).Int32("partition", r.Partition).Msg("")
 }

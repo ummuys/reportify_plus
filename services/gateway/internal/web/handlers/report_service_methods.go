@@ -64,8 +64,8 @@ func (rsh *reportServiceHandler) CreateReport(g *gin.Context) {
 
 	g.Set("msg", "task to create report created")
 	g.JSON(http.StatusCreated, webdto.CreateReportResponse{
-		UUID:   out.Uuid,
-		Status: out.Status,
+		ReportID: out.ReportId,
+		Status:   out.Status,
 	})
 }
 
@@ -107,7 +107,6 @@ func (rsh *reportServiceHandler) ListUserReports(g *gin.Context) {
 	for _, pbReport := range out.Reports {
 		metadata := webdto.ReportMetadata{
 			ReportID: pbReport.ReportId,
-			AuthorID: pbReport.AuthorId,
 			Name:     pbReport.Name,
 			Comm:     pbReport.Comm,
 			Query:    pbReport.Query,
@@ -121,9 +120,6 @@ func (rsh *reportServiceHandler) ListUserReports(g *gin.Context) {
 		if pbReport.CreatedAt != nil {
 			metadata.CreatedAt = pbReport.CreatedAt.AsTime()
 		}
-		if pbReport.UpdatedAt != nil {
-			metadata.UpdatedAt = pbReport.UpdatedAt.AsTime()
-		}
 
 		resp.Reports = append(resp.Reports, metadata)
 	}
@@ -135,9 +131,11 @@ func (rsh *reportServiceHandler) ReportStatus(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call ReportStatus").Msg("")
 
 	reportID := g.Param("report_id")
+	userID := g.GetString("user_id")
 
 	out, gErr := rsh.sc.ReportStatus(g.Request.Context(), &reportservicev1.ReportStatusRequest{
-		Uuid: reportID,
+		AuthorId: userID,
+		ReportId: reportID,
 	})
 	if gErr != nil {
 		st, ok := errs.GRPCtoREST(gErr)
@@ -155,7 +153,7 @@ func (rsh *reportServiceHandler) ReportStatus(g *gin.Context) {
 		switch st.Code() {
 		case codes.NotFound:
 			code = http.StatusNotFound
-			resp = webdto.BaseResponse{Message: "can't find report by uuid"}
+			resp = webdto.BaseResponse{Message: "can't find report by report_id"}
 		default:
 		}
 
@@ -165,9 +163,141 @@ func (rsh *reportServiceHandler) ReportStatus(g *gin.Context) {
 
 	g.Set("msg", "report status returned")
 	g.JSON(http.StatusOK, webdto.ReportStatusResponse{
-		UUID:     out.Uuid,
+		ReportID: out.ReportId,
 		Status:   out.Status,
-		ErrMsg:   out.ErrMsg,
-		FilePath: out.FilePath,
+	})
+}
+
+func (rsh *reportServiceHandler) ReportInfo(g *gin.Context) {
+	rsh.logger.Debug().Str("evt", "call ReportInfo").Msg("")
+
+	reportID := g.Param("report_id")
+	userID := g.GetString("user_id")
+
+	out, gErr := rsh.sc.ReportInfo(g.Request.Context(), &reportservicev1.ReportInfoRequest{
+		AuthorId: userID,
+		ReportId: reportID,
+	})
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			return
+		}
+
+		g.Set("msg", st.Message())
+
+		code := http.StatusInternalServerError
+		resp := any(webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+
+		switch st.Code() {
+		case codes.NotFound:
+			code = http.StatusNotFound
+			resp = webdto.BaseResponse{Message: "can't find report by report_id"}
+		default:
+		}
+
+		g.AbortWithStatusJSON(code, resp)
+		return
+	}
+
+	g.Set("msg", "report info returned")
+
+	pbReport := out.Report
+
+	metadata := webdto.ReportMetadata{
+		ReportID: pbReport.ReportId,
+		Name:     pbReport.Name,
+		Comm:     pbReport.Comm,
+		Query:    pbReport.Query,
+		Format:   pbReport.Format,
+		CSVSep:   pbReport.CsvSep,
+		Status:   pbReport.Status,
+		FilePath: pbReport.FilePath,
+		ErrMsg:   pbReport.ErrMsg,
+	}
+	if pbReport.CreatedAt != nil {
+		metadata.CreatedAt = pbReport.CreatedAt.AsTime()
+	}
+
+	g.JSON(http.StatusOK, webdto.ReportInfoResponse{
+		Report: metadata,
+	})
+}
+
+func (rsh *reportServiceHandler) DeleteUserReports(g *gin.Context) {
+	rsh.logger.Debug().Str("evt", "call DeleteUserReports").Msg("")
+
+	userID := g.GetString("user_id")
+
+	_, gErr := rsh.sc.DeleteUserReports(g.Request.Context(), &reportservicev1.DeleteUserReportsRequest{
+		AuthorId: userID,
+	})
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			return
+		}
+
+		g.Set("msg", st.Message())
+
+		code := http.StatusInternalServerError
+		resp := any(webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+
+		switch st.Code() {
+		case codes.NotFound:
+			code = http.StatusNotFound
+			resp = webdto.BaseResponse{Message: "can't find reports for user"}
+		default:
+		}
+
+		g.AbortWithStatusJSON(code, resp)
+		return
+	}
+
+	g.Set("msg", "user reports deleted")
+	g.JSON(http.StatusOK, webdto.BaseResponse{Message: "ok"})
+}
+
+func (rsh *reportServiceHandler) DeleteUserReport(g *gin.Context) {
+	rsh.logger.Debug().Str("evt", "call DeleteUserReport").Msg("")
+
+	reportID := g.Param("report_id")
+	userID := g.GetString("user_id")
+
+	out, gErr := rsh.sc.DeleteUserReport(g.Request.Context(), &reportservicev1.DeleteUserReportRequest{
+		AuthorId: userID,
+		ReportId: reportID,
+	})
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			return
+		}
+
+		g.Set("msg", st.Message())
+
+		code := http.StatusInternalServerError
+		resp := any(webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+
+		switch st.Code() {
+		case codes.NotFound:
+			code = http.StatusNotFound
+			resp = webdto.BaseResponse{Message: "can't find report by report_id"}
+		default:
+		}
+
+		g.AbortWithStatusJSON(code, resp)
+		return
+	}
+
+	g.Set("msg", "user report deleted")
+	g.JSON(http.StatusOK, webdto.DeleteUserReportResponse{
+		ReportID: out.ReportId,
 	})
 }

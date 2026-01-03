@@ -1,21 +1,18 @@
 package web
 
 const (
-	CreateReportPath    = "report"
-	ListUserReportsPath = "report"
-	ReportStatusPath    = "report/:report_id"
+	CreateReportPath    = "reports"                   // POST
+	ListUserReportsPath = "reports"                   // GET
+	ReportInfoPath      = "reports/:report_id"        // GET
+	ReportStatusPath    = "reports/:report_id/status" // GET
+	DeleteUserReports   = "reports"                   // DELETE
+	DeleteUserReport    = "reports/:report_id"        // DELETE
 )
 
 const (
 	ListSchemasPath = "db/schemas"
 	ListTablesPath  = "db/tables"
 	ListColumnsPath = "db/columns"
-)
-
-const (
-	GetCacheQueriesPath       = "cache"
-	DeleteAllCacheQueriesPath = "cache/all"
-	DeleteCacheQueryPath      = "cache"
 )
 
 const (

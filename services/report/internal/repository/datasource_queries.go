@@ -1,42 +1,5 @@
 package repository
 
-const (
-	createReportQuery = `
-	INSERT INTO report_metadata.report_requests 
-	(report_id, author_id, name, comment, query_sql, format, csv_separator)
-	VALUES
-	($1, $2, $3, $4, $5, $6, $7)
-	RETURNING status;
-	`
-
-	getReportStatusQuery = `
-	SELECT status, error_message, file_path FROM report_metadata.report_requests
-	where report_id = $1;
-	`
-
-	listUserReportsQuery = `
-	SELECT * FROM report_metadata.report_requests
-	WHERE author_id = $1;
-	`
-)
-
-const (
-	getAllReportsQuery = `
-		SELECT
-		author_id,
-		name,
-		comment,
-		query_sql,
-		csv_separator,
-		format::text,
-		status::text,
-		file_path,
-		created_at
-	FROM report_metadata.report_requests
-	ORDER BY created_at ASC;
-	`
-)
-
 // COLUMNS QUERY
 const (
 	columnsWithCommentQuery = `
@@ -77,13 +40,4 @@ FROM pg_namespace n
 WHERE n.nspname NOT IN ('pg_toast', 'pg_catalog', 'information_schema')
   AND n.nspname NOT LIKE 'pg\_%' ESCAPE '\';
 	`
-)
-
-const (
-	setCacheQuery = `
-  INSERT INTO identity.queries (user_id, list)
-  VALUES ($1, $2)
-  ON CONFLICT (user_id) DO UPDATE
-  SET list = EXCLUDED.list;`
-	getCacheQuery = `SELECT * FROM identity.queries`
 )

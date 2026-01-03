@@ -9,6 +9,7 @@ package reportservicev1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -108,7 +109,7 @@ func (x *CreateReportRequest) GetCsvSep() string {
 
 type CreateReportResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uuid          string                 `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	ReportId      string                 `protobuf:"bytes,1,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
 	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -144,9 +145,9 @@ func (*CreateReportResponse) Descriptor() ([]byte, []int) {
 	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateReportResponse) GetUuid() string {
+func (x *CreateReportResponse) GetReportId() string {
 	if x != nil {
-		return x.Uuid
+		return x.ReportId
 	}
 	return ""
 }
@@ -160,7 +161,8 @@ func (x *CreateReportResponse) GetStatus() string {
 
 type ReportStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uuid          string                 `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	AuthorId      string                 `protobuf:"bytes,1,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
+	ReportId      string                 `protobuf:"bytes,2,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -195,19 +197,24 @@ func (*ReportStatusRequest) Descriptor() ([]byte, []int) {
 	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ReportStatusRequest) GetUuid() string {
+func (x *ReportStatusRequest) GetAuthorId() string {
 	if x != nil {
-		return x.Uuid
+		return x.AuthorId
+	}
+	return ""
+}
+
+func (x *ReportStatusRequest) GetReportId() string {
+	if x != nil {
+		return x.ReportId
 	}
 	return ""
 }
 
 type ReportStatusResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Uuid          string                 `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	ReportId      string                 `protobuf:"bytes,1,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
 	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
-	ErrMsg        string                 `protobuf:"bytes,3,opt,name=err_msg,json=errMsg,proto3" json:"err_msg,omitempty"`
-	FilePath      string                 `protobuf:"bytes,4,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -242,9 +249,9 @@ func (*ReportStatusResponse) Descriptor() ([]byte, []int) {
 	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ReportStatusResponse) GetUuid() string {
+func (x *ReportStatusResponse) GetReportId() string {
 	if x != nil {
-		return x.Uuid
+		return x.ReportId
 	}
 	return ""
 }
@@ -252,20 +259,6 @@ func (x *ReportStatusResponse) GetUuid() string {
 func (x *ReportStatusResponse) GetStatus() string {
 	if x != nil {
 		return x.Status
-	}
-	return ""
-}
-
-func (x *ReportStatusResponse) GetErrMsg() string {
-	if x != nil {
-		return x.ErrMsg
-	}
-	return ""
-}
-
-func (x *ReportStatusResponse) GetFilePath() string {
-	if x != nil {
-		return x.FilePath
 	}
 	return ""
 }
@@ -358,27 +351,261 @@ func (x *ListUserReportsResponse) GetReports() []*ReportMetadata {
 	return nil
 }
 
+type ReportInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AuthorId      string                 `protobuf:"bytes,1,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
+	ReportId      string                 `protobuf:"bytes,2,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportInfoRequest) Reset() {
+	*x = ReportInfoRequest{}
+	mi := &file_report_service_v1_report_service_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportInfoRequest) ProtoMessage() {}
+
+func (x *ReportInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_report_service_v1_report_service_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportInfoRequest.ProtoReflect.Descriptor instead.
+func (*ReportInfoRequest) Descriptor() ([]byte, []int) {
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ReportInfoRequest) GetAuthorId() string {
+	if x != nil {
+		return x.AuthorId
+	}
+	return ""
+}
+
+func (x *ReportInfoRequest) GetReportId() string {
+	if x != nil {
+		return x.ReportId
+	}
+	return ""
+}
+
+type ReportInfoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Report        *ReportMetadata        `protobuf:"bytes,1,opt,name=report,proto3" json:"report,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportInfoResponse) Reset() {
+	*x = ReportInfoResponse{}
+	mi := &file_report_service_v1_report_service_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportInfoResponse) ProtoMessage() {}
+
+func (x *ReportInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_report_service_v1_report_service_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportInfoResponse.ProtoReflect.Descriptor instead.
+func (*ReportInfoResponse) Descriptor() ([]byte, []int) {
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ReportInfoResponse) GetReport() *ReportMetadata {
+	if x != nil {
+		return x.Report
+	}
+	return nil
+}
+
+type DeleteUserReportsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AuthorId      string                 `protobuf:"bytes,1,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteUserReportsRequest) Reset() {
+	*x = DeleteUserReportsRequest{}
+	mi := &file_report_service_v1_report_service_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteUserReportsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteUserReportsRequest) ProtoMessage() {}
+
+func (x *DeleteUserReportsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_report_service_v1_report_service_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteUserReportsRequest.ProtoReflect.Descriptor instead.
+func (*DeleteUserReportsRequest) Descriptor() ([]byte, []int) {
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *DeleteUserReportsRequest) GetAuthorId() string {
+	if x != nil {
+		return x.AuthorId
+	}
+	return ""
+}
+
+type DeleteUserReportRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AuthorId      string                 `protobuf:"bytes,1,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
+	ReportId      string                 `protobuf:"bytes,2,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteUserReportRequest) Reset() {
+	*x = DeleteUserReportRequest{}
+	mi := &file_report_service_v1_report_service_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteUserReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteUserReportRequest) ProtoMessage() {}
+
+func (x *DeleteUserReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_report_service_v1_report_service_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteUserReportRequest.ProtoReflect.Descriptor instead.
+func (*DeleteUserReportRequest) Descriptor() ([]byte, []int) {
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DeleteUserReportRequest) GetAuthorId() string {
+	if x != nil {
+		return x.AuthorId
+	}
+	return ""
+}
+
+func (x *DeleteUserReportRequest) GetReportId() string {
+	if x != nil {
+		return x.ReportId
+	}
+	return ""
+}
+
+type DeleteUserReportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ReportId      string                 `protobuf:"bytes,1,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteUserReportResponse) Reset() {
+	*x = DeleteUserReportResponse{}
+	mi := &file_report_service_v1_report_service_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteUserReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteUserReportResponse) ProtoMessage() {}
+
+func (x *DeleteUserReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_report_service_v1_report_service_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteUserReportResponse.ProtoReflect.Descriptor instead.
+func (*DeleteUserReportResponse) Descriptor() ([]byte, []int) {
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *DeleteUserReportResponse) GetReportId() string {
+	if x != nil {
+		return x.ReportId
+	}
+	return ""
+}
+
 type ReportMetadata struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ReportId      string                 `protobuf:"bytes,1,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
-	AuthorId      string                 `protobuf:"bytes,2,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Comm          string                 `protobuf:"bytes,4,opt,name=comm,proto3" json:"comm,omitempty"`
-	Query         string                 `protobuf:"bytes,5,opt,name=query,proto3" json:"query,omitempty"`
-	Format        string                 `protobuf:"bytes,6,opt,name=format,proto3" json:"format,omitempty"`
-	CsvSep        string                 `protobuf:"bytes,7,opt,name=csv_sep,json=csvSep,proto3" json:"csv_sep,omitempty"`
-	Status        string                 `protobuf:"bytes,8,opt,name=status,proto3" json:"status,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Comm          string                 `protobuf:"bytes,3,opt,name=comm,proto3" json:"comm,omitempty"`
+	Query         string                 `protobuf:"bytes,4,opt,name=query,proto3" json:"query,omitempty"`
+	Format        string                 `protobuf:"bytes,5,opt,name=format,proto3" json:"format,omitempty"`
+	CsvSep        string                 `protobuf:"bytes,6,opt,name=csv_sep,json=csvSep,proto3" json:"csv_sep,omitempty"`
+	Status        string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	FilePath      string                 `protobuf:"bytes,8,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	FilePath      string                 `protobuf:"bytes,11,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
-	ErrMsg        string                 `protobuf:"bytes,12,opt,name=err_msg,json=errMsg,proto3" json:"err_msg,omitempty"`
+	ErrMsg        string                 `protobuf:"bytes,10,opt,name=err_msg,json=errMsg,proto3" json:"err_msg,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ReportMetadata) Reset() {
 	*x = ReportMetadata{}
-	mi := &file_report_service_v1_report_service_proto_msgTypes[6]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -390,7 +617,7 @@ func (x *ReportMetadata) String() string {
 func (*ReportMetadata) ProtoMessage() {}
 
 func (x *ReportMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_report_service_v1_report_service_proto_msgTypes[6]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -403,19 +630,12 @@ func (x *ReportMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportMetadata.ProtoReflect.Descriptor instead.
 func (*ReportMetadata) Descriptor() ([]byte, []int) {
-	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{6}
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ReportMetadata) GetReportId() string {
 	if x != nil {
 		return x.ReportId
-	}
-	return ""
-}
-
-func (x *ReportMetadata) GetAuthorId() string {
-	if x != nil {
-		return x.AuthorId
 	}
 	return ""
 }
@@ -462,25 +682,18 @@ func (x *ReportMetadata) GetStatus() string {
 	return ""
 }
 
-func (x *ReportMetadata) GetCreatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return nil
-}
-
-func (x *ReportMetadata) GetUpdatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return nil
-}
-
 func (x *ReportMetadata) GetFilePath() string {
 	if x != nil {
 		return x.FilePath
 	}
 	return ""
+}
+
+func (x *ReportMetadata) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
 }
 
 func (x *ReportMetadata) GetErrMsg() string {
@@ -494,48 +707,60 @@ var File_report_service_v1_report_service_proto protoreflect.FileDescriptor
 
 const file_report_service_v1_report_service_proto_rawDesc = "" +
 	"\n" +
-	"&report/service/v1/report_service.proto\x12\x11report.service.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa1\x01\n" +
+	"&report/service/v1/report_service.proto\x12\x11report.service.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xa1\x01\n" +
 	"\x13CreateReportRequest\x12\x1b\n" +
 	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
 	"\x04comm\x18\x03 \x01(\tR\x04comm\x12\x14\n" +
 	"\x05query\x18\x04 \x01(\tR\x05query\x12\x16\n" +
 	"\x06format\x18\x05 \x01(\tR\x06format\x12\x17\n" +
-	"\acsv_sep\x18\x06 \x01(\tR\x06csvSep\"B\n" +
-	"\x14CreateReportResponse\x12\x12\n" +
-	"\x04uuid\x18\x01 \x01(\tR\x04uuid\x12\x16\n" +
-	"\x06status\x18\x02 \x01(\tR\x06status\")\n" +
-	"\x13ReportStatusRequest\x12\x12\n" +
-	"\x04uuid\x18\x01 \x01(\tR\x04uuid\"x\n" +
-	"\x14ReportStatusResponse\x12\x12\n" +
-	"\x04uuid\x18\x01 \x01(\tR\x04uuid\x12\x16\n" +
-	"\x06status\x18\x02 \x01(\tR\x06status\x12\x17\n" +
-	"\aerr_msg\x18\x03 \x01(\tR\x06errMsg\x12\x1b\n" +
-	"\tfile_path\x18\x04 \x01(\tR\bfilePath\"5\n" +
+	"\acsv_sep\x18\x06 \x01(\tR\x06csvSep\"K\n" +
+	"\x14CreateReportResponse\x12\x1b\n" +
+	"\treport_id\x18\x01 \x01(\tR\breportId\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\"O\n" +
+	"\x13ReportStatusRequest\x12\x1b\n" +
+	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\x12\x1b\n" +
+	"\treport_id\x18\x02 \x01(\tR\breportId\"K\n" +
+	"\x14ReportStatusResponse\x12\x1b\n" +
+	"\treport_id\x18\x01 \x01(\tR\breportId\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\"5\n" +
 	"\x16ListUserReportsRequest\x12\x1b\n" +
 	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\"V\n" +
 	"\x17ListUserReportsResponse\x12;\n" +
-	"\areports\x18\x01 \x03(\v2!.report.service.v1.ReportMetadataR\areports\"\xfd\x02\n" +
+	"\areports\x18\x01 \x03(\v2!.report.service.v1.ReportMetadataR\areports\"M\n" +
+	"\x11ReportInfoRequest\x12\x1b\n" +
+	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\x12\x1b\n" +
+	"\treport_id\x18\x02 \x01(\tR\breportId\"O\n" +
+	"\x12ReportInfoResponse\x129\n" +
+	"\x06report\x18\x01 \x01(\v2!.report.service.v1.ReportMetadataR\x06report\"7\n" +
+	"\x18DeleteUserReportsRequest\x12\x1b\n" +
+	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\"S\n" +
+	"\x17DeleteUserReportRequest\x12\x1b\n" +
+	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\x12\x1b\n" +
+	"\treport_id\x18\x02 \x01(\tR\breportId\"7\n" +
+	"\x18DeleteUserReportResponse\x12\x1b\n" +
+	"\treport_id\x18\x01 \x01(\tR\breportId\"\xa5\x02\n" +
 	"\x0eReportMetadata\x12\x1b\n" +
-	"\treport_id\x18\x01 \x01(\tR\breportId\x12\x1b\n" +
-	"\tauthor_id\x18\x02 \x01(\tR\bauthorId\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
-	"\x04comm\x18\x04 \x01(\tR\x04comm\x12\x14\n" +
-	"\x05query\x18\x05 \x01(\tR\x05query\x12\x16\n" +
-	"\x06format\x18\x06 \x01(\tR\x06format\x12\x17\n" +
-	"\acsv_sep\x18\a \x01(\tR\x06csvSep\x12\x16\n" +
-	"\x06status\x18\b \x01(\tR\x06status\x129\n" +
+	"\treport_id\x18\x01 \x01(\tR\breportId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
+	"\x04comm\x18\x03 \x01(\tR\x04comm\x12\x14\n" +
+	"\x05query\x18\x04 \x01(\tR\x05query\x12\x16\n" +
+	"\x06format\x18\x05 \x01(\tR\x06format\x12\x17\n" +
+	"\acsv_sep\x18\x06 \x01(\tR\x06csvSep\x12\x16\n" +
+	"\x06status\x18\a \x01(\tR\x06status\x12\x1b\n" +
+	"\tfile_path\x18\b \x01(\tR\bfilePath\x129\n" +
 	"\n" +
-	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
-	"\n" +
-	"updated_at\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1b\n" +
-	"\tfile_path\x18\v \x01(\tR\bfilePath\x12\x17\n" +
-	"\aerr_msg\x18\f \x01(\tR\x06errMsg2\xbb\x02\n" +
+	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x17\n" +
+	"\aerr_msg\x18\n" +
+	" \x01(\tR\x06errMsg2\xdd\x04\n" +
 	"\rReportService\x12_\n" +
 	"\fCreateReport\x12&.report.service.v1.CreateReportRequest\x1a'.report.service.v1.CreateReportResponse\x12_\n" +
 	"\fReportStatus\x12&.report.service.v1.ReportStatusRequest\x1a'.report.service.v1.ReportStatusResponse\x12h\n" +
-	"\x0fListUserReports\x12).report.service.v1.ListUserReportsRequest\x1a*.report.service.v1.ListUserReportsResponseBFZDgithub.com/ummuys/reportify/api/pb/report/service/v1;reportservicev1b\x06proto3"
+	"\x0fListUserReports\x12).report.service.v1.ListUserReportsRequest\x1a*.report.service.v1.ListUserReportsResponse\x12Y\n" +
+	"\n" +
+	"ReportInfo\x12$.report.service.v1.ReportInfoRequest\x1a%.report.service.v1.ReportInfoResponse\x12X\n" +
+	"\x11DeleteUserReports\x12+.report.service.v1.DeleteUserReportsRequest\x1a\x16.google.protobuf.Empty\x12k\n" +
+	"\x10DeleteUserReport\x12*.report.service.v1.DeleteUserReportRequest\x1a+.report.service.v1.DeleteUserReportResponseBFZDgithub.com/ummuys/reportify/api/pb/report/service/v1;reportservicev1b\x06proto3"
 
 var (
 	file_report_service_v1_report_service_proto_rawDescOnce sync.Once
@@ -549,32 +774,44 @@ func file_report_service_v1_report_service_proto_rawDescGZIP() []byte {
 	return file_report_service_v1_report_service_proto_rawDescData
 }
 
-var file_report_service_v1_report_service_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_report_service_v1_report_service_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_report_service_v1_report_service_proto_goTypes = []any{
-	(*CreateReportRequest)(nil),     // 0: report.service.v1.CreateReportRequest
-	(*CreateReportResponse)(nil),    // 1: report.service.v1.CreateReportResponse
-	(*ReportStatusRequest)(nil),     // 2: report.service.v1.ReportStatusRequest
-	(*ReportStatusResponse)(nil),    // 3: report.service.v1.ReportStatusResponse
-	(*ListUserReportsRequest)(nil),  // 4: report.service.v1.ListUserReportsRequest
-	(*ListUserReportsResponse)(nil), // 5: report.service.v1.ListUserReportsResponse
-	(*ReportMetadata)(nil),          // 6: report.service.v1.ReportMetadata
-	(*timestamppb.Timestamp)(nil),   // 7: google.protobuf.Timestamp
+	(*CreateReportRequest)(nil),      // 0: report.service.v1.CreateReportRequest
+	(*CreateReportResponse)(nil),     // 1: report.service.v1.CreateReportResponse
+	(*ReportStatusRequest)(nil),      // 2: report.service.v1.ReportStatusRequest
+	(*ReportStatusResponse)(nil),     // 3: report.service.v1.ReportStatusResponse
+	(*ListUserReportsRequest)(nil),   // 4: report.service.v1.ListUserReportsRequest
+	(*ListUserReportsResponse)(nil),  // 5: report.service.v1.ListUserReportsResponse
+	(*ReportInfoRequest)(nil),        // 6: report.service.v1.ReportInfoRequest
+	(*ReportInfoResponse)(nil),       // 7: report.service.v1.ReportInfoResponse
+	(*DeleteUserReportsRequest)(nil), // 8: report.service.v1.DeleteUserReportsRequest
+	(*DeleteUserReportRequest)(nil),  // 9: report.service.v1.DeleteUserReportRequest
+	(*DeleteUserReportResponse)(nil), // 10: report.service.v1.DeleteUserReportResponse
+	(*ReportMetadata)(nil),           // 11: report.service.v1.ReportMetadata
+	(*timestamppb.Timestamp)(nil),    // 12: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),            // 13: google.protobuf.Empty
 }
 var file_report_service_v1_report_service_proto_depIdxs = []int32{
-	6, // 0: report.service.v1.ListUserReportsResponse.reports:type_name -> report.service.v1.ReportMetadata
-	7, // 1: report.service.v1.ReportMetadata.created_at:type_name -> google.protobuf.Timestamp
-	7, // 2: report.service.v1.ReportMetadata.updated_at:type_name -> google.protobuf.Timestamp
-	0, // 3: report.service.v1.ReportService.CreateReport:input_type -> report.service.v1.CreateReportRequest
-	2, // 4: report.service.v1.ReportService.ReportStatus:input_type -> report.service.v1.ReportStatusRequest
-	4, // 5: report.service.v1.ReportService.ListUserReports:input_type -> report.service.v1.ListUserReportsRequest
-	1, // 6: report.service.v1.ReportService.CreateReport:output_type -> report.service.v1.CreateReportResponse
-	3, // 7: report.service.v1.ReportService.ReportStatus:output_type -> report.service.v1.ReportStatusResponse
-	5, // 8: report.service.v1.ReportService.ListUserReports:output_type -> report.service.v1.ListUserReportsResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	11, // 0: report.service.v1.ListUserReportsResponse.reports:type_name -> report.service.v1.ReportMetadata
+	11, // 1: report.service.v1.ReportInfoResponse.report:type_name -> report.service.v1.ReportMetadata
+	12, // 2: report.service.v1.ReportMetadata.created_at:type_name -> google.protobuf.Timestamp
+	0,  // 3: report.service.v1.ReportService.CreateReport:input_type -> report.service.v1.CreateReportRequest
+	2,  // 4: report.service.v1.ReportService.ReportStatus:input_type -> report.service.v1.ReportStatusRequest
+	4,  // 5: report.service.v1.ReportService.ListUserReports:input_type -> report.service.v1.ListUserReportsRequest
+	6,  // 6: report.service.v1.ReportService.ReportInfo:input_type -> report.service.v1.ReportInfoRequest
+	8,  // 7: report.service.v1.ReportService.DeleteUserReports:input_type -> report.service.v1.DeleteUserReportsRequest
+	9,  // 8: report.service.v1.ReportService.DeleteUserReport:input_type -> report.service.v1.DeleteUserReportRequest
+	1,  // 9: report.service.v1.ReportService.CreateReport:output_type -> report.service.v1.CreateReportResponse
+	3,  // 10: report.service.v1.ReportService.ReportStatus:output_type -> report.service.v1.ReportStatusResponse
+	5,  // 11: report.service.v1.ReportService.ListUserReports:output_type -> report.service.v1.ListUserReportsResponse
+	7,  // 12: report.service.v1.ReportService.ReportInfo:output_type -> report.service.v1.ReportInfoResponse
+	13, // 13: report.service.v1.ReportService.DeleteUserReports:output_type -> google.protobuf.Empty
+	10, // 14: report.service.v1.ReportService.DeleteUserReport:output_type -> report.service.v1.DeleteUserReportResponse
+	9,  // [9:15] is the sub-list for method output_type
+	3,  // [3:9] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_report_service_v1_report_service_proto_init() }
@@ -588,7 +825,7 @@ func file_report_service_v1_report_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_report_service_v1_report_service_proto_rawDesc), len(file_report_service_v1_report_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

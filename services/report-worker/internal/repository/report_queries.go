@@ -41,7 +41,7 @@ func buildStatusQuery(in dto.SetReportStatusParams) (string, []any) {
 	}
 
 	// WHERE
-	args = append(args, in.UUID)
+	args = append(args, in.ReportID)
 	whereReportID := fmt.Sprintf("report_id = $%d", len(args))
 
 	args = append(args, in.BeforeStatus)

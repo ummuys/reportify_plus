@@ -3,7 +3,6 @@ package di
 import (
 	authv1 "github.com/ummuys/reportify/api/pb/auth/service/v1"
 	dsv1 "github.com/ummuys/reportify/api/pb/datasource/service/v1"
-	rcv1 "github.com/ummuys/reportify/api/pb/report/cache/v1"
 	rsv1 "github.com/ummuys/reportify/api/pb/report/service/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -12,7 +11,6 @@ import (
 type GRPCSC struct {
 	AuthService       authv1.AuthServiceClient
 	ReportService     rsv1.ReportServiceClient
-	ReportCache       rcv1.ReportCacheServiceClient
 	DatasourceService dsv1.DatasourceServiceClient
 }
 
@@ -33,14 +31,6 @@ func NewGRPCServiceClients(authAddr, reportAddr string) (GRPCSC, error) {
 		return GRPCSC{}, err
 	}
 
-	reportCchCli, err := grpc.NewClient(
-		reportAddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		return GRPCSC{}, err
-	}
-
 	datasourceCli, err := grpc.NewClient(
 		reportAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -52,7 +42,6 @@ func NewGRPCServiceClients(authAddr, reportAddr string) (GRPCSC, error) {
 	return GRPCSC{
 		AuthService:       authv1.NewAuthServiceClient(authCli),
 		ReportService:     rsv1.NewReportServiceClient(reportSvcCli),
-		ReportCache:       rcv1.NewReportCacheServiceClient(reportCchCli),
 		DatasourceService: dsv1.NewDatasourceServiceClient(datasourceCli),
 	}, nil
 }

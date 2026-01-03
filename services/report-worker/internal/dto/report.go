@@ -3,7 +3,7 @@ package dto
 import "time"
 
 type GetReportInfoParams struct {
-	UUID string
+	ReportID string
 }
 
 type GetReportInfoResult struct {
@@ -17,7 +17,7 @@ type GetReportInfoResult struct {
 }
 
 type SetReportStatusParams struct {
-	UUID         string
+	ReportID     string
 	UpdateStatus string
 	BeforeStatus string
 	FilePath     *string

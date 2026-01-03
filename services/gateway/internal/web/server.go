@@ -43,18 +43,15 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 	report.POST(CreateReportPath, rh.ReportService.CreateReport)
 	report.GET(ListUserReportsPath, rh.ReportService.ListUserReports)
 	report.GET(ReportStatusPath, rh.ReportService.ReportStatus)
+	report.GET(ReportInfoPath, rh.ReportService.ReportInfo)
+	report.DELETE(DeleteUserReports, rh.ReportService.DeleteUserReports)
+	report.DELETE(DeleteUserReport, rh.ReportService.DeleteUserReport)
 
 	datasource := api.Group("")
 	datasource.Use(middleware.CheckJWT(tm, basePass))
 	datasource.GET(ListSchemasPath, rh.DatasourceService.ListSchemas)
 	datasource.GET(ListTablesPath, rh.DatasourceService.ListTables)
 	datasource.GET(ListColumnsPath, rh.DatasourceService.ListColumns)
-
-	cache := api.Group("")
-	cache.Use(middleware.CheckJWT(tm, basePass))
-	cache.GET(GetCacheQueriesPath, rh.ReportCache.Get)
-	cache.DELETE(DeleteCacheQueryPath, rh.ReportCache.Delete)
-	cache.DELETE(DeleteAllCacheQueriesPath, rh.ReportCache.DeleteAll)
 
 	auth := api.Group("")
 	auth.POST(LoginPath, rh.AuthService.Login(tm.GetRefreshLifetime()))

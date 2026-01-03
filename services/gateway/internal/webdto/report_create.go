@@ -9,6 +9,6 @@ type CreateReportRequest struct {
 }
 
 type CreateReportResponse struct {
-	UUID   string `json:"uuid"`
-	Status string `json:"status"`
+	ReportID string `json:"report_id"`
+	Status   string `json:"status"`
 }

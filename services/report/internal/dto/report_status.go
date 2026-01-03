@@ -1,12 +1,11 @@
 package dto
 
 type ReportStatusParams struct {
-	UUID string
+	AuthorID string
+	ReportID string
 }
 
 type ReportStatusResult struct {
-	UUID     string
+	ReportID string
 	Status   string
-	ErrMsg   string
-	FilePath string
 }

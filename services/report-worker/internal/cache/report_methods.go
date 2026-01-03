@@ -46,28 +46,11 @@ func NewReportCache(ctx context.Context, baseLogger zerolog.Logger) (ReportCache
 
 func (rc *repCache) Set(ctx context.Context, key string, value string) error {
 	rc.logger.Debug().Str("evt", "call Set").Msg("")
-	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	qctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
 	if err := rc.cli.Set(qctx, key, value, rc.ttl).Err(); err != nil {
 		return err
 	}
-	rc.logger.Debug().Str("key", key).Dur("ttl", rc.ttl).Str("value", value).Msg("redis set")
-
 	return nil
-}
-
-func (rc *repCache) Get(ctx context.Context, key string) (*string, error) {
-	rc.logger.Debug().Str("evt", "call Get").Msg("")
-	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
-	defer cancel()
-
-	value, err := rc.cli.Get(qctx, key).Result()
-	if err != nil {
-		rc.logger.Debug().Err(err).Str("key", key).Msg("redis get")
-		return nil, err
-	}
-	rc.logger.Debug().Str("key", key).Str("value", value).Msg("redis hit")
-
-	return &value, nil
 }

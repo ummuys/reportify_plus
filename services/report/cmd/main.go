@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	dsv1 "github.com/ummuys/reportify/api/pb/datasource/service/v1"
-	rcv1 "github.com/ummuys/reportify/api/pb/report/cache/v1"
 	rsv1 "github.com/ummuys/reportify/api/pb/report/service/v1"
 	"github.com/ummuys/reportify/pkg/config"
 	"github.com/ummuys/reportify/pkg/errs"
@@ -59,18 +58,7 @@ func main() {
 		logs.Fatal().Err(err).Msg("report-cache")
 	}
 
-	queries, err := reportDB.GetAllReports(ctx)
-	if err != nil {
-		logs.Warn().Err(err).Msg("can't get queries from database")
-	}
-	err = reportCache.Init(ctx, queries)
-	if err != nil {
-		logs.Warn().Err(err).Msg("can't load queries to cache")
-	}
-	logs.Info().Msg("successufully load queries to cache")
-
 	reportSvc := service.NewReportService(reportDB, reportCache, logs)
-	reportCacheSvc := service.NewReportCacheService(reportCache, logs)
 	datasourceSVC := service.NewDatasourceService(datasourceDB, logs)
 
 	srv := grpc.NewServer()
@@ -86,11 +74,9 @@ func main() {
 
 	reportAdapter := adapter.NewReportAdapter(reportSvc, tunnel, logs)
 	datasourceAdapter := adapter.NewDatasourceAdapter(datasourceSVC, logs)
-	reportCacheAdapter := adapter.NewReportCacheAdapter(reportCacheSvc, logs)
 
 	rsv1.RegisterReportServiceServer(srv, reportAdapter)
 	dsv1.RegisterDatasourceServiceServer(srv, datasourceAdapter)
-	rcv1.RegisterReportCacheServiceServer(srv, reportCacheAdapter)
 
 	var wg sync.WaitGroup
 	wg.Add(3)

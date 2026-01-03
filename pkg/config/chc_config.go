@@ -45,6 +45,6 @@ func ParseReportCacheEnv() (ReportCacheConfig, error) {
 		Addr:     name + ":" + port,
 		Password: pass,
 		DB:       db,
-		TTL:      time.Duration(int64(ttl)),
+		TTL:      time.Duration(ttl) * time.Second,
 	}, nil
 }

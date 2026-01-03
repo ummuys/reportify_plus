@@ -9,6 +9,7 @@ import (
 
 	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/pkg/logger"
+	"github.com/ummuys/reportify/services/report-worker/internal/cache"
 	"github.com/ummuys/reportify/services/report-worker/internal/convert"
 	"github.com/ummuys/reportify/services/report-worker/internal/kafkacli"
 	"github.com/ummuys/reportify/services/report-worker/internal/miniocli"
@@ -31,6 +32,11 @@ func main() {
 	}
 	defer reportDB.Close()
 
+	reportCache, err := cache.NewReportCache(ctx, logs)
+	if err != nil {
+		logs.Fatal().Err(err).Msg("report-cache")
+	}
+
 	dataDB, err := repository.NewDatasourceDB(ctx, logs)
 	if err != nil {
 		logs.Fatal().Err(err).Msg("data-db")
@@ -44,7 +50,7 @@ func main() {
 
 	conv := convert.NewReportConvert(logs)
 
-	svc, err := service.NewPublishService(dataDB, reportDB, conv, minioCli, logs)
+	svc, err := service.NewPublishService(dataDB, reportDB, reportCache, conv, minioCli, logs)
 	if err != nil {
 		logs.Fatal().Err(err).Msg("service")
 	}

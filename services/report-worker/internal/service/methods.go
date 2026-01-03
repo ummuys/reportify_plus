@@ -8,6 +8,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/ummuys/reportify/pkg/errs"
+	"github.com/ummuys/reportify/services/report-worker/internal/cache"
 	"github.com/ummuys/reportify/services/report-worker/internal/convert"
 	"github.com/ummuys/reportify/services/report-worker/internal/dto"
 	"github.com/ummuys/reportify/services/report-worker/internal/miniocli"
@@ -19,6 +20,7 @@ type publish struct {
 	logger       zerolog.Logger
 	datasourceDB repository.DatasourceDB
 	reportDB     repository.ReportDB
+	reportCache  cache.ReportCache
 	conv         convert.ReportConvert
 	minioCli     miniocli.MinIOClient
 }
@@ -28,12 +30,13 @@ type prResMsg struct {
 	err  error
 }
 
-func NewPublishService(datasourceDB repository.DatasourceDB, reportDB repository.ReportDB,
+func NewPublishService(datasourceDB repository.DatasourceDB, reportDB repository.ReportDB, reportCache cache.ReportCache,
 	convert convert.ReportConvert, minioCli miniocli.MinIOClient, baseLogger zerolog.Logger) (PublishService, error) {
 	logger := baseLogger.With().Str("component", "svc").Logger()
 	return &publish{
 		datasourceDB: datasourceDB,
 		reportDB:     reportDB,
+		reportCache:  reportCache,
 		conv:         convert,
 		logger:       logger,
 		minioCli:     minioCli,
@@ -44,12 +47,12 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 
 	// Change status: created -> runnig
 	if err := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
-		UUID:         in.UUID,
+		ReportID:     in.ReportID,
 		UpdateStatus: repository.StatusRunnig,
 		BeforeStatus: repository.StatusCreated,
 	}); err != nil {
 		// Change status: created -> failed
-		p.stepFailed(ctx, in.UUID, err, repository.StatusCreated)
+		p.stepFailed(ctx, in.ReportID, err, repository.StatusCreated)
 		return errs.ParsePgError(err)
 	}
 
@@ -57,7 +60,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	info, err := p.reportDB.GetReportInfo(ctx, dto.GetReportInfoParams(in))
 
 	if err != nil {
-		p.stepFailed(ctx, in.UUID, err, repository.StatusRunnig)
+		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunnig)
 		return errs.ParsePgError(err)
 	}
 
@@ -68,7 +71,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 
 	if err != nil {
 		// Change status: created -> failed
-		p.stepFailed(ctx, in.UUID, err, repository.StatusRunnig)
+		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunnig)
 		return errs.ParsePgError(err)
 	}
 
@@ -113,7 +116,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 		defer pr.Close()
 		pth, perr := p.minioCli.UploadAndPresign(gctx, dto.PutReportIn{
 			Reader:      pr,
-			ObjectName:  in.UUID,
+			ObjectName:  in.ReportID,
 			FileName:    info.Name + "." + info.Format,
 			Bucket:      "report",
 			ContentType: convert.ContentTypeByFormat(info.Format),
@@ -129,39 +132,47 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	})
 
 	if err := eg.Wait(); err != nil {
-		p.stepFailed(ctx, in.UUID, err, repository.StatusRunnig)
+		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunnig)
 		return err
 	}
 
 	expireAt := time.Now().Add(reportTTL)
 	// Change status: running -> completed & save file path
 	if err := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
-		UUID:         in.UUID,
+		ReportID:     in.ReportID,
 		UpdateStatus: repository.StatusCompleted,
 		BeforeStatus: repository.StatusRunnig,
 		FilePath:     &path,
 		ExpireAt:     &expireAt,
 	}); err != nil {
 		// Change status: created -> failed
-		p.stepFailed(ctx, in.UUID, err, repository.StatusRunnig)
+		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunnig)
 		return errs.ParsePgError(err)
+	}
+
+	if err := p.reportCache.Set(ctx, in.ReportID, repository.StatusCompleted); err != nil {
+		p.logger.Error().Err(err).Msg("can't change to completed in ReportCache")
 	}
 
 	return nil
 }
 
-func (p *publish) stepFailed(ctx context.Context, uuid string, err error, befStat string) {
+func (p *publish) stepFailed(ctx context.Context, reportID string, err error, befStat string) {
 	errMsg := err.Error()
 
-	fctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	fctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 
+	if ferr := p.reportCache.Set(ctx, reportID, repository.StatusFailed); ferr != nil {
+		p.logger.Error().Err(ferr).Msg("can't change to failed in ReportCache")
+	}
+
 	if ferr := p.reportDB.SetReportStatus(fctx, dto.SetReportStatusParams{
-		UUID:         uuid,
+		ReportID:     reportID,
 		ErrMsg:       &errMsg,
 		UpdateStatus: repository.StatusFailed,
 		BeforeStatus: befStat,
 	}); ferr != nil {
-		p.logger.Error().Err(ferr).Msg("can't change to failed")
+		p.logger.Error().Err(ferr).Msg("can't change to failed in ReportDB")
 	}
 }

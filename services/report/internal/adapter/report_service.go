@@ -11,6 +11,7 @@ import (
 	"github.com/ummuys/reportify/services/report/internal/service"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -43,22 +44,22 @@ func (ra *ReportAdapter) CreateReport(ctx context.Context, in *rsv1.CreateReport
 
 	ra.tunnel <- dto.KafkaMessage{
 		Key:   nil,
-		Value: []byte(out.UUID),
+		Value: []byte(out.ReportID),
 	}
 
 	ra.logger.Info().
-		Str("uuid", out.UUID).
+		Str("report_id", out.ReportID).
 		Str("author_id", in.AuthorId).
 		Str("format", in.Format).
 		Msg("report task created")
 
-	return &rsv1.CreateReportResponse{Uuid: out.UUID, Status: out.Status}, nil
+	return &rsv1.CreateReportResponse{ReportId: out.ReportID, Status: out.Status}, nil
 }
 
 func (ra *ReportAdapter) ReportStatus(ctx context.Context, in *rsv1.ReportStatusRequest) (*rsv1.ReportStatusResponse, error) {
 	ra.logger.Debug().Str("evt", "call ReportStatus").Msg("")
 
-	out, err := ra.reportSvc.ReportStatus(ctx, dto.ReportStatusParams{UUID: in.Uuid})
+	out, err := ra.reportSvc.ReportStatus(ctx, dto.ReportStatusParams{AuthorID: in.AuthorId, ReportID: in.ReportId})
 	if err != nil {
 		switch {
 		case errors.Is(err, errs.ErrNotFound):
@@ -69,10 +70,8 @@ func (ra *ReportAdapter) ReportStatus(ctx context.Context, in *rsv1.ReportStatus
 	}
 
 	return &rsv1.ReportStatusResponse{
-		Uuid:     out.UUID,
+		ReportId: out.ReportID,
 		Status:   out.Status,
-		ErrMsg:   out.ErrMsg,
-		FilePath: out.FilePath,
 	}, nil
 }
 
@@ -91,7 +90,6 @@ func (ra *ReportAdapter) ListUserReports(ctx context.Context, in *rsv1.ListUserR
 	for _, r := range out.Reports {
 		resp.Reports = append(resp.Reports, &rsv1.ReportMetadata{
 			ReportId:  r.ReportID,
-			AuthorId:  r.AuthorID,
 			Name:      r.Name,
 			Comm:      r.Comm,
 			Query:     r.Query,
@@ -99,11 +97,81 @@ func (ra *ReportAdapter) ListUserReports(ctx context.Context, in *rsv1.ListUserR
 			CsvSep:    r.CSVSep,
 			Status:    r.Status,
 			CreatedAt: timestamppb.New(r.CreatedAt),
-			UpdatedAt: timestamppb.New(r.UpdatedAt),
 			FilePath:  r.FilePath,
 			ErrMsg:    r.ErrMsg,
 		})
 	}
 
 	return &resp, nil
+}
+
+func (ra *ReportAdapter) ReportInfo(ctx context.Context, in *rsv1.ReportInfoRequest) (*rsv1.ReportInfoResponse, error) {
+	ra.logger.Debug().Str("evt", "call ReportInfo").Msg("")
+
+	out, err := ra.reportSvc.ReportInfo(ctx, dto.ReportInfoParams{
+		AuthorID: in.AuthorId,
+		ReportID: in.ReportId,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, errs.ErrNotFound):
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &rsv1.ReportInfoResponse{
+		Report: &rsv1.ReportMetadata{
+			ReportId:  out.Report.ReportID,
+			Name:      out.Report.Name,
+			Comm:      out.Report.Comm,
+			Query:     out.Report.Query,
+			Format:    out.Report.Format,
+			CsvSep:    out.Report.CSVSep,
+			Status:    out.Report.Status,
+			CreatedAt: timestamppb.New(out.Report.CreatedAt),
+			FilePath:  out.Report.FilePath,
+			ErrMsg:    out.Report.ErrMsg,
+		},
+	}, nil
+}
+
+func (ra *ReportAdapter) DeleteUserReports(ctx context.Context, in *rsv1.DeleteUserReportsRequest) (*emptypb.Empty, error) {
+	ra.logger.Debug().Str("evt", "call DeleteUserReports").Msg("")
+
+	err := ra.reportSvc.DeleteUserReports(ctx, dto.DeleteUserReportsParams{
+		AuthorID: in.AuthorId,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, errs.ErrNotFound):
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return nil, nil
+}
+
+func (ra *ReportAdapter) DeleteUserReport(ctx context.Context, in *rsv1.DeleteUserReportRequest) (*rsv1.DeleteUserReportResponse, error) {
+	ra.logger.Debug().Str("evt", "call DeleteUserReport").Msg("")
+
+	out, err := ra.reportSvc.DeleteUserReport(ctx, dto.DeleteUserReportParams{
+		AuthorID: in.AuthorId,
+		ReportID: in.ReportId,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, errs.ErrNotFound):
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	return &rsv1.DeleteUserReportResponse{
+		ReportId: out.ReportID,
+	}, nil
 }

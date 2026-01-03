@@ -10,6 +10,10 @@ type ListUserReportsResponse struct {
 	Reports []ReportMetadata `json:"reports"`
 }
 
+type ReportInfoResponse struct {
+	Report ReportMetadata `json:"report"`
+}
+
 type ReportMetadata struct {
 	ReportID  string    `json:"report_id"`
 	AuthorID  string    `json:"author_id"`
