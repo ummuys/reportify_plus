@@ -62,25 +62,27 @@ CMD ["./app"]
 FROM golang:1.25.1-alpine AS gateway-builder
 WORKDIR /svc
 
-COPY go.mod go.sum ./ 
+COPY go.mod go.sum ./
+RUN go mod download
 
 COPY ./api ./api
 COPY ./pkg ./pkg
 COPY ./services/gateway ./services/gateway
 
+RUN go install github.com/swaggo/swag/cmd/swag@latest \
+ && cd /svc/services/gateway \
+ && swag init -g cmd/main.go -d . -o ./docs --parseDependency --parseInternal
+ 
 
-RUN go mod download \
-    && go mod tidy \
-    && go build -o /svc/app ./services/gateway/cmd
-
+RUN  go build -o /svc/app ./services/gateway/cmd
 
 # RUNNER
 FROM alpine:3.22 AS gateway
 WORKDIR /root/
-COPY --from=gateway-builder ./svc/app .
-EXPOSE ${AUTH_SERVICE_PORT}
-CMD ["./app"]
+COPY --from=gateway-builder /svc/app .
+EXPOSE ${GATEWAY_SERVICE_PORT}
 
+CMD ["./app"]
 
 ##############################################################
 ####################### REPORT-WORKER ########################
