@@ -14,10 +14,10 @@ import (
 )
 
 type minioCli struct {
-	cli        *minio.Client
-	pcli       *minio.Client
-	logger     zerolog.Logger
-	bucketName string
+	cli    *minio.Client
+	pcli   *minio.Client
+	logger zerolog.Logger
+	bucket string
 }
 
 func NewMinIOCli(baseLogger zerolog.Logger) (MinIOClient, error) {
@@ -49,10 +49,9 @@ func NewMinIOCli(baseLogger zerolog.Logger) (MinIOClient, error) {
 	}
 
 	return &minioCli{
-		cli:        cli,
-		pcli:       pcli,
-		logger:     logger,
-		bucketName: "report",
+		cli:    cli,
+		pcli:   pcli,
+		logger: logger,
 	}, nil
 }
 
@@ -62,9 +61,22 @@ func (c *minioCli) UploadAndPresign(ctx context.Context, in dto.PutReportIn) (st
 	fctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	_, err := c.cli.PutObject(fctx, in.Bucket, in.ObjectName, in.Reader, -1, minio.PutObjectOptions{
+	exists, err := c.cli.BucketExists(fctx, in.Bucket)
+	if err != nil {
+		return "", err
+	}
+
+	if !exists {
+		err = c.cli.MakeBucket(fctx, in.Bucket, minio.MakeBucketOptions{Region: ""})
+		if err != nil {
+			return "", err
+		}
+	}
+
+	_, err = c.cli.PutObject(fctx, in.Bucket, in.ObjectName, in.Reader, -1, minio.PutObjectOptions{
 		ContentType: in.ContentType,
 	})
+
 	if err != nil {
 		return "", err
 	}

@@ -21,6 +21,16 @@ func NewReportServiceHandler(sc reportservicev1.ReportServiceClient, baseLogger 
 	return &reportServiceHandler{sc: sc, logger: logger}
 }
 
+// CreateReport godoc
+// @Summary Create report
+// @Tags reports
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body webdto.CreateReportRequest true "payload"
+// @Success 201 {object} webdto.CreateReportResponse
+// @Failure 400 {object} webdto.ErrResponse
+// @Router /reports [post]
 func (rsh *reportServiceHandler) CreateReport(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call CreateReport").Msg("")
 
@@ -69,6 +79,15 @@ func (rsh *reportServiceHandler) CreateReport(g *gin.Context) {
 	})
 }
 
+// ListReports godoc
+// @Summary List user reports
+// @Tags reports
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} webdto.ListReportsResponse
+// @Failure 401 {object} webdto.ErrResponse
+// @Failure 500 {object} webdto.ErrResponse
+// @Router /reports [get]
 func (rsh *reportServiceHandler) ListReports(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call ListReports").Msg("")
 
@@ -127,6 +146,17 @@ func (rsh *reportServiceHandler) ListReports(g *gin.Context) {
 	g.JSON(http.StatusOK, resp)
 }
 
+// ReportStatus godoc
+// @Summary Get report status
+// @Tags reports
+// @Produce json
+// @Security BearerAuth
+// @Param report_id path string true "Report ID"
+// @Success 200 {object} webdto.ReportStatusResponse
+// @Failure 401 {object} webdto.ErrResponse
+// @Failure 404 {object} webdto.ErrResponse
+// @Failure 500 {object} webdto.ErrResponse
+// @Router /reports/{report_id}/status [get]
 func (rsh *reportServiceHandler) ReportStatus(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call ReportStatus").Msg("")
 
@@ -168,6 +198,17 @@ func (rsh *reportServiceHandler) ReportStatus(g *gin.Context) {
 	})
 }
 
+// ReportInfo godoc
+// @Summary Get report info
+// @Tags reports
+// @Produce json
+// @Security BearerAuth
+// @Param report_id path string true "Report ID"
+// @Success 200 {object} webdto.ReportInfoResponse
+// @Failure 401 {object} webdto.ErrResponse
+// @Failure 404 {object} webdto.ErrResponse
+// @Failure 500 {object} webdto.ErrResponse
+// @Router /reports/{report_id} [get]
 func (rsh *reportServiceHandler) ReportInfo(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call ReportInfo").Msg("")
 
@@ -226,6 +267,16 @@ func (rsh *reportServiceHandler) ReportInfo(g *gin.Context) {
 	})
 }
 
+// DeleteReports godoc
+// @Summary Delete all user reports
+// @Tags reports
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} webdto.BaseResponse
+// @Failure 401 {object} webdto.ErrResponse
+// @Failure 404 {object} webdto.ErrResponse
+// @Failure 500 {object} webdto.ErrResponse
+// @Router /reports [delete]
 func (rsh *reportServiceHandler) DeleteReports(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call DeleteReports").Msg("")
 
@@ -262,6 +313,17 @@ func (rsh *reportServiceHandler) DeleteReports(g *gin.Context) {
 	g.JSON(http.StatusOK, webdto.BaseResponse{Message: "ok"})
 }
 
+// DeleteReport godoc
+// @Summary Delete one report
+// @Tags reports
+// @Produce json
+// @Security BearerAuth
+// @Param report_id path string true "Report ID"
+// @Success 200 {object} webdto.DeleteReportResponse
+// @Failure 401 {object} webdto.ErrResponse
+// @Failure 404 {object} webdto.ErrResponse
+// @Failure 500 {object} webdto.ErrResponse
+// @Router /reports/{report_id} [delete]
 func (rsh *reportServiceHandler) DeleteReport(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call DeleteReport").Msg("")
 

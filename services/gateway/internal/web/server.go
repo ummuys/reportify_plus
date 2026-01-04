@@ -12,6 +12,10 @@ import (
 	pkg "github.com/ummuys/reportify/pkg/tm"
 	"github.com/ummuys/reportify/services/gateway/internal/di"
 	"github.com/ummuys/reportify/services/gateway/internal/web/middleware"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "github.com/ummuys/reportify/services/gateway/docs"
 )
 
 func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.TokenManager, baseLogger zerolog.Logger) *http.Server {
@@ -23,6 +27,8 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 	g.NoRoute(func(g *gin.Context) {
 		g.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 	})
+
+	g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := g.Group("/api/v1")
 	api.Use(cors.New(cors.Config{
@@ -82,3 +88,5 @@ func RunServer(server *http.Server) error {
 	}
 	return nil
 }
+
+// swag init   -d services/gateway   -g cmd/main.go   -o services/gateway/docs   --parseDependency --parseInternal

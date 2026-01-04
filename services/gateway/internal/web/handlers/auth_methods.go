@@ -22,6 +22,18 @@ func NewAuthHandler(sc authv1.AuthServiceClient, baseLogger zerolog.Logger) Auth
 	return &authHandler{sc: sc, logger: logger}
 }
 
+// Login godoc
+// @Summary Login
+// @Description Authenticates user and sets refresh token cookie. Returns access token.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param body body webdto.LoginRequest true "payload"
+// @Success 200 {object} webdto.LoginResponse
+// @Failure 400 {object} webdto.ErrResponse
+// @Failure 404 {object} webdto.ErrResponse
+// @Failure 500 {object} webdto.ErrResponse
+// @Router /auth/login [post]
 func (a *authHandler) Login(refreshTime time.Duration) gin.HandlerFunc {
 	return func(g *gin.Context) {
 		a.logger.Debug().Str("evt", "call Login").Msg("")
@@ -71,6 +83,20 @@ func (a *authHandler) Login(refreshTime time.Duration) gin.HandlerFunc {
 	}
 }
 
+// CreateUser godoc
+// @Summary Create user
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body webdto.CreateUserRequest true "payload"
+// @Success 201 {object} webdto.CreateUserResponse
+// @Failure 400 {object} webdto.ErrResponse
+// @Failure 401 {object} webdto.ErrResponse
+// @Failure 403 {object} webdto.ErrResponse
+// @Failure 409 {object} webdto.ErrResponse
+// @Failure 500 {object} webdto.ErrResponse
+// @Router /users [post]
 func (a *authHandler) CreateUser(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call CreateUser").Msg("")
 	var req webdto.CreateUserRequest
@@ -115,6 +141,22 @@ func (a *authHandler) CreateUser(g *gin.Context) {
 	g.Set("msg", "user created")
 	g.JSON(http.StatusCreated, webdto.CreateUserResponse{UserID: out.UserId})
 }
+
+// UpdateUser godoc
+// @Summary Update user
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body webdto.UpdateUserRequest true "payload"
+// @Success 200 {object} webdto.UpdateUserResponse
+// @Failure 400 {object} webdto.ErrResponse
+// @Failure 401 {object} webdto.ErrResponse
+// @Failure 403 {object} webdto.ErrResponse
+// @Failure 404 {object} webdto.ErrResponse
+// @Failure 409 {object} webdto.ErrResponse
+// @Failure 500 {object} webdto.ErrResponse
+// @Router /users [put]
 func (a *authHandler) UpdateUser(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call UpdateUser").Msg("")
 	var req webdto.UpdateUserRequest
@@ -164,6 +206,19 @@ func (a *authHandler) UpdateUser(g *gin.Context) {
 	g.JSON(http.StatusOK, webdto.UpdateUserResponse{UserID: out.UserId, Username: out.Username, Role: out.Role, IsActive: out.IsActive})
 
 }
+
+// DeleteUser godoc
+// @Summary Delete user
+// @Tags admin
+// @Produce json
+// @Security BearerAuth
+// @Param user_id path string true "User ID"
+// @Success 200 {object} webdto.DeleteUserResponse
+// @Failure 401 {object} webdto.ErrResponse
+// @Failure 403 {object} webdto.ErrResponse
+// @Failure 404 {object} webdto.ErrResponse
+// @Failure 500 {object} webdto.ErrResponse
+// @Router /users/{user_id} [delete]
 func (a *authHandler) DeleteUser(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call DeleteUser").Msg("")
 
@@ -213,6 +268,16 @@ func (a *authHandler) DeleteUser(g *gin.Context) {
 	g.Set("msg", "user deleted")
 	g.JSON(http.StatusOK, webdto.DeleteUserResponse{UserID: out.UserId})
 }
+
+// RefreshToken godoc
+// @Summary Refresh access token
+// @Description Uses refresh_token cookie to issue a new access token.
+// @Tags auth
+// @Produce json
+// @Success 200 {object} webdto.RefreshTokenResponse
+// @Failure 401 {object} webdto.ErrResponse
+// @Failure 500 {object} webdto.ErrResponse
+// @Router /auth/refresh [get]
 func (a *authHandler) RefreshToken(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call RefreshToken").Msg("")
 
@@ -258,6 +323,16 @@ func (a *authHandler) RefreshToken(g *gin.Context) {
 
 }
 
+// ListUsers godoc
+// @Summary List users
+// @Tags admin
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} webdto.ListUsersResponse
+// @Failure 401 {object} webdto.ErrResponse
+// @Failure 403 {object} webdto.ErrResponse
+// @Failure 500 {object} webdto.ErrResponse
+// @Router /users [get]
 func (a *authHandler) ListUsers(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call ListUsers").Msg("")
 
