@@ -2,8 +2,13 @@ package dto
 
 import "time"
 
-type ListUserReportsParams struct {
-	AuthorID string
+type CreateReportResult struct {
+	ReportID string
+	Status   string
+}
+
+type DeleteReportResult struct {
+	ReportID string
 }
 
 type ListReportsResult struct {
@@ -23,11 +28,11 @@ type ReportMetadata struct {
 	ErrMsg    string
 }
 
-type ReportInfoParams struct {
-	AuthorID string
-	ReportID string
-}
-
 type ReportInfoResult struct {
 	Report ReportMetadata
+}
+
+type ReportStatusResult struct {
+	ReportID string
+	Status   string
 }

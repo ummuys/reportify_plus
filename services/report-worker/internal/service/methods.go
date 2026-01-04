@@ -25,11 +25,6 @@ type publish struct {
 	minioCli     miniocli.MinIOClient
 }
 
-type prResMsg struct {
-	path string
-	err  error
-}
-
 func NewPublishService(datasourceDB repository.DatasourceDB, reportDB repository.ReportDB, reportCache cache.ReportCache,
 	convert convert.ReportConvert, minioCli miniocli.MinIOClient, baseLogger zerolog.Logger) (PublishService, error) {
 	logger := baseLogger.With().Str("component", "svc").Logger()
@@ -44,33 +39,43 @@ func NewPublishService(datasourceDB repository.DatasourceDB, reportDB repository
 }
 
 func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
+	p.logger.Debug().Str("evt", "call CreateReport").Str("report_id", in.ReportID).Msg("")
 
-	// Change status: created -> runnig
 	if err := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
 		ReportID:     in.ReportID,
 		UpdateStatus: repository.StatusRunnig,
 		BeforeStatus: repository.StatusCreated,
 	}); err != nil {
-		// Change status: created -> failed
+		p.logger.Error().
+			Err(err).
+			Str("db-method", "SetReportStatus").
+			Str("report_id", in.ReportID).
+			Msg("set status running failed")
+
 		p.stepFailed(ctx, in.ReportID, err, repository.StatusCreated)
 		return errs.ParsePgError(err)
 	}
 
-	// Get report info
 	info, err := p.reportDB.GetReportInfo(ctx, dto.GetReportInfoParams(in))
-
 	if err != nil {
+		p.logger.Error().
+			Err(err).
+			Str("db-method", "GetReportInfo").
+			Str("report_id", in.ReportID).
+			Msg("get report info failed")
+
 		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunnig)
 		return errs.ParsePgError(err)
 	}
 
-	// Get data from query
-	data, err := p.datasourceDB.GetData(ctx, dto.GetDataParams{
-		Query: info.Query,
-	})
-
+	data, err := p.datasourceDB.GetData(ctx, dto.GetDataParams{Query: info.Query})
 	if err != nil {
-		// Change status: created -> failed
+		p.logger.Error().
+			Err(err).
+			Str("db-method", "GetData").
+			Str("report_id", in.ReportID).
+			Msg("get datasource data failed")
+
 		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunnig)
 		return errs.ParsePgError(err)
 	}
@@ -78,14 +83,17 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	pr, pw := io.Pipe()
 
 	eg, gctx := errgroup.WithContext(ctx)
+
 	eg.Go(func() error {
 		defer pw.Close()
+
 		params := dto.ConvParams{
 			Writer: pw,
 			Colums: data.Columns,
 			Rows:   data.Rows,
 			Sep:    info.CSVSep,
 		}
+
 		var err error
 		switch info.Format {
 		case "PDF":
@@ -103,17 +111,25 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 		}
 
 		if err != nil {
+			p.logger.Error().
+				Err(err).
+				Str("op", "convert").
+				Str("report_id", in.ReportID).
+				Str("format", info.Format).
+				Msg("convert failed")
+
 			_ = pw.CloseWithError(err)
 		}
+
 		return err
 	})
 
-	// Read data from pipe reader
 	var path string
 	reportTTL := time.Hour * 1
 
 	eg.Go(func() error {
 		defer pr.Close()
+
 		pth, perr := p.minioCli.UploadAndPresign(gctx, dto.PutReportIn{
 			Reader:      pr,
 			ObjectName:  in.ReportID,
@@ -122,11 +138,17 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 			ContentType: convert.ContentTypeByFormat(info.Format),
 			Expire:      reportTTL,
 		})
-
 		if perr != nil {
+			p.logger.Error().
+				Err(perr).
+				Str("op", "minio.UploadAndPresign").
+				Str("report_id", in.ReportID).
+				Msg("upload failed")
+
 			_ = pr.CloseWithError(perr)
 			return perr
 		}
+
 		path = pth
 		return nil
 	})
@@ -137,7 +159,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	}
 
 	expireAt := time.Now().Add(reportTTL)
-	// Change status: running -> completed & save file path
+
 	if err := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
 		ReportID:     in.ReportID,
 		UpdateStatus: repository.StatusCompleted,
@@ -145,26 +167,50 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 		FilePath:     &path,
 		ExpireAt:     &expireAt,
 	}); err != nil {
-		// Change status: created -> failed
+		p.logger.Error().
+			Err(err).
+			Str("db-method", "SetReportStatus").
+			Str("report_id", in.ReportID).
+			Msg("set status completed failed")
+
 		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunnig)
 		return errs.ParsePgError(err)
 	}
 
 	if err := p.reportCache.Set(ctx, in.ReportID, repository.StatusCompleted); err != nil {
-		p.logger.Error().Err(err).Msg("can't change to completed in ReportCache")
+		p.logger.Warn().
+			Err(err).
+			Str("op", "cache.Set").
+			Str("report_id", in.ReportID).
+			Msg("cache set completed failed")
 	}
+
+	p.logger.Info().
+		Str("report_id", in.ReportID).
+		Str("format", info.Format).
+		Msg("report completed")
 
 	return nil
 }
 
 func (p *publish) stepFailed(ctx context.Context, reportID string, err error, befStat string) {
+	p.logger.Error().
+		Err(err).
+		Str("report_id", reportID).
+		Str("before_status", befStat).
+		Msg("report failed")
+
 	errMsg := err.Error()
 
 	fctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 
 	if ferr := p.reportCache.Set(ctx, reportID, repository.StatusFailed); ferr != nil {
-		p.logger.Error().Err(ferr).Msg("can't change to failed in ReportCache")
+		p.logger.Warn().
+			Err(ferr).
+			Str("op", "cache.Set").
+			Str("report_id", reportID).
+			Msg("cache set failed failed")
 	}
 
 	if ferr := p.reportDB.SetReportStatus(fctx, dto.SetReportStatusParams{
@@ -173,6 +219,10 @@ func (p *publish) stepFailed(ctx context.Context, reportID string, err error, be
 		UpdateStatus: repository.StatusFailed,
 		BeforeStatus: befStat,
 	}); ferr != nil {
-		p.logger.Error().Err(ferr).Msg("can't change to failed in ReportDB")
+		p.logger.Error().
+			Err(ferr).
+			Str("db-method", "SetReportStatus").
+			Str("report_id", reportID).
+			Msg("set status failed failed")
 	}
 }

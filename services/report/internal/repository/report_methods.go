@@ -45,26 +45,33 @@ func (db *reportDB) CreateReport(ctx context.Context, in dto.CreateReportParams)
 	defer cancel()
 
 	out := dto.CreateReportResult{}
-
 	reportID := uuid.New().String()
-	if err := db.pool.QueryRow(qctx, createReportQuery, reportID, in.AuthorID, in.Name, in.Comm, in.Query, in.Format, in.CSVSep).Scan(&out.Status); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call CreateReport").Msg("")
+
+	if err := db.pool.QueryRow(
+		qctx,
+		createReportQuery,
+		reportID,
+		in.AuthorID,
+		in.Name,
+		in.Comm,
+		in.Query,
+		in.Format,
+		in.CSVSep,
+	).Scan(&out.Status); err != nil {
 		return dto.CreateReportResult{}, err
 	}
 
 	out.ReportID = reportID
-
 	return out, nil
 }
 
-func (db *reportDB) ListUserReports(ctx context.Context, in dto.ListUserReportsParams) (dto.ListReportsResult, error) {
-	db.logger.Debug().Str("evt", "call ListUserReports").Msg("")
+func (db *reportDB) ListReports(ctx context.Context, in dto.ListReportsParams) (dto.ListReportsResult, error) {
+	db.logger.Debug().Str("evt", "call ListReports").Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
 	rows, err := db.pool.Query(qctx, listUserReportsQuery, in.AuthorID)
 	if err != nil {
-		db.logger.Error().Err(err).Str("evt", "call ListUserReports").Msg("")
 		return dto.ListReportsResult{}, err
 	}
 	defer rows.Close()
@@ -72,11 +79,19 @@ func (db *reportDB) ListUserReports(ctx context.Context, in dto.ListUserReportsP
 	out := dto.ListReportsResult{}
 	for rows.Next() {
 		rmd := dto.ReportMetadata{}
-		if err := rows.Scan(&rmd.ReportID, &rmd.Name,
-			&rmd.Comm, &rmd.Query, &rmd.Format, &rmd.CSVSep, &rmd.Status,
-			&rmd.CreatedAt, &rmd.FilePath, &rmd.ErrMsg); err != nil {
-			db.logger.Error().Err(err).Str("evt", "call ListUserReports").Msg("")
-			return dto.ListReportsResult{}, nil
+		if err := rows.Scan(
+			&rmd.ReportID,
+			&rmd.Name,
+			&rmd.Comm,
+			&rmd.Query,
+			&rmd.Format,
+			&rmd.CSVSep,
+			&rmd.Status,
+			&rmd.CreatedAt,
+			&rmd.FilePath,
+			&rmd.ErrMsg,
+		); err != nil {
+			return dto.ListReportsResult{}, err
 		}
 		out.Reports = append(out.Reports, rmd)
 	}
@@ -90,9 +105,12 @@ func (db *reportDB) ReportStatus(ctx context.Context, in dto.ReportStatusParams)
 	defer cancel()
 
 	var status string
-
-	if err := db.pool.QueryRow(qctx, reportStatusQuery, in.AuthorID, in.ReportID).Scan(&status); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call ReportStatus").Msg("")
+	if err := db.pool.QueryRow(
+		qctx,
+		reportStatusQuery,
+		in.AuthorID,
+		in.ReportID,
+	).Scan(&status); err != nil {
 		return dto.ReportStatusResult{}, err
 	}
 
@@ -110,7 +128,12 @@ func (db *reportDB) ReportInfo(ctx context.Context, in dto.ReportInfoParams) (dt
 	var out dto.ReportInfoResult
 	out.Report.ReportID = in.ReportID
 
-	err := db.pool.QueryRow(qctx, reportInfoQuery, in.AuthorID, in.ReportID).Scan(
+	if err := db.pool.QueryRow(
+		qctx,
+		reportInfoQuery,
+		in.AuthorID,
+		in.ReportID,
+	).Scan(
 		&out.Report.Name,
 		&out.Report.Comm,
 		&out.Report.Query,
@@ -120,36 +143,39 @@ func (db *reportDB) ReportInfo(ctx context.Context, in dto.ReportInfoParams) (dt
 		&out.Report.CreatedAt,
 		&out.Report.FilePath,
 		&out.Report.ErrMsg,
-	)
-	if err != nil {
+	); err != nil {
 		return dto.ReportInfoResult{}, err
 	}
 
 	return out, nil
 }
 
-func (db *reportDB) DeleteUserReports(ctx context.Context, in dto.DeleteUserReportsParams) error {
-	db.logger.Debug().Str("evt", "call DeleteUserReports").Msg("")
+func (db *reportDB) DeleteReports(ctx context.Context, in dto.DeleteReportsParams) error {
+	db.logger.Debug().Str("evt", "call DeleteReports").Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
 	if _, err := db.pool.Exec(qctx, deleteUserReportsQuery, in.AuthorID); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call DeleteUserReports").Msg("")
 		return err
 	}
 	return nil
 }
 
-func (db *reportDB) DeleteUserReport(ctx context.Context, in dto.DeleteUserReportParams) (dto.DeleteUserReportResult, error) {
-	db.logger.Debug().Str("evt", "call DeleteUserReport").Msg("")
+func (db *reportDB) DeleteReport(ctx context.Context, in dto.DeleteReportParams) (dto.DeleteReportResult, error) {
+	db.logger.Debug().Str("evt", "call DeleteReport").Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
-	if _, err := db.pool.Exec(qctx, deleteUserReportQuery, in.AuthorID, in.ReportID); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call DeleteUserReport").Msg("")
-		return dto.DeleteUserReportResult{}, err
+	if _, err := db.pool.Exec(
+		qctx,
+		deleteUserReportQuery,
+		in.AuthorID,
+		in.ReportID,
+	); err != nil {
+		return dto.DeleteReportResult{}, err
 	}
-	return dto.DeleteUserReportResult{ReportID: in.ReportID}, nil
+
+	return dto.DeleteReportResult{ReportID: in.ReportID}, nil
 }
 
 func (db *reportDB) Close() {

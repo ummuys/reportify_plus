@@ -38,13 +38,13 @@ func NewDatasourceDB(ctx context.Context, baseLogger zerolog.Logger) (Datasource
 	}, nil
 }
 
-func (dbx *datasourceDB) ListSchemas(pCtx context.Context) (dto.ListSchemasResult, error) {
-	dbx.logger.Debug().Str("evt", "call ListSchemas").Msg("")
+func (db *datasourceDB) ListSchemas(pCtx context.Context) (dto.ListSchemasResult, error) {
+	db.logger.Debug().Str("evt", "call ListSchemas").Msg("")
 
 	ctx, cancel := context.WithTimeout(pCtx, 2*time.Second)
 	defer cancel()
 
-	rows, err := dbx.pool.Query(ctx, schemaWithCommentQuery)
+	rows, err := db.pool.Query(ctx, schemaWithCommentQuery)
 	if err != nil {
 		return dto.ListSchemasResult{}, err
 	}
@@ -54,7 +54,6 @@ func (dbx *datasourceDB) ListSchemas(pCtx context.Context) (dto.ListSchemasResul
 	for rows.Next() {
 		var s dto.Schema
 		if err := rows.Scan(&s.Name, &s.Comment); err != nil {
-			dbx.logger.Error().Err(err).Str("evt", "call ListSchemas").Msg("")
 			return dto.ListSchemasResult{}, err
 		}
 		out.Schemas = append(out.Schemas, s)
@@ -67,13 +66,13 @@ func (dbx *datasourceDB) ListSchemas(pCtx context.Context) (dto.ListSchemasResul
 	return out, nil
 }
 
-func (dbx *datasourceDB) ListTables(pCtx context.Context, in dto.ListTablesParams) (dto.ListTablesResult, error) {
-	dbx.logger.Debug().Str("evt", "call ListTables").Str("schema", in.Schema).Msg("")
+func (db *datasourceDB) ListTables(pCtx context.Context, in dto.ListTablesParams) (dto.ListTablesResult, error) {
+	db.logger.Debug().Str("evt", "call ListTables").Str("schema", in.Schema).Msg("")
 
 	ctx, cancel := context.WithTimeout(pCtx, 2*time.Second)
 	defer cancel()
 
-	rows, err := dbx.pool.Query(ctx, tablesWithCommentQuery, in.Schema)
+	rows, err := db.pool.Query(ctx, tablesWithCommentQuery, in.Schema)
 	if err != nil {
 		return dto.ListTablesResult{}, err
 	}
@@ -83,7 +82,6 @@ func (dbx *datasourceDB) ListTables(pCtx context.Context, in dto.ListTablesParam
 	for rows.Next() {
 		var t dto.Table
 		if err := rows.Scan(&t.Name, &t.Comment); err != nil {
-			dbx.logger.Error().Err(err).Str("evt", "call ListTables").Msg("")
 			return dto.ListTablesResult{}, err
 		}
 		out.Tables = append(out.Tables, t)
@@ -96,13 +94,13 @@ func (dbx *datasourceDB) ListTables(pCtx context.Context, in dto.ListTablesParam
 	return out, nil
 }
 
-func (dbx *datasourceDB) ListColumns(pCtx context.Context, in dto.ListColumnsParams) (dto.ListColumnsResult, error) {
-	dbx.logger.Debug().Str("evt", "call ListColumns").Str("schema", in.Schema).Str("table", in.Table).Msg("")
+func (db *datasourceDB) ListColumns(pCtx context.Context, in dto.ListColumnsParams) (dto.ListColumnsResult, error) {
+	db.logger.Debug().Str("evt", "call ListColumns").Str("schema", in.Schema).Str("table", in.Table).Msg("")
 
 	ctx, cancel := context.WithTimeout(pCtx, 5*time.Second)
 	defer cancel()
 
-	rows, err := dbx.pool.Query(ctx, columnsWithCommentQuery, in.Schema, in.Table)
+	rows, err := db.pool.Query(ctx, columnsWithCommentQuery, in.Schema, in.Table)
 	if err != nil {
 		return dto.ListColumnsResult{}, err
 	}
@@ -112,7 +110,6 @@ func (dbx *datasourceDB) ListColumns(pCtx context.Context, in dto.ListColumnsPar
 	for rows.Next() {
 		var c dto.Column
 		if err := rows.Scan(&c.Name, &c.Comment); err != nil {
-			dbx.logger.Error().Err(err).Str("evt", "call ListColumns").Msg("")
 			return dto.ListColumnsResult{}, err
 		}
 		out.Columns = append(out.Columns, c)
@@ -125,6 +122,6 @@ func (dbx *datasourceDB) ListColumns(pCtx context.Context, in dto.ListColumnsPar
 	return out, nil
 }
 
-func (dbx *datasourceDB) Close() {
-	dbx.pool.Close()
+func (db *datasourceDB) Close() {
+	db.pool.Close()
 }

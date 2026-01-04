@@ -10,10 +10,10 @@ import "google/protobuf/empty.proto";
 service ReportService {
   rpc CreateReport (CreateReportRequest) returns (CreateReportResponse);
   rpc ReportStatus (ReportStatusRequest) returns (ReportStatusResponse);
-  rpc ListUserReports (ListUserReportsRequest) returns (ListUserReportsResponse);
+  rpc ListReports (ListReportsRequest) returns (ListReportsResponse);
   rpc ReportInfo (ReportInfoRequest) returns (ReportInfoResponse);
-  rpc DeleteUserReports (DeleteUserReportsRequest) returns (google.protobuf.Empty);
-  rpc DeleteUserReport (DeleteUserReportRequest) returns (DeleteUserReportResponse);
+  rpc DeleteReports (DeleteReportsRequest) returns (google.protobuf.Empty);
+  rpc DeleteReport (DeleteReportRequest) returns (DeleteReportResponse);
 }
 
 message CreateReportRequest {
@@ -40,14 +40,13 @@ message ReportStatusResponse {
   string status = 2;
 }
 
-message ListUserReportsRequest {
+message ListReportsRequest {
   string author_id = 1;
 }
 
-message ListUserReportsResponse {
+message ListReportsResponse {
   repeated ReportMetadata reports = 1;
 }
-
 
 message ReportInfoRequest {
   string author_id = 1;
@@ -58,17 +57,16 @@ message ReportInfoResponse {
   ReportMetadata report = 1;
 }
 
-
-message DeleteUserReportsRequest {
+message DeleteReportsRequest {
   string author_id = 1;
 }
 
-message DeleteUserReportRequest {
+message DeleteReportRequest {
   string author_id = 1;
   string report_id = 2;
 }
 
-message DeleteUserReportResponse {
+message DeleteReportResponse {
   string report_id = 1;
 }
 

@@ -56,7 +56,7 @@ func main() {
 	srv := grpc.NewServer()
 	svc := service.NewAuthService(ph, tm, db, logs)
 
-	// CREATE USER
+	// CREATE BASE ADMIN USER
 	if err := svc.CreateBaseAdmin(ctx, dto.CreateUserParams{
 		Username: cfg.AdmUsername,
 		Password: cfg.AdmPassword,
@@ -77,7 +77,7 @@ func main() {
 	})
 
 	wg.Go(func() {
-		logs.Info().Msg("run the grpc-server")
+		logs.Info().Msg("Service is running")
 		if err := srv.Serve(lis); err != nil {
 			SDChan <- errs.SDMsg{
 				Err:  err,

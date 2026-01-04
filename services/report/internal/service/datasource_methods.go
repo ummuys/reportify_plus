@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/rs/zerolog"
 	"github.com/ummuys/reportify/pkg/errs"
@@ -20,31 +21,62 @@ func NewDatasourceService(db repository.DatasourceDB, baseLogger zerolog.Logger)
 }
 
 func (ds *datasourceService) ListSchemas(ctx context.Context) (dto.ListSchemasResult, error) {
-	ds.logger.Debug().Str("evt", "call ListSchemas").Msg("")
-
 	out, err := ds.db.ListSchemas(ctx)
 	if err != nil {
-		return out, errs.ParsePgError(err)
+		perr := errs.ParsePgError(err)
+
+		if !isExpectedDatasourceErr(perr) {
+			ds.logger.Error().
+				Err(err).
+				Str("db-method", "ListSchemas").
+				Msg("list schemas failed")
+		}
+
+		return out, perr
 	}
 	return out, nil
 }
 
 func (ds *datasourceService) ListTables(ctx context.Context, in dto.ListTablesParams) (dto.ListTablesResult, error) {
-	ds.logger.Debug().Str("evt", "call ListTables").Str("schema", in.Schema).Msg("")
-
 	out, err := ds.db.ListTables(ctx, in)
 	if err != nil {
-		return out, errs.ParsePgError(err)
+		perr := errs.ParsePgError(err)
+
+		if !isExpectedDatasourceErr(perr) {
+			ds.logger.Error().
+				Err(err).
+				Str("db-method", "ListTables").
+				Str("schema", in.Schema).
+				Msg("list tables failed")
+		}
+
+		return out, perr
 	}
 	return out, nil
 }
 
 func (ds *datasourceService) ListColumns(ctx context.Context, in dto.ListColumnsParams) (dto.ListColumnsResult, error) {
-	ds.logger.Debug().Str("evt", "call ListColumns").Str("schema", in.Schema).Str("table", in.Table).Msg("")
-
 	out, err := ds.db.ListColumns(ctx, in)
 	if err != nil {
-		return out, errs.ParsePgError(err)
+		perr := errs.ParsePgError(err)
+
+		if !isExpectedDatasourceErr(perr) {
+			ds.logger.Error().
+				Err(err).
+				Str("db-method", "ListColumns").
+				Str("schema", in.Schema).
+				Str("table", in.Table).
+				Msg("list columns failed")
+		}
+
+		return out, perr
 	}
 	return out, nil
+}
+
+func isExpectedDatasourceErr(err error) bool {
+	return errors.Is(err, errs.ErrNotFound) ||
+		errors.Is(err, errs.ErrUndefinedTable) ||
+		errors.Is(err, errs.ErrUndefinedColumn) ||
+		errors.Is(err, errs.ErrInsufficientPrivilege)
 }

@@ -15,7 +15,7 @@ var (
 	ErrInvalidUserID      = errors.New("invalid user_id")
 	ErrInvalidData        = errors.New("invalid data")
 	ErrUserUnauthorized   = errors.New("you need to auth")
-	ErrUserExists         = errors.New("user already exists")
+	ErrUserAlreadyExists  = errors.New("user already exists")
 	ErrUsernameExists     = errors.New("username already taken")
 	ErrInvalidCredentials = errors.New("user or password are incorrect")
 	ErrUserNotFound       = errors.New("user not found")

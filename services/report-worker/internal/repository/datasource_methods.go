@@ -46,7 +46,6 @@ func (db *datasourceDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.
 
 	rows, err := db.pool.Query(qctx, in.Query)
 	if err != nil {
-		db.logger.Error().Err(err).Str("evt", "call GetData").Msg("")
 		return dto.GetDataResult{}, err
 	}
 	defer rows.Close()
@@ -62,7 +61,6 @@ func (db *datasourceDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.
 	for rows.Next() {
 		vals, err := rows.Values()
 		if err != nil {
-			db.logger.Error().Err(err).Str("evt", "call GetData").Msg("")
 			return dto.GetDataResult{}, err
 		}
 
@@ -74,7 +72,6 @@ func (db *datasourceDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.
 	}
 
 	if err := rows.Err(); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call GetData").Msg("")
 		return dto.GetDataResult{}, err
 	}
 

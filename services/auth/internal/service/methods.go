@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/rs/zerolog"
 	"github.com/ummuys/reportify/pkg/errs"
@@ -25,24 +26,47 @@ func NewAuthService(ph secure.PasswordHasher, tm pkg.TokenManager, db repository
 
 func (as *authService) Login(ctx context.Context, in dto.LoginParams) (dto.LoginResult, error) {
 	as.logger.Debug().Str("evt", "call Login").Msg("")
+
 	out, err := as.db.Login(ctx, in.Username)
 	if err != nil {
-		return dto.LoginResult{}, errs.ParsePgError(err)
+		perr := errs.ParsePgError(err)
+		if !errors.Is(perr, errs.ErrNotFound) {
+			as.logger.Error().
+				Err(err).
+				Str("db-method", "Login").
+				Str("username", in.Username).
+				Msg("db login failed")
+		}
+
+		return dto.LoginResult{}, errs.ErrUnauthorized
 	}
 
 	if !as.ph.CheckHash(in.Password, out.Password) {
-		return dto.LoginResult{}, errs.ErrInvalidCredentials
+		return dto.LoginResult{}, errs.ErrUnauthorized
 	}
 
 	at, err := as.tm.GenerateAccessToken(out.UserID, out.Role)
 	if err != nil {
+		as.logger.Error().
+			Err(err).
+			Str("op", "GenerateAccessToken").
+			Str("user_id", out.UserID).
+			Str("role", out.Role).
+			Msg("token generation failed")
 		return dto.LoginResult{}, err
 	}
 
 	rt, err := as.tm.GenerateRefreshToken(out.UserID, out.Role)
 	if err != nil {
+		as.logger.Error().
+			Err(err).
+			Str("op", "GenerateRefreshToken").
+			Str("user_id", out.UserID).
+			Str("role", out.Role).
+			Msg("token generation failed")
 		return dto.LoginResult{}, err
 	}
+
 	return dto.LoginResult{AccessToken: at, RefreshToken: rt}, nil
 }
 
@@ -51,31 +75,76 @@ func (as *authService) CreateUser(ctx context.Context, in dto.CreateUserParams) 
 
 	hashPass, err := as.ph.Hash(in.Password)
 	if err != nil {
+		as.logger.Error().
+			Err(err).
+			Str("op", "HashPassword").
+			Str("username", in.Username).
+			Msg("create user failed")
 		return dto.CreateUserResult{}, err
 	}
 	in.Password = hashPass
 
 	out, err := as.db.CreateUser(ctx, in)
 	if err != nil {
-		return dto.CreateUserResult{}, errs.ParsePgError(err)
+		perr := errs.ParsePgError(err)
+		if !isExpectedDbErr(perr) {
+			as.logger.Error().
+				Err(err).
+				Str("db-method", "CreateUser").
+				Str("username", in.Username).
+				Str("role", in.Role).
+				Msg("create user failed")
+		}
+
+		return dto.CreateUserResult{}, perr
 	}
+
+	as.logger.Info().
+		Str("evt", "user.created").
+		Str("user_id", out.UserID).
+		Str("username", in.Username).
+		Str("role", in.Role).
+		Msg("user created")
+
 	return out, nil
 }
 
 func (as *authService) CreateBaseAdmin(ctx context.Context, in dto.CreateUserParams) error {
 	as.logger.Debug().Str("evt", "call CreateBaseAdmin").Msg("")
+
 	hashPass, err := as.ph.Hash(in.Password)
 	if err != nil {
+		as.logger.Error().
+			Err(err).
+			Str("op", "HashPassword").
+			Str("username", in.Username).
+			Msg("create base admin failed")
 		return err
 	}
 	in.Password = hashPass
 
 	out, err := as.db.CreateUser(ctx, in)
 	if err != nil {
-		return errs.ParsePgError(err)
+		perr := errs.ParsePgError(err)
+
+		if !isExpectedDbErr(perr) {
+			as.logger.Error().
+				Err(err).
+				Str("db-method", "CreateUser").
+				Str("username", in.Username).
+				Str("role", in.Role).
+				Msg("create base admin failed")
+		}
+
+		return perr
 	}
 
 	as.db.SetAdminUUID(out.UserID)
+	as.logger.Warn().
+		Str("evt", "admin.base_created").
+		Str("user_id", out.UserID).
+		Str("username", in.Username).
+		Msg("base admin created")
 
 	return nil
 }
@@ -83,9 +152,16 @@ func (as *authService) CreateBaseAdmin(ctx context.Context, in dto.CreateUserPar
 func (as *authService) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (dto.UpdateUserResult, error) {
 	as.logger.Debug().Str("evt", "call UpdateUser").Msg("")
 
+	changedPassword := false
 	if in.Password != "" {
+		changedPassword = true
 		hashPass, err := as.ph.Hash(in.Password)
 		if err != nil {
+			as.logger.Error().
+				Err(err).
+				Str("op", "HashPassword").
+				Str("user_id", in.UserID).
+				Msg("update user failed")
 			return dto.UpdateUserResult{}, err
 		}
 		in.Password = hashPass
@@ -93,8 +169,27 @@ func (as *authService) UpdateUser(ctx context.Context, in dto.UpdateUserParams) 
 
 	out, err := as.db.UpdateUser(ctx, in)
 	if err != nil {
-		return dto.UpdateUserResult{}, errs.ParsePgError(err)
+		perr := errs.ParsePgError(err)
+
+		if !isExpectedDbErr(perr) {
+			as.logger.Error().
+				Err(err).
+				Str("db-method", "UpdateUser").
+				Str("user_id", in.UserID).
+				Msg("update user failed")
+		}
+
+		return dto.UpdateUserResult{}, perr
 	}
+
+	as.logger.Info().
+		Str("evt", "user.updated").
+		Str("user_id", in.UserID).
+		Bool("changed_password", changedPassword).
+		Bool("changed_username", in.Username != "").
+		Bool("changed_role", in.Role != "").
+		Msg("user updated")
+
 	return out, nil
 }
 
@@ -103,8 +198,31 @@ func (as *authService) DeleteUser(ctx context.Context, in dto.DeleteUserParams) 
 
 	out, err := as.db.DeleteUser(ctx, in)
 	if err != nil {
-		return dto.DeleteUserResult{}, errs.ParsePgError(err)
+		perr := errs.ParsePgError(err)
+
+		if !errors.Is(perr, errs.ErrNotFound) && !errors.Is(perr, errs.ErrInsufficientPrivilege) {
+			as.logger.Error().
+				Err(err).
+				Str("db-method", "DeleteUser").
+				Str("user_id", in.UserID).
+				Msg("delete user failed")
+		}
+
+		if errors.Is(perr, errs.ErrInsufficientPrivilege) {
+			as.logger.Warn().
+				Str("evt", "user.delete_forbidden").
+				Str("user_id", in.UserID).
+				Msg("attempt to delete protected user")
+		}
+
+		return dto.DeleteUserResult{}, perr
 	}
+
+	as.logger.Info().
+		Str("evt", "user.deleted").
+		Str("user_id", in.UserID).
+		Msg("user deleted")
+
 	return out, nil
 }
 
@@ -113,8 +231,16 @@ func (as *authService) ListUsers(ctx context.Context) (dto.ListUsersResult, erro
 
 	out, err := as.db.ListUsers(ctx)
 	if err != nil {
-		return dto.ListUsersResult{}, errs.ParsePgError(err)
+		perr := errs.ParsePgError(err)
+
+		as.logger.Error().
+			Err(err).
+			Str("db-method", "ListUsers").
+			Msg("list users failed")
+
+		return dto.ListUsersResult{}, perr
 	}
+
 	return out, nil
 }
 
@@ -123,16 +249,35 @@ func (as *authService) RefreshToken(ctx context.Context, in dto.RefreshTokenPara
 
 	rc, err := as.tm.ValidateRefreshToken(in.RefreshToken)
 	if err != nil {
-		return dto.RefreshTokenResult{}, err
+		as.logger.Info().
+			Err(err).
+			Str("evt", "token.refresh_rejected").
+			Msg("refresh token rejected")
+		return dto.RefreshTokenResult{}, errs.ErrUnauthorized
 	}
 
-	userID := rc.UserID
-	role := rc.Role
-
-	access, err := as.tm.GenerateAccessToken(userID, role)
+	access, err := as.tm.GenerateAccessToken(rc.UserID, rc.Role)
 	if err != nil {
+		as.logger.Error().
+			Err(err).
+			Str("op", "GenerateAccessToken").
+			Str("user_id", rc.UserID).
+			Str("role", rc.Role).
+			Msg("refresh token failed")
 		return dto.RefreshTokenResult{}, err
 	}
 
 	return dto.RefreshTokenResult{AccessToken: access}, nil
+}
+
+func isExpectedDbErr(err error) bool {
+	return errors.Is(err, errs.ErrNotFound) ||
+		errors.Is(err, errs.ErrDuplicate) ||
+		errors.Is(err, errs.ErrForeignKey) ||
+		errors.Is(err, errs.ErrInvalidInput) ||
+		errors.Is(err, errs.ErrConstraint) ||
+		errors.Is(err, errs.ErrNullViolation) ||
+		errors.Is(err, errs.ErrCheckViolation) ||
+		errors.Is(err, errs.ErrExclusionViolation) ||
+		errors.Is(err, errs.ErrInsufficientPrivilege)
 }

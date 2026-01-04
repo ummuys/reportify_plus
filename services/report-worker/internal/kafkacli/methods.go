@@ -3,6 +3,7 @@ package kafkacli
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/twmb/franz-go/pkg/kgo"
@@ -34,20 +35,25 @@ func NewKafkaConsumer(svc service.PublishService, baseLogger zerolog.Logger) (Ka
 		kgo.ConsumeResetOffset(kgo.NewOffset().AtStart()),
 	)
 
-	logger := baseLogger.With().Str("component", "kafka").Logger()
-
 	if err != nil {
 		return nil, err
 	}
 
-	return &consumer{cli: cli, logger: logger,
-		svc:   svc,
-		topic: cfg.Topic, topicDLQ: cfg.TopicDLQ,
+	logger := baseLogger.With().Str("component", "kafka").Logger()
+
+	return &consumer{
+		cli:      cli,
+		logger:   logger,
+		svc:      svc,
+		topic:    cfg.Topic,
+		topicDLQ: cfg.TopicDLQ,
 		cWorkers: 3,
 	}, nil
 }
 
 func (c *consumer) Run(ctx context.Context) error {
+	c.logger.Debug().Str("evt", "call Run").Msg("")
+
 	records := make(chan *kgo.Record, 512)
 	defer close(records)
 
@@ -55,30 +61,46 @@ func (c *consumer) Run(ctx context.Context) error {
 	for i := 0; i < c.cWorkers; i++ {
 		wg.Go(func() {
 			for r := range records {
+				wctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+				defer cancel()
 				reportID := string(r.Value)
-				c.logger.Info().Str("topic", r.Topic).Str("report_id", reportID).Msg("catch new message")
-				if err := c.svc.CreateReport(ctx, dto.KafkaMessage{
+
+				c.logger.Info().
+					Str("topic", r.Topic).
+					Str("report_id", reportID).
+					Msg("catch new message")
+
+				if err := c.svc.CreateReport(wctx, dto.KafkaMessage{
 					ReportID: reportID,
 				}); err != nil {
 					c.toDLQ(ctx, reportID, r, err)
 					continue
 				}
+
 				c.cli.MarkCommitRecords(r)
-				c.logger.Info().Str("topic", r.Topic).Str("report_id", reportID).Msg("report created")
+
+				c.logger.Info().
+					Str("topic", r.Topic).
+					Str("report_id", reportID).
+					Msg("report created")
 			}
 		})
 	}
 
-	// Get a new message
 	for {
 		fetches := c.cli.PollFetches(ctx)
 		if fetches.IsClientClosed() {
 			wg.Done()
 			return nil
 		}
+
 		if errs := fetches.Errors(); len(errs) > 0 {
-			for _, err := range errs {
-				c.logger.Warn().Err(err.Err).Str("topic", err.Topic).Int32("partition", err.Partition).Msg("")
+			for _, fe := range errs {
+				c.logger.Warn().
+					Err(fe.Err).
+					Str("topic", fe.Topic).
+					Int32("partition", fe.Partition).
+					Msg("poll fetch error")
 			}
 			continue
 		}
@@ -99,10 +121,22 @@ func (c *consumer) toDLQ(ctx context.Context, reportID string, r *kgo.Record, er
 			kgo.RecordHeader{Key: "src_topic", Value: []byte(r.Topic)},
 		),
 	}
+
 	res := c.cli.ProduceSync(ctx, rec)
-	if err := res.FirstErr(); err != nil {
-		c.logger.Error().Err(err).Msg("send to dlq failed")
+	if perr := res.FirstErr(); perr != nil {
+		c.logger.Error().
+			Err(perr).
+			Str("op", "dlq.produce").
+			Str("topic", c.topicDLQ).
+			Str("report_id", reportID).
+			Msg("send to dlq failed")
 		return
 	}
-	c.logger.Warn().Err(err).Str("topic", r.Topic).Str("report_id", reportID).Int32("partition", r.Partition).Msg("")
+
+	c.logger.Warn().
+		Err(err).
+		Str("topic", r.Topic).
+		Str("report_id", reportID).
+		Int32("partition", r.Partition).
+		Msg("sent to dlq")
 }

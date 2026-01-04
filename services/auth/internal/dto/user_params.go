@@ -1,16 +1,20 @@
 package dto
 
-type UpdateUserParams struct {
+type CreateUserParams struct {
 	UserID   string
 	Username string
 	Password string
 	Role     string
-	IsActive bool
 }
 
-type UpdateUserResult struct {
+type DeleteUserParams struct {
+	UserID string
+}
+
+type UpdateUserParams struct {
 	UserID   string
 	Username string
+	Password string
 	Role     string
 	IsActive bool
 }

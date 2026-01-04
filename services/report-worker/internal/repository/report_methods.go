@@ -47,7 +47,6 @@ func (db *reportDB) GetReportInfo(ctx context.Context, in dto.GetReportInfoParam
 	out := dto.GetReportInfoResult{}
 	if err := db.pool.QueryRow(qctx, ReportInfoQuery, in.ReportID).Scan(&out.AuthorID,
 		&out.Name, &out.Comm, &out.Query, &out.Format, &sep); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call GetReportInfo").Msg("")
 		return dto.GetReportInfoResult{}, err
 	}
 	if sep != "" {
@@ -64,7 +63,6 @@ func (db *reportDB) SetReportStatus(ctx context.Context, in dto.SetReportStatusP
 	query, vars := buildStatusQuery(in)
 
 	if _, err := db.pool.Exec(qctx, query, vars...); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call SetReportStatus").Msg("")
 		return err
 	}
 	return nil

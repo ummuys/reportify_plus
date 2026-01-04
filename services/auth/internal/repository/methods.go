@@ -56,7 +56,6 @@ func (db *authDB) Login(ctx context.Context, username string) (dto.AuthUser, err
 
 	var out dto.AuthUser
 	if err := db.pool.QueryRow(qctx, loginQuery, username).Scan(&out.UserID, &out.Password, &out.Role); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call Login").Msg("")
 		return dto.AuthUser{}, err
 	}
 
@@ -71,7 +70,6 @@ func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.
 	uuid := uuid.New().String()
 
 	if _, err := db.pool.Exec(qctx, createUserQuery, uuid, in.Username, in.Password, in.Role); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call CreateBaseAdmin").Msg("")
 		return dto.CreateUserResult{}, err
 	}
 
@@ -99,7 +97,6 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 
 	tx, err = db.pool.Begin(qctx)
 	if err != nil {
-		db.logger.Error().Err(err).Str("evt", "call UpdateUser").Msg("")
 		return
 	}
 
@@ -123,7 +120,6 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 	for range b.Len() {
 
 		if res, err = br.Exec(); err != nil {
-			db.logger.Error().Err(err).Str("evt", "call UpdateUser").Msg("")
 			_ = br.Close()
 			return
 		}
@@ -136,12 +132,10 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 	}
 
 	if err = br.Close(); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call UpdateUser").Msg("")
 		return
 	}
 
 	if err = tx.Commit(qctx); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call UpdateUser").Msg("")
 		return
 	}
 
@@ -165,7 +159,6 @@ func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.
 	res, err := db.pool.Exec(qctx, deleteUserQuery, in.UserID)
 
 	if err != nil {
-		db.logger.Error().Err(err).Str("evt", "call DeleteUser").Msg("")
 		return dto.DeleteUserResult{}, err
 	}
 
@@ -183,7 +176,6 @@ func (db *authDB) ListUsers(ctx context.Context) (dto.ListUsersResult, error) {
 
 	rows, err := db.pool.Query(qctx, ListUsersQuery)
 	if err != nil {
-		db.logger.Error().Err(err).Str("evt", "call ListUsers").Msg("")
 		return dto.ListUsersResult{}, err
 	}
 	defer rows.Close()
@@ -193,7 +185,6 @@ func (db *authDB) ListUsers(ctx context.Context) (dto.ListUsersResult, error) {
 		var u dto.User
 		err = rows.Scan(&u.UserID, &u.Username, &u.Role)
 		if err != nil {
-			db.logger.Error().Err(err).Str("evt", "call ListUsers").Msg("")
 			return dto.ListUsersResult{}, err
 		}
 		users = append(users, u)
@@ -202,7 +193,6 @@ func (db *authDB) ListUsers(ctx context.Context) (dto.ListUsersResult, error) {
 	fmt.Println(users)
 
 	if err := rows.Err(); err != nil {
-		db.logger.Error().Err(err).Str("evt", "call ListUsers").Msg("")
 		return dto.ListUsersResult{}, err
 	}
 

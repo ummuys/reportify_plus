@@ -75,15 +75,15 @@ func (ra *ReportAdapter) ReportStatus(ctx context.Context, in *rsv1.ReportStatus
 	}, nil
 }
 
-func (ra *ReportAdapter) ListUserReports(ctx context.Context, in *rsv1.ListUserReportsRequest) (*rsv1.ListUserReportsResponse, error) {
-	ra.logger.Debug().Str("evt", "call ListUserReports").Msg("")
+func (ra *ReportAdapter) ListReports(ctx context.Context, in *rsv1.ListReportsRequest) (*rsv1.ListReportsResponse, error) {
+	ra.logger.Debug().Str("evt", "call ListReports").Msg("")
 
-	out, err := ra.reportSvc.ListUserReports(ctx, dto.ListUserReportsParams{AuthorID: in.AuthorId})
+	out, err := ra.reportSvc.ListReports(ctx, dto.ListReportsParams{AuthorID: in.AuthorId})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	resp := rsv1.ListUserReportsResponse{
+	resp := rsv1.ListReportsResponse{
 		Reports: make([]*rsv1.ReportMetadata, 0, len(out.Reports)),
 	}
 
@@ -137,10 +137,10 @@ func (ra *ReportAdapter) ReportInfo(ctx context.Context, in *rsv1.ReportInfoRequ
 	}, nil
 }
 
-func (ra *ReportAdapter) DeleteUserReports(ctx context.Context, in *rsv1.DeleteUserReportsRequest) (*emptypb.Empty, error) {
-	ra.logger.Debug().Str("evt", "call DeleteUserReports").Msg("")
+func (ra *ReportAdapter) DeleteReports(ctx context.Context, in *rsv1.DeleteReportsRequest) (*emptypb.Empty, error) {
+	ra.logger.Debug().Str("evt", "call DeleteReports").Msg("")
 
-	err := ra.reportSvc.DeleteUserReports(ctx, dto.DeleteUserReportsParams{
+	err := ra.reportSvc.DeleteReports(ctx, dto.DeleteReportsParams{
 		AuthorID: in.AuthorId,
 	})
 	if err != nil {
@@ -152,13 +152,13 @@ func (ra *ReportAdapter) DeleteUserReports(ctx context.Context, in *rsv1.DeleteU
 		}
 	}
 
-	return nil, nil
+	return &emptypb.Empty{}, nil
 }
 
-func (ra *ReportAdapter) DeleteUserReport(ctx context.Context, in *rsv1.DeleteUserReportRequest) (*rsv1.DeleteUserReportResponse, error) {
-	ra.logger.Debug().Str("evt", "call DeleteUserReport").Msg("")
+func (ra *ReportAdapter) DeleteReport(ctx context.Context, in *rsv1.DeleteReportRequest) (*rsv1.DeleteReportResponse, error) {
+	ra.logger.Debug().Str("evt", "call DeleteReport").Msg("")
 
-	out, err := ra.reportSvc.DeleteUserReport(ctx, dto.DeleteUserReportParams{
+	out, err := ra.reportSvc.DeleteReport(ctx, dto.DeleteReportParams{
 		AuthorID: in.AuthorId,
 		ReportID: in.ReportId,
 	})
@@ -171,7 +171,7 @@ func (ra *ReportAdapter) DeleteUserReport(ctx context.Context, in *rsv1.DeleteUs
 		}
 	}
 
-	return &rsv1.DeleteUserReportResponse{
+	return &rsv1.DeleteReportResponse{
 		ReportId: out.ReportID,
 	}, nil
 }
