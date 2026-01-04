@@ -28,21 +28,19 @@ func (rs *reportService) CreateReport(ctx context.Context, in dto.CreateReportPa
 
 	out, err := rs.db.CreateReport(ctx, in)
 	if err != nil {
-		perr := errs.ParsePgError(err)
-		if !isExpectedDbErr(perr) {
-			rs.logger.Error().
-				Err(err).
-				Str("db-method", "CreateReport").
-				Str("author_id", in.AuthorID).
-				Msg("create report failed")
-		}
-		return out, perr
+		rs.logger.Error().
+			Err(err).
+			Str("db-method", "CreateReport").
+			Str("author_id", in.AuthorID).
+			Msg("create report failed")
+
+		return out, errs.ParsePgError(err)
 	}
 
 	if err := rs.cache.Set(ctx, out.ReportID, out.Status); err != nil {
 		rs.logger.Warn().
 			Err(err).
-			Str("op", "cache.Set").
+			Str("cache-method", "Set").
 			Str("report_id", out.ReportID).
 			Msg("cache set failed")
 	}
@@ -55,15 +53,14 @@ func (rs *reportService) ListReports(ctx context.Context, in dto.ListReportsPara
 
 	out, err := rs.db.ListReports(ctx, in)
 	if err != nil {
-		perr := errs.ParsePgError(err)
-		if !isExpectedDbErr(perr) {
-			rs.logger.Error().
-				Err(err).
-				Str("db-method", "ListReports").
-				Str("author_id", in.AuthorID).
-				Msg("list reports failed")
-		}
-		return out, perr
+
+		rs.logger.Error().
+			Err(err).
+			Str("db-method", "ListReports").
+			Str("author_id", in.AuthorID).
+			Msg("list reports failed")
+
+		return out, errs.ParsePgError(err)
 	}
 	return out, nil
 }
@@ -75,7 +72,7 @@ func (rs *reportService) ReportStatus(ctx context.Context, in dto.ReportStatusPa
 	if err != nil && !errors.Is(err, redis.Nil) {
 		rs.logger.Warn().
 			Err(err).
-			Str("op", "cache.Get").
+			Str("cache-method", "Get").
 			Str("report_id", in.ReportID).
 			Msg("cache get failed")
 	}
@@ -86,21 +83,20 @@ func (rs *reportService) ReportStatus(ctx context.Context, in dto.ReportStatusPa
 
 	out, err := rs.db.ReportStatus(ctx, in)
 	if err != nil {
-		perr := errs.ParsePgError(err)
-		if !isExpectedDbErr(perr) {
-			rs.logger.Error().
-				Err(err).
-				Str("db-method", "ReportStatus").
-				Str("report_id", in.ReportID).
-				Msg("report status failed")
-		}
-		return out, perr
+
+		rs.logger.Error().
+			Err(err).
+			Str("db-method", "ReportStatus").
+			Str("report_id", in.ReportID).
+			Msg("report status failed")
+
+		return out, errs.ParsePgError(err)
 	}
 
 	if err := rs.cache.Set(ctx, in.ReportID, out.Status); err != nil {
 		rs.logger.Warn().
 			Err(err).
-			Str("op", "cache.Set").
+			Str("cahce-method", "Set").
 			Str("report_id", in.ReportID).
 			Msg("cache set failed")
 	}
@@ -113,15 +109,14 @@ func (rs *reportService) ReportInfo(ctx context.Context, in dto.ReportInfoParams
 
 	out, err := rs.db.ReportInfo(ctx, in)
 	if err != nil {
-		perr := errs.ParsePgError(err)
-		if !isExpectedDbErr(perr) {
-			rs.logger.Error().
-				Err(err).
-				Str("db-method", "ReportInfo").
-				Str("report_id", in.ReportID).
-				Msg("report info failed")
-		}
-		return dto.ReportInfoResult{}, perr
+
+		rs.logger.Error().
+			Err(err).
+			Str("db-method", "ReportInfo").
+			Str("report_id", in.ReportID).
+			Msg("report info failed")
+
+		return dto.ReportInfoResult{}, errs.ParsePgError(err)
 	}
 	return out, nil
 }
@@ -130,15 +125,14 @@ func (rs *reportService) DeleteReports(ctx context.Context, in dto.DeleteReports
 	rs.logger.Debug().Str("evt", "call DeleteReports").Msg("")
 
 	if err := rs.db.DeleteReports(ctx, in); err != nil {
-		perr := errs.ParsePgError(err)
-		if !isExpectedDbErr(perr) {
-			rs.logger.Error().
-				Err(err).
-				Str("db-method", "DeleteReports").
-				Str("author_id", in.AuthorID).
-				Msg("delete reports failed")
-		}
-		return perr
+
+		rs.logger.Error().
+			Err(err).
+			Str("db-method", "DeleteReports").
+			Str("author_id", in.AuthorID).
+			Msg("delete reports failed")
+
+		return errs.ParsePgError(err)
 	}
 	return nil
 }
@@ -148,30 +142,15 @@ func (rs *reportService) DeleteReport(ctx context.Context, in dto.DeleteReportPa
 
 	out, err := rs.db.DeleteReport(ctx, in)
 	if err != nil {
-		perr := errs.ParsePgError(err)
-		if !isExpectedDbErr(perr) {
-			rs.logger.Error().
-				Err(err).
-				Str("db-method", "DeleteReport").
-				Str("report_id", in.ReportID).
-				Str("author_id", in.AuthorID).
-				Msg("delete report failed")
-		}
-		return dto.DeleteReportResult{}, perr
+
+		rs.logger.Error().
+			Err(err).
+			Str("db-method", "DeleteReport").
+			Str("report_id", in.ReportID).
+			Str("author_id", in.AuthorID).
+			Msg("delete report failed")
+
+		return dto.DeleteReportResult{}, errs.ParsePgError(err)
 	}
 	return out, nil
-}
-
-func isExpectedDbErr(err error) bool {
-	return errors.Is(err, errs.ErrNotFound) ||
-		errors.Is(err, errs.ErrDuplicate) ||
-		errors.Is(err, errs.ErrForeignKey) ||
-		errors.Is(err, errs.ErrInvalidInput) ||
-		errors.Is(err, errs.ErrConstraint) ||
-		errors.Is(err, errs.ErrNullViolation) ||
-		errors.Is(err, errs.ErrCheckViolation) ||
-		errors.Is(err, errs.ErrExclusionViolation) ||
-		errors.Is(err, errs.ErrInsufficientPrivilege) ||
-		errors.Is(err, errs.ErrUndefinedTable) ||
-		errors.Is(err, errs.ErrUndefinedColumn)
 }

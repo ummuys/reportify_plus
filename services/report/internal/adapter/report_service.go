@@ -62,7 +62,7 @@ func (ra *ReportAdapter) ReportStatus(ctx context.Context, in *rsv1.ReportStatus
 	out, err := ra.reportSvc.ReportStatus(ctx, dto.ReportStatusParams{AuthorID: in.AuthorId, ReportID: in.ReportId})
 	if err != nil {
 		switch {
-		case errors.Is(err, errs.ErrNotFound):
+		case errors.Is(err, errs.PgErrNotFound):
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
@@ -114,7 +114,7 @@ func (ra *ReportAdapter) ReportInfo(ctx context.Context, in *rsv1.ReportInfoRequ
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, errs.ErrNotFound):
+		case errors.Is(err, errs.PgErrNotFound):
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
@@ -145,7 +145,7 @@ func (ra *ReportAdapter) DeleteReports(ctx context.Context, in *rsv1.DeleteRepor
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, errs.ErrNotFound):
+		case errors.Is(err, errs.PgErrNotFound):
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
@@ -164,7 +164,7 @@ func (ra *ReportAdapter) DeleteReport(ctx context.Context, in *rsv1.DeleteReport
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, errs.ErrNotFound):
+		case errors.Is(err, errs.PgErrNotFound):
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())

@@ -28,12 +28,12 @@ func (dh *datasourceHandler) ListSchemas(g *gin.Context) {
 		st, ok := errs.GRPCtoREST(gErr)
 		if !ok {
 			g.Set("msg", gErr.Error())
-			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
 		g.Set("msg", st.Message())
-		g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+		g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 		return
 	}
 
@@ -58,7 +58,7 @@ func (dh *datasourceHandler) ListTables(g *gin.Context) {
 	schema := g.Query("schema")
 	if schema == "" {
 		g.Set("msg", "schema is required")
-		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.BaseResponse{Message: "schema is required"})
+		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: "schema is required"})
 		return
 	}
 
@@ -69,12 +69,12 @@ func (dh *datasourceHandler) ListTables(g *gin.Context) {
 		st, ok := errs.GRPCtoREST(gErr)
 		if !ok {
 			g.Set("msg", gErr.Error())
-			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
 		g.Set("msg", st.Message())
-		g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+		g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 		return
 	}
 
@@ -100,7 +100,7 @@ func (dh *datasourceHandler) ListColumns(g *gin.Context) {
 	table := g.Query("table")
 	if schema == "" || table == "" {
 		g.Set("msg", "schema and table are required")
-		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.BaseResponse{Message: "schema and table are required"})
+		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: "schema and table are required"})
 		return
 	}
 
@@ -112,12 +112,12 @@ func (dh *datasourceHandler) ListColumns(g *gin.Context) {
 		st, ok := errs.GRPCtoREST(gErr)
 		if !ok {
 			g.Set("msg", gErr.Error())
-			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
 		g.Set("msg", st.Message())
-		g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+		g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 		return
 	}
 

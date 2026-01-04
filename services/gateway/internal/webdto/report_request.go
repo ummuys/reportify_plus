@@ -8,7 +8,6 @@ type CreateReportRequest struct {
 	CSVSep string `json:"csv_separator,omitempty"`
 }
 
-type CreateReportResponse struct {
-	ReportID string `json:"report_id"`
-	Status   string `json:"status"`
+type ListReportsRequest struct {
+	AuthorID string `json:"author_id"`
 }

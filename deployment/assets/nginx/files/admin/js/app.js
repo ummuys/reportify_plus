@@ -2,7 +2,7 @@
 const API_PREFIX = `${API_HOST}/api/v1`;
 const ENDPOINTS = {
   users: "/admin/users",
-  deleteUser: (username) => `/admin/users/${encodeURIComponent(username)}`
+  deleteUser: (userId) => `/admin/users/${encodeURIComponent(userId)}`
 };
 
 const state = {
@@ -241,7 +241,7 @@ async function fetchJSON(path, options = {}) {
     let errorMessage = text || `${res.status} ${res.statusText}`;
     try {
       const parsed = JSON.parse(text);
-      errorMessage = parsed?.msg || errorMessage;
+      errorMessage = parsed?.err || parsed?.msg || errorMessage;
     } catch {
       /* noop */
     }
@@ -359,7 +359,7 @@ function initForms() {
     const formEl = event.currentTarget;
     const formData = new FormData(event.currentTarget);
     const body = {
-      user_id: Number(formData.get("userId")),
+      user_id: String(formData.get("userId") || "").trim(),
       username: (formData.get("username") || "").trim(),
       password: formData.get("password") || "",
       role: formData.get("role") || "",
@@ -371,7 +371,7 @@ function initForms() {
 
     try {
       await fetchJSON(ENDPOINTS.users, {
-        method: "PATCH",
+        method: "PUT",
         body: JSON.stringify(body),
       });
       logStatus(`Пользователь #${body.user_id} обновлён`, "success");
@@ -386,11 +386,11 @@ function initForms() {
     event.preventDefault();
     const formEl = event.currentTarget;
     const formData = new FormData(event.currentTarget);
-    const username = (formData.get("username") || "").trim();
-    if (!username) return;
+    const userId = String(formData.get("userId") || "").trim();
+    if (!userId) return;
     try {
-      await fetchJSON(ENDPOINTS.deleteUser(username), { method: "DELETE" });
-      logStatus(`Пользователь ${username} удалён`, "success");
+      await fetchJSON(ENDPOINTS.deleteUser(userId), { method: "DELETE" });
+      logStatus(`Пользователь ${userId} удалён`, "success");
       formEl?.reset();
       await loadUsers();
     } catch (err) {

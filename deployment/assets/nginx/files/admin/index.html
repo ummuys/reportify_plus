@@ -45,7 +45,7 @@
         </article>
 
         <article class="card card--with-badge">
-          <span class="method patch" aria-hidden="true">PATCH</span>
+          <span class="method patch" aria-hidden="true">PUT</span>
           <h3 class="card__title">Обновить пользователя</h3>
           <p class="card__text">Смените логин, пароль или роль без лишних шагов.</p>
           <button class="btn btn--primary" type="button" data-modal="modalUpdate">Редактировать</button>
@@ -138,7 +138,7 @@
     <div class="admin-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="modalUpdateTitle">
       <header class="admin-modal__header">
         <div>
-          <p class="modal-tag method patch">PATCH /admin/users</p>
+          <p class="modal-tag method patch">PUT /admin/users</p>
           <h3 class="admin-modal__title" id="modalUpdateTitle">Обновить пользователя</h3>
         </div>
         <button class="modal-close" type="button" aria-label="Закрыть" data-close-modal>&times;</button>
@@ -178,7 +178,7 @@
     <div class="admin-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="modalDeleteTitle">
       <header class="admin-modal__header">
         <div>
-          <p class="modal-tag method delete">DELETE /admin/users/:username</p>
+          <p class="modal-tag method delete">DELETE /admin/users/:user_id</p>
           <h3 class="admin-modal__title" id="modalDeleteTitle">Удалить пользователя</h3>
         </div>
         <button class="modal-close" type="button" aria-label="Закрыть" data-close-modal>&times;</button>
@@ -186,8 +186,8 @@
       <div class="admin-modal__body">
         <form id="formDeleteUser" class="admin-form">
           <label class="field">
-            <span>Имя пользователя</span>
-            <input type="text" name="username" placeholder="username" required />
+            <span>ID пользователя</span>
+            <input type="text" name="userId" placeholder="user_id" required />
           </label>
           <div class="modal-actions">
             <button class="btn btn--danger" type="submit">Удалить</button>

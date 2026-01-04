@@ -34,7 +34,7 @@ func (a *AuthAdapter) Login(ctx context.Context, in *authv1.LoginRequest) (*auth
 
 	if err != nil {
 		switch {
-		case errors.Is(err, errs.ErrNotFound):
+		case errors.Is(err, errs.PgErrNotFound):
 			return nil, status.Error(codes.Unauthenticated, errs.ErrInvalidCredentials.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
@@ -52,7 +52,7 @@ func (a *AuthAdapter) CreateUser(ctx context.Context, in *authv1.CreateUserReque
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, errs.ErrDuplicate):
+		case errors.Is(err, errs.PgErrDuplicate):
 			return nil, status.Error(codes.AlreadyExists, errs.ErrUserAlreadyExists.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
@@ -72,9 +72,9 @@ func (a *AuthAdapter) UpdateUser(ctx context.Context, in *authv1.UpdateUserReque
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, errs.ErrNotFound):
+		case errors.Is(err, errs.PgErrNotFound):
 			return nil, status.Error(codes.NotFound, errs.ErrInvalidData.Error())
-		case errors.Is(err, errs.ErrDuplicate):
+		case errors.Is(err, errs.PgErrDuplicate):
 			return nil, status.Error(codes.AlreadyExists, errs.ErrUsernameExists.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
@@ -91,9 +91,9 @@ func (a *AuthAdapter) DeleteUser(ctx context.Context, in *authv1.DeleteUserReque
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, errs.ErrNotFound):
+		case errors.Is(err, errs.PgErrNotFound):
 			return nil, status.Error(codes.NotFound, errs.ErrUserNotFound.Error())
-		case errors.Is(err, errs.ErrInsufficientPrivilege):
+		case errors.Is(err, errs.PgErrInsufficientPrivilege):
 			return nil, status.Error(codes.PermissionDenied, errs.ErrDeleteAdmin.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())

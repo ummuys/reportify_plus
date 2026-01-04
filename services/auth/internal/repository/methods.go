@@ -151,7 +151,7 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.DeleteUserResult, error) {
 	db.logger.Debug().Str("evt", "call DeleteUser").Msg("")
 	if in.UserID == db.adminUUID {
-		return dto.DeleteUserResult{}, errs.ErrInsufficientPrivilege
+		return dto.DeleteUserResult{}, errs.PgErrInsufficientPrivilege
 	}
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()

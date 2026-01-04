@@ -64,7 +64,7 @@ func main() {
 
 	wg := sync.WaitGroup{}
 	wg.Go(func() {
-		logs.Info().Msg("run the report-worker")
+		logs.Info().Msg("Worker is running")
 		err := kafkacli.Run(ctx)
 		if err != nil {
 			SDChan <- errs.SDMsg{

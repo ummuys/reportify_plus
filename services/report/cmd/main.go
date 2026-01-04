@@ -101,7 +101,7 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		logs.Info().Msg("run the grpc-server")
+		logs.Info().Msg("Service is running")
 		if err := srv.Serve(lis); err != nil {
 			SDChan <- errs.SDMsg{
 				Err:  err,

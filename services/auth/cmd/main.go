@@ -61,8 +61,8 @@ func main() {
 		Username: cfg.AdmUsername,
 		Password: cfg.AdmPassword,
 		Role:     "admin",
-	}); err != nil && !errors.Is(err, errs.ErrDuplicate) {
-		logs.Fatal().Err(err).Msg("create admin user")
+	}); err != nil && !errors.Is(err, errs.PgErrDuplicate) {
+		logs.Fatal().Err(err).Msg("Create admin user")
 	}
 
 	adp := adapter.NewAuthAdapter(svc, logs)

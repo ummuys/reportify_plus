@@ -30,7 +30,7 @@ func (as *authService) Login(ctx context.Context, in dto.LoginParams) (dto.Login
 	out, err := as.db.Login(ctx, in.Username)
 	if err != nil {
 		perr := errs.ParsePgError(err)
-		if !errors.Is(perr, errs.ErrNotFound) {
+		if !errors.Is(perr, errs.PgErrNotFound) {
 			as.logger.Error().
 				Err(err).
 				Str("db-method", "Login").
@@ -38,11 +38,11 @@ func (as *authService) Login(ctx context.Context, in dto.LoginParams) (dto.Login
 				Msg("db login failed")
 		}
 
-		return dto.LoginResult{}, errs.ErrUnauthorized
+		return dto.LoginResult{}, errs.PgErrUnauthorized
 	}
 
 	if !as.ph.CheckHash(in.Password, out.Password) {
-		return dto.LoginResult{}, errs.ErrUnauthorized
+		return dto.LoginResult{}, errs.PgErrUnauthorized
 	}
 
 	at, err := as.tm.GenerateAccessToken(out.UserID, out.Role)
@@ -86,17 +86,15 @@ func (as *authService) CreateUser(ctx context.Context, in dto.CreateUserParams) 
 
 	out, err := as.db.CreateUser(ctx, in)
 	if err != nil {
-		perr := errs.ParsePgError(err)
-		if !isExpectedDbErr(perr) {
-			as.logger.Error().
-				Err(err).
-				Str("db-method", "CreateUser").
-				Str("username", in.Username).
-				Str("role", in.Role).
-				Msg("create user failed")
-		}
 
-		return dto.CreateUserResult{}, perr
+		as.logger.Error().
+			Err(err).
+			Str("db-method", "CreateUser").
+			Str("username", in.Username).
+			Str("role", in.Role).
+			Msg("create user failed")
+
+		return dto.CreateUserResult{}, errs.ParsePgError(err)
 	}
 
 	as.logger.Info().
@@ -125,26 +123,22 @@ func (as *authService) CreateBaseAdmin(ctx context.Context, in dto.CreateUserPar
 
 	out, err := as.db.CreateUser(ctx, in)
 	if err != nil {
-		perr := errs.ParsePgError(err)
 
-		if !isExpectedDbErr(perr) {
-			as.logger.Error().
-				Err(err).
-				Str("db-method", "CreateUser").
-				Str("username", in.Username).
-				Str("role", in.Role).
-				Msg("create base admin failed")
-		}
+		as.logger.Error().
+			Err(err).
+			Str("db-method", "CreateUser").
+			Str("username", in.Username).
+			Str("role", in.Role).
+			Msg("create base admin failed")
 
-		return perr
+		return errs.ParsePgError(err)
 	}
 
 	as.db.SetAdminUUID(out.UserID)
 	as.logger.Warn().
-		Str("evt", "admin.base_created").
 		Str("user_id", out.UserID).
 		Str("username", in.Username).
-		Msg("base admin created")
+		Msg("Admin user created")
 
 	return nil
 }
@@ -169,17 +163,13 @@ func (as *authService) UpdateUser(ctx context.Context, in dto.UpdateUserParams) 
 
 	out, err := as.db.UpdateUser(ctx, in)
 	if err != nil {
-		perr := errs.ParsePgError(err)
+		as.logger.Error().
+			Err(err).
+			Str("db-method", "UpdateUser").
+			Str("user_id", in.UserID).
+			Msg("update user failed")
 
-		if !isExpectedDbErr(perr) {
-			as.logger.Error().
-				Err(err).
-				Str("db-method", "UpdateUser").
-				Str("user_id", in.UserID).
-				Msg("update user failed")
-		}
-
-		return dto.UpdateUserResult{}, perr
+		return dto.UpdateUserResult{}, errs.ParsePgError(err)
 	}
 
 	as.logger.Info().
@@ -200,7 +190,7 @@ func (as *authService) DeleteUser(ctx context.Context, in dto.DeleteUserParams) 
 	if err != nil {
 		perr := errs.ParsePgError(err)
 
-		if !errors.Is(perr, errs.ErrNotFound) && !errors.Is(perr, errs.ErrInsufficientPrivilege) {
+		if !errors.Is(perr, errs.PgErrNotFound) && !errors.Is(perr, errs.PgErrInsufficientPrivilege) {
 			as.logger.Error().
 				Err(err).
 				Str("db-method", "DeleteUser").
@@ -208,7 +198,7 @@ func (as *authService) DeleteUser(ctx context.Context, in dto.DeleteUserParams) 
 				Msg("delete user failed")
 		}
 
-		if errors.Is(perr, errs.ErrInsufficientPrivilege) {
+		if errors.Is(perr, errs.PgErrInsufficientPrivilege) {
 			as.logger.Warn().
 				Str("evt", "user.delete_forbidden").
 				Str("user_id", in.UserID).
@@ -253,7 +243,7 @@ func (as *authService) RefreshToken(ctx context.Context, in dto.RefreshTokenPara
 			Err(err).
 			Str("evt", "token.refresh_rejected").
 			Msg("refresh token rejected")
-		return dto.RefreshTokenResult{}, errs.ErrUnauthorized
+		return dto.RefreshTokenResult{}, errs.PgErrUnauthorized
 	}
 
 	access, err := as.tm.GenerateAccessToken(rc.UserID, rc.Role)
@@ -268,16 +258,4 @@ func (as *authService) RefreshToken(ctx context.Context, in dto.RefreshTokenPara
 	}
 
 	return dto.RefreshTokenResult{AccessToken: access}, nil
-}
-
-func isExpectedDbErr(err error) bool {
-	return errors.Is(err, errs.ErrNotFound) ||
-		errors.Is(err, errs.ErrDuplicate) ||
-		errors.Is(err, errs.ErrForeignKey) ||
-		errors.Is(err, errs.ErrInvalidInput) ||
-		errors.Is(err, errs.ErrConstraint) ||
-		errors.Is(err, errs.ErrNullViolation) ||
-		errors.Is(err, errs.ErrCheckViolation) ||
-		errors.Is(err, errs.ErrExclusionViolation) ||
-		errors.Is(err, errs.ErrInsufficientPrivilege)
 }

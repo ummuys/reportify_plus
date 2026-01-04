@@ -29,7 +29,7 @@ func (rsh *reportServiceHandler) CreateReport(g *gin.Context) {
 	req := webdto.CreateReportRequest{}
 	if err := g.ShouldBindJSON(&req); err != nil {
 		g.Set("msg", err.Error())
-		g.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: err.Error()})
 		return
 	}
 
@@ -45,14 +45,14 @@ func (rsh *reportServiceHandler) CreateReport(g *gin.Context) {
 		st, ok := errs.GRPCtoREST(gErr)
 		if !ok {
 			g.Set("msg", gErr.Error())
-			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
 		g.Set("msg", st.Message())
 
 		code := http.StatusInternalServerError
-		resp := any(webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+		resp := any(webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 
 		switch st.Code() {
 		default:
@@ -69,26 +69,26 @@ func (rsh *reportServiceHandler) CreateReport(g *gin.Context) {
 	})
 }
 
-func (rsh *reportServiceHandler) ListUserReports(g *gin.Context) {
-	rsh.logger.Debug().Str("evt", "call ListUserReports").Msg("")
+func (rsh *reportServiceHandler) ListReports(g *gin.Context) {
+	rsh.logger.Debug().Str("evt", "call ListReports").Msg("")
 
 	userID := g.GetString("user_id")
 
-	out, gErr := rsh.sc.ListUserReports(g.Request.Context(), &reportservicev1.ListUserReportsRequest{
+	out, gErr := rsh.sc.ListReports(g.Request.Context(), &reportservicev1.ListReportsRequest{
 		AuthorId: userID,
 	})
 	if gErr != nil {
 		st, ok := errs.GRPCtoREST(gErr)
 		if !ok {
 			g.Set("msg", gErr.Error())
-			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
 		g.Set("msg", st.Message())
 
 		code := http.StatusInternalServerError
-		resp := any(webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+		resp := any(webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 
 		switch st.Code() {
 		default:
@@ -100,7 +100,7 @@ func (rsh *reportServiceHandler) ListUserReports(g *gin.Context) {
 
 	g.Set("msg", "list of reports returned")
 
-	resp := webdto.ListUserReportsResponse{
+	resp := webdto.ListReportsResponse{
 		Reports: make([]webdto.ReportMetadata, 0, len(out.Reports)),
 	}
 
@@ -141,19 +141,19 @@ func (rsh *reportServiceHandler) ReportStatus(g *gin.Context) {
 		st, ok := errs.GRPCtoREST(gErr)
 		if !ok {
 			g.Set("msg", gErr.Error())
-			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
 		g.Set("msg", st.Message())
 
 		code := http.StatusInternalServerError
-		resp := any(webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+		resp := any(webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 
 		switch st.Code() {
 		case codes.NotFound:
 			code = http.StatusNotFound
-			resp = webdto.BaseResponse{Message: "can't find report by report_id"}
+			resp = webdto.ErrResponse{Error: "can't find report by report_id"}
 		default:
 		}
 
@@ -182,19 +182,19 @@ func (rsh *reportServiceHandler) ReportInfo(g *gin.Context) {
 		st, ok := errs.GRPCtoREST(gErr)
 		if !ok {
 			g.Set("msg", gErr.Error())
-			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
 		g.Set("msg", st.Message())
 
 		code := http.StatusInternalServerError
-		resp := any(webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+		resp := any(webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 
 		switch st.Code() {
 		case codes.NotFound:
 			code = http.StatusNotFound
-			resp = webdto.BaseResponse{Message: "can't find report by report_id"}
+			resp = webdto.ErrResponse{Error: "can't find report by report_id"}
 		default:
 		}
 
@@ -226,31 +226,31 @@ func (rsh *reportServiceHandler) ReportInfo(g *gin.Context) {
 	})
 }
 
-func (rsh *reportServiceHandler) DeleteUserReports(g *gin.Context) {
-	rsh.logger.Debug().Str("evt", "call DeleteUserReports").Msg("")
+func (rsh *reportServiceHandler) DeleteReports(g *gin.Context) {
+	rsh.logger.Debug().Str("evt", "call DeleteReports").Msg("")
 
 	userID := g.GetString("user_id")
 
-	_, gErr := rsh.sc.DeleteUserReports(g.Request.Context(), &reportservicev1.DeleteUserReportsRequest{
+	_, gErr := rsh.sc.DeleteReports(g.Request.Context(), &reportservicev1.DeleteReportsRequest{
 		AuthorId: userID,
 	})
 	if gErr != nil {
 		st, ok := errs.GRPCtoREST(gErr)
 		if !ok {
 			g.Set("msg", gErr.Error())
-			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
 		g.Set("msg", st.Message())
 
 		code := http.StatusInternalServerError
-		resp := any(webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+		resp := any(webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 
 		switch st.Code() {
 		case codes.NotFound:
 			code = http.StatusNotFound
-			resp = webdto.BaseResponse{Message: "can't find reports for user"}
+			resp = webdto.ErrResponse{Error: "can't find reports for report_id"}
 		default:
 		}
 
@@ -258,37 +258,37 @@ func (rsh *reportServiceHandler) DeleteUserReports(g *gin.Context) {
 		return
 	}
 
-	g.Set("msg", "user reports deleted")
+	g.Set("msg", "reports deleted")
 	g.JSON(http.StatusOK, webdto.BaseResponse{Message: "ok"})
 }
 
-func (rsh *reportServiceHandler) DeleteUserReport(g *gin.Context) {
-	rsh.logger.Debug().Str("evt", "call DeleteUserReport").Msg("")
+func (rsh *reportServiceHandler) DeleteReport(g *gin.Context) {
+	rsh.logger.Debug().Str("evt", "call DeleteReport").Msg("")
 
 	reportID := g.Param("report_id")
-	userID := g.GetString("user_id")
+	ID := g.GetString("_id")
 
-	out, gErr := rsh.sc.DeleteUserReport(g.Request.Context(), &reportservicev1.DeleteUserReportRequest{
-		AuthorId: userID,
+	out, gErr := rsh.sc.DeleteReport(g.Request.Context(), &reportservicev1.DeleteReportRequest{
+		AuthorId: ID,
 		ReportId: reportID,
 	})
 	if gErr != nil {
 		st, ok := errs.GRPCtoREST(gErr)
 		if !ok {
 			g.Set("msg", gErr.Error())
-			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
 		g.Set("msg", st.Message())
 
 		code := http.StatusInternalServerError
-		resp := any(webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+		resp := any(webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 
 		switch st.Code() {
 		case codes.NotFound:
 			code = http.StatusNotFound
-			resp = webdto.BaseResponse{Message: "can't find report by report_id"}
+			resp = webdto.ErrResponse{Error: "can't find reports for report_id"}
 		default:
 		}
 
@@ -296,8 +296,8 @@ func (rsh *reportServiceHandler) DeleteUserReport(g *gin.Context) {
 		return
 	}
 
-	g.Set("msg", "user report deleted")
-	g.JSON(http.StatusOK, webdto.DeleteUserReportResponse{
+	g.Set("msg", " report deleted")
+	g.JSON(http.StatusOK, webdto.DeleteReportResponse{
 		ReportID: out.ReportId,
 	})
 }

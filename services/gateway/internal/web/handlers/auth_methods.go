@@ -42,7 +42,7 @@ func (a *authHandler) Login(refreshTime time.Duration) gin.HandlerFunc {
 			if !ok {
 				g.Set("msg", gErr.Error())
 				g.AbortWithStatusJSON(http.StatusInternalServerError,
-					webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+					webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 				return
 			}
 
@@ -57,7 +57,7 @@ func (a *authHandler) Login(refreshTime time.Duration) gin.HandlerFunc {
 				resp = webdto.ErrResponse{Error: st.Message()}
 			default:
 				code = http.StatusInternalServerError
-				resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
+				resp = webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
 			}
 			g.AbortWithStatusJSON(code, resp)
 			return
@@ -76,7 +76,7 @@ func (a *authHandler) CreateUser(g *gin.Context) {
 	var req webdto.CreateUserRequest
 	if err := g.ShouldBindJSON(&req); err != nil {
 		g.Set("msg", err.Error())
-		g.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidJSON.Error()})
 		return
 	}
 
@@ -91,7 +91,7 @@ func (a *authHandler) CreateUser(g *gin.Context) {
 		if !ok {
 			g.Set("non-gprc-msg", gErr.Error())
 			g.AbortWithStatusJSON(http.StatusInternalServerError,
-				webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+				webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
@@ -106,7 +106,7 @@ func (a *authHandler) CreateUser(g *gin.Context) {
 			resp = webdto.ErrResponse{Error: st.Message()}
 		default:
 			code = http.StatusInternalServerError
-			resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
+			resp = webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
 		}
 		g.AbortWithStatusJSON(code, resp)
 		return
@@ -120,7 +120,7 @@ func (a *authHandler) UpdateUser(g *gin.Context) {
 	var req webdto.UpdateUserRequest
 	if err := g.ShouldBindJSON(&req); err != nil {
 		g.Set("msg", err.Error())
-		g.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
+		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidJSON.Error()})
 		return
 	}
 
@@ -136,7 +136,7 @@ func (a *authHandler) UpdateUser(g *gin.Context) {
 		if !ok {
 			g.Set("msg", gErr.Error())
 			g.AbortWithStatusJSON(http.StatusInternalServerError,
-				webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+				webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
@@ -154,7 +154,7 @@ func (a *authHandler) UpdateUser(g *gin.Context) {
 			resp = webdto.ErrResponse{Error: st.Message()}
 		default:
 			code = http.StatusInternalServerError
-			resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
+			resp = webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
 		}
 		g.AbortWithStatusJSON(code, resp)
 		return
@@ -168,10 +168,13 @@ func (a *authHandler) DeleteUser(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call DeleteUser").Msg("")
 
 	userID := g.Param("user_id")
+
+	// TODO: fix validate answer
+	// mark at (04.01.2026) deadline at (10.01.2026)
 	if userID == "" {
 		g.Set("msg", "invalid user_id")
 		g.AbortWithStatusJSON(http.StatusInternalServerError,
-			webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+			webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 		return
 	}
 	out, gErr := a.sc.DeleteUser(g.Request.Context(), &authv1.DeleteUserRequest{
@@ -183,7 +186,7 @@ func (a *authHandler) DeleteUser(g *gin.Context) {
 		if !ok {
 			g.Set("msg", gErr.Error())
 			g.AbortWithStatusJSON(http.StatusInternalServerError,
-				webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+				webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
@@ -201,7 +204,7 @@ func (a *authHandler) DeleteUser(g *gin.Context) {
 			resp = webdto.ErrResponse{Error: st.Message()}
 		default:
 			code = http.StatusInternalServerError
-			resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
+			resp = webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
 		}
 		g.AbortWithStatusJSON(code, resp)
 		return
@@ -229,7 +232,7 @@ func (a *authHandler) RefreshToken(g *gin.Context) {
 		if !ok {
 			g.Set("msg", gErr.Error())
 			g.AbortWithStatusJSON(http.StatusInternalServerError,
-				webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+				webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
@@ -244,7 +247,7 @@ func (a *authHandler) RefreshToken(g *gin.Context) {
 			resp = webdto.ErrResponse{Error: st.Message()}
 		default:
 			code = http.StatusInternalServerError
-			resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
+			resp = webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
 		}
 		g.AbortWithStatusJSON(code, resp)
 		return
@@ -265,7 +268,7 @@ func (a *authHandler) ListUsers(g *gin.Context) {
 		if !ok {
 			g.Set("msg", gErr.Error())
 			g.AbortWithStatusJSON(http.StatusInternalServerError,
-				webdto.ErrResponse{Error: errs.ErrInternal.Error()})
+				webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
 			return
 		}
 
@@ -277,7 +280,7 @@ func (a *authHandler) ListUsers(g *gin.Context) {
 		switch st.Code() {
 		default:
 			code = http.StatusInternalServerError
-			resp = webdto.ErrResponse{Error: errs.ErrInternal.Error()}
+			resp = webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
 		}
 		g.AbortWithStatusJSON(code, resp)
 		return

@@ -72,7 +72,7 @@ async function doLogin() {
 
     const data = await safeJson(res);
     if (!res.ok) {
-      const msg = (data && (data.message || data.msg)) || `Ошибка входа: ${res.status}`;
+      const msg = (data && (data.err || data.message || data.msg)) || `Ошибка входа: ${res.status}`;
       showError(msg);
       return;
     }

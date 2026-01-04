@@ -10,65 +10,65 @@ import (
 // Common normalized PostgreSQL / pgx error types.
 var (
 	// === Logical & data-level errors ===
-	ErrNotFound             = errors.New("not_found")
-	ErrDuplicate            = errors.New("duplicate")
-	ErrForeignKey           = errors.New("foreign_key_violation")
-	ErrInvalidInput         = errors.New("invalid_input")
-	ErrConstraint           = errors.New("constraint_violation")
-	ErrNullViolation        = errors.New("not_null_violation")
-	ErrCheckViolation       = errors.New("check_violation")
-	ErrExclusionViolation   = errors.New("exclusion_violation")
-	ErrSerializationFailure = errors.New("serialization_failure")
-	ErrDeadlock             = errors.New("deadlock_detected")
+	PgErrNotFound             = errors.New("pg_not_found")
+	PgErrDuplicate            = errors.New("pg_duplicate")
+	PgErrForeignKey           = errors.New("pg_foreign_key_violation")
+	PgErrInvalidInput         = errors.New("pg_invalid_input")
+	PgErrConstraint           = errors.New("pg_constraint_violation")
+	PgErrNullViolation        = errors.New("pg_not_null_violation")
+	PgErrCheckViolation       = errors.New("pg_check_violation")
+	PgErrExclusionViolation   = errors.New("pg_exclusion_violation")
+	PgErrSerializationFailure = errors.New("pg_serialization_failure")
+	PgErrDeadlock             = errors.New("pg_deadlock_detected")
 
 	// === Data / formatting ===
-	ErrNumericOutOfRange  = errors.New("numeric_value_out_of_range")
-	ErrInvalidTextFormat  = errors.New("invalid_text_representation")
-	ErrStringTooLong      = errors.New("string_data_right_truncation")
-	ErrInvalidDatetime    = errors.New("invalid_datetime_format")
-	ErrDivisionByZero     = errors.New("division_by_zero")
-	ErrUntranslatableChar = errors.New("untranslatable_character")
+	PgErrNumericOutOfRange  = errors.New("pg_numeric_value_out_of_range")
+	PgErrInvalidTextFormat  = errors.New("pg_invalid_text_representation")
+	PgErrStringTooLong      = errors.New("pg_string_data_right_truncation")
+	PgErrInvalidDatetime    = errors.New("pg_invalid_datetime_format")
+	PgErrDivisionByZero     = errors.New("pg_division_by_zero")
+	PgErrUntranslatableChar = errors.New("pg_untranslatable_character")
 
 	// === Access / privileges ===
-	ErrInsufficientPrivilege = errors.New("insufficient_privilege")
-	ErrInvalidPassword       = errors.New("invalid_password")
-	ErrUnauthorized          = errors.New("unauthorized")
-	ErrUndefinedTable        = errors.New("undefined_table")
-	ErrUndefinedColumn       = errors.New("undefined_column")
+	PgErrInsufficientPrivilege = errors.New("pg_insufficient_privilege")
+	PgErrInvalidPassword       = errors.New("pg_invalid_password")
+	PgErrUnauthorized          = errors.New("pg_unauthorized")
+	PgErrUndefinedTable        = errors.New("pg_undefined_table")
+	PgErrUndefinedColumn       = errors.New("pg_undefined_column")
 
 	// === Transaction & connection ===
-	ErrConnection     = errors.New("connection_failure")
-	ErrTxState        = errors.New("invalid_transaction_state")
-	ErrInFailedTx     = errors.New("in_failed_sql_transaction")
-	ErrIdleTxTimeout  = errors.New("idle_in_transaction_timeout")
-	ErrConnectionLost = errors.New("connection_lost")
+	PgErrConnection     = errors.New("pg_connection_failure")
+	PgErrTxState        = errors.New("pg_invalid_transaction_state")
+	PgErrInFailedTx     = errors.New("pg_in_failed_sql_transaction")
+	PgErrIdleTxTimeout  = errors.New("pg_idle_in_transaction_timeout")
+	PgErrConnectionLost = errors.New("pg_connection_lost")
 
 	// === Resource / system ===
-	ErrOutOfMemory           = errors.New("out_of_memory")
-	ErrDiskFull              = errors.New("disk_full")
-	ErrTooManyConnections    = errors.New("too_many_connections")
-	ErrSystemIO              = errors.New("io_error")
-	ErrSystemInternal        = errors.New("system_error")
-	ErrDataCorrupted         = errors.New("data_corrupted")
-	ErrIndexCorrupted        = errors.New("index_corrupted")
-	ErrConfigurationExceeded = errors.New("configuration_limit_exceeded")
+	PgErrOutOfMemory           = errors.New("pg_out_of_memory")
+	PgErrDiskFull              = errors.New("pg_disk_full")
+	PgErrTooManyConnections    = errors.New("pg_too_many_connections")
+	PgErrSystemIO              = errors.New("pg_io_error")
+	PgErrSystemInternal        = errors.New("pg_system_error")
+	PgErrDataCorrupted         = errors.New("pg_data_corrupted")
+	PgErrIndexCorrupted        = errors.New("pg_index_corrupted")
+	PgErrConfigurationExceeded = errors.New("pg_configuration_limit_exceeded")
 
 	// === Syntax / schema ===
-	ErrSyntaxError      = errors.New("syntax_error")
-	ErrDatatypeMismatch = errors.New("datatype_mismatch")
-	ErrDuplicateObject  = errors.New("duplicate_object")
-	ErrInvalidSchema    = errors.New("invalid_schema_definition")
-	ErrInvalidTableDef  = errors.New("invalid_table_definition")
+	PgErrSyntaxError      = errors.New("pg_syntax_error")
+	PgErrDatatypeMismatch = errors.New("pg_datatype_mismatch")
+	PgErrDuplicateObject  = errors.New("pg_duplicate_object")
+	PgErrInvalidSchema    = errors.New("pg_invalid_schema_definition")
+	PgErrInvalidTableDef  = errors.New("pg_invalid_table_definition")
 
 	// === Operator / cancel ===
-	ErrQueryCanceled   = errors.New("query_canceled")
-	ErrAdminShutdown   = errors.New("admin_shutdown")
-	ErrCrashShutdown   = errors.New("crash_shutdown")
-	ErrDatabaseDropped = errors.New("database_dropped")
+	PgErrQueryCanceled   = errors.New("pg_query_canceled")
+	PgErrAdminShutdown   = errors.New("pg_admin_shutdown")
+	PgErrCrashShutdown   = errors.New("pg_crash_shutdown")
+	PgErrDatabaseDropped = errors.New("pg_database_dropped")
 
 	// === Internal fallback ===
-	ErrInternal = errors.New("internal_error")
-	ErrUnknown  = errors.New("unknown")
+	PgErrInternal = errors.New("pg_internal_error")
+	PgErrUnknown  = errors.New("pg_unknown")
 )
 
 func ParsePgError(err error) error {
@@ -78,10 +78,10 @@ func ParsePgError(err error) error {
 
 	// 1. Check for logical pgx errors
 	if errors.Is(err, pgx.ErrNoRows) {
-		return ErrNotFound
+		return PgErrNotFound
 	}
 	if errors.Is(err, pgx.ErrTxClosed) {
-		return ErrTxState
+		return PgErrTxState
 	}
 
 	// 2. Try PostgreSQL-specific errors
@@ -91,101 +91,101 @@ func ParsePgError(err error) error {
 
 		// === Class 23 — Integrity Constraint Violation ===
 		case "23505":
-			return ErrDuplicate
+			return PgErrDuplicate
 		case "23503":
-			return ErrForeignKey
+			return PgErrForeignKey
 		case "23502":
-			return ErrNullViolation
+			return PgErrNullViolation
 		case "23514":
-			return ErrCheckViolation
+			return PgErrCheckViolation
 		case "23P01":
-			return ErrExclusionViolation
+			return PgErrExclusionViolation
 
 		// === Class 22 — Data Exception ===
 		case "22P02":
-			return ErrInvalidInput
+			return PgErrInvalidInput
 		case "22003":
-			return ErrNumericOutOfRange
+			return PgErrNumericOutOfRange
 		case "22001":
-			return ErrStringTooLong
+			return PgErrStringTooLong
 		case "22007":
-			return ErrInvalidDatetime
+			return PgErrInvalidDatetime
 		case "22012":
-			return ErrDivisionByZero
+			return PgErrDivisionByZero
 		case "22P05":
-			return ErrUntranslatableChar
+			return PgErrUntranslatableChar
 
 		// === Class 08 — Connection Exception ===
 		case "08006", "08001", "08003":
-			return ErrConnection
+			return PgErrConnection
 		case "57P03":
-			return ErrConnectionLost
+			return PgErrConnectionLost
 
 		// === Class 25 — Invalid Transaction State ===
 		case "25000":
-			return ErrTxState
+			return PgErrTxState
 		case "25P02":
-			return ErrInFailedTx
+			return PgErrInFailedTx
 		case "25P03":
-			return ErrIdleTxTimeout
+			return PgErrIdleTxTimeout
 
 		// === Class 40 — Transaction Rollback ===
 		case "40001":
-			return ErrSerializationFailure
+			return PgErrSerializationFailure
 		case "40P01":
-			return ErrDeadlock
+			return PgErrDeadlock
 
 		// === Class 42 — Syntax Error or Access Rule Violation ===
 		case "42601":
-			return ErrSyntaxError
+			return PgErrSyntaxError
 		case "42804":
-			return ErrDatatypeMismatch
+			return PgErrDatatypeMismatch
 		case "42701", "42702", "42703", "42704":
-			return ErrDuplicateObject
+			return PgErrDuplicateObject
 		case "42P06":
-			return ErrInvalidSchema
+			return PgErrInvalidSchema
 		case "42P17":
-			return ErrInvalidTableDef
+			return PgErrInvalidTableDef
 		case "42501":
-			return ErrInsufficientPrivilege
+			return PgErrInsufficientPrivilege
 		case "28P01":
-			return ErrInvalidPassword
+			return PgErrInvalidPassword
 
 		// === Class 53 — Resource Issues ===
 		case "53100":
-			return ErrDiskFull
+			return PgErrDiskFull
 		case "53200":
-			return ErrOutOfMemory
+			return PgErrOutOfMemory
 		case "53300":
-			return ErrTooManyConnections
+			return PgErrTooManyConnections
 		case "53400":
-			return ErrConfigurationExceeded
+			return PgErrConfigurationExceeded
 
 		// === Class 55 — Object State ===
 		case "55P03":
-			return ErrSystemIO
+			return PgErrSystemIO
 		case "55000":
-			return ErrSystemInternal
+			return PgErrSystemInternal
 
 		// === Class 57 — Operator Intervention ===
 		case "57014":
-			return ErrQueryCanceled
+			return PgErrQueryCanceled
 		case "57P01":
-			return ErrAdminShutdown
+			return PgErrAdminShutdown
 		case "57P02":
-			return ErrCrashShutdown
+			return PgErrCrashShutdown
 		case "57P04":
-			return ErrDatabaseDropped
+			return PgErrDatabaseDropped
 
 		// === Class 58 — System Errors ===
 		case "58030":
-			return ErrSystemIO
+			return PgErrSystemIO
 		case "XX000":
-			return ErrInternal
+			return PgErrInternal
 		case "XX001":
-			return ErrDataCorrupted
+			return PgErrDataCorrupted
 		case "XX002":
-			return ErrIndexCorrupted
+			return PgErrIndexCorrupted
 
 		default:
 			return err

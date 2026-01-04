@@ -41,11 +41,11 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 	report := api.Group("")
 	report.Use(middleware.CheckJWT(tm, basePass))
 	report.POST(CreateReportPath, rh.ReportService.CreateReport)
-	report.GET(ListUserReportsPath, rh.ReportService.ListUserReports)
+	report.GET(ListReportsPath, rh.ReportService.ListReports)
 	report.GET(ReportStatusPath, rh.ReportService.ReportStatus)
 	report.GET(ReportInfoPath, rh.ReportService.ReportInfo)
-	report.DELETE(DeleteUserReports, rh.ReportService.DeleteUserReports)
-	report.DELETE(DeleteUserReport, rh.ReportService.DeleteUserReport)
+	report.DELETE(DeleteReports, rh.ReportService.DeleteReports)
+	report.DELETE(DeleteReport, rh.ReportService.DeleteReport)
 
 	datasource := api.Group("")
 	datasource.Use(middleware.CheckJWT(tm, basePass))
@@ -59,10 +59,10 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 
 	authAdm := api.Group("")
 	authAdm.Use(middleware.CheckJWT(tm, admPass))
-	authAdm.POST(CreateUserPath, rh.AuthService.CreateUser)
-	authAdm.PUT(UpdateUserPath, rh.AuthService.UpdateUser)
-	authAdm.GET(ListUsersPath, rh.AuthService.ListUsers)
-	authAdm.DELETE(DeleteUserPath, rh.AuthService.DeleteUser)
+	authAdm.POST(CreatePath, rh.AuthService.CreateUser)
+	authAdm.PUT(UpdatePath, rh.AuthService.UpdateUser)
+	authAdm.GET(ListsPath, rh.AuthService.ListUsers)
+	authAdm.DELETE(DeletePath, rh.AuthService.DeleteUser)
 
 	server := &http.Server{
 		Addr:              net.JoinHostPort(cfg.Host, cfg.Port),

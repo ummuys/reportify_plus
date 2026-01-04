@@ -5,7 +5,7 @@ import "errors"
 var (
 
 	// SERVER ERR
-	ErrInternalServer  = errors.New("something wrong with server, try again later")
+	ErrServerInternal  = errors.New("something wrong with server, try again later")
 	ErrBadRefreshToken = errors.New("bad refresh token")
 	ErrBadAccessToken  = errors.New("bad access token")
 	ErrInvalidJSON     = errors.New("invalid JSON format")

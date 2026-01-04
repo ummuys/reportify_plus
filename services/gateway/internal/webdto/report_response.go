@@ -2,11 +2,16 @@ package webdto
 
 import "time"
 
-type ListUserReportsRequest struct {
-	AuthorID string `json:"author_id"`
+type CreateReportResponse struct {
+	ReportID string `json:"report_id"`
+	Status   string `json:"status"`
 }
 
-type ListUserReportsResponse struct {
+type DeleteReportResponse struct {
+	ReportID string `json:"report_id"`
+}
+
+type ListReportsResponse struct {
 	Reports []ReportMetadata `json:"reports"`
 }
 
@@ -27,4 +32,9 @@ type ReportMetadata struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	FilePath  string    `json:"file_path"`
 	ErrMsg    string    `json:"err_msg"`
+}
+
+type ReportStatusResponse struct {
+	ReportID string `json:"report_id"`
+	Status   string `json:"status"`
 }
