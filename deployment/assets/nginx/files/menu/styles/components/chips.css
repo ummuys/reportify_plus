@@ -18,11 +18,13 @@
     text-align: center;
     width: 100%;
     transition: 0.2s ease, transform 0.1s ease;
+    color: var(--bg);
 }
 
 .chip.active {
-    background: var(--color-mint-base);
+    background: var(--btn-bg);
     font-weight: 550;
+    color: var(--bg);
 }
 
 .chip:hover {

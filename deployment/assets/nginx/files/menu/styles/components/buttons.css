@@ -1,6 +1,6 @@
 .btn {
     cursor: pointer;
-    color: var(--panel);
+    color: var(--bg);
 }
 
 .btn-ghost {
@@ -13,8 +13,8 @@
 }
 
 .btn-primary {
-    background: var(--green);
-    color: var(--text);
+    background: var(--btn-bg);
+    color: var(--bg);
     border: 0;
 } 
 
