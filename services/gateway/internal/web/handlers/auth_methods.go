@@ -61,15 +61,15 @@ func (a *authHandler) Login(refreshTime time.Duration) gin.HandlerFunc {
 			g.Set("msg", st.Message())
 			var (
 				code int
-				resp any
+				resp webdto.ErrResponse
 			)
 			switch st.Code() {
 			case codes.Unauthenticated:
 				code = http.StatusNotFound
-				resp = webdto.ErrResponse{Error: st.Message()}
+				resp.Error = st.Message()
 			default:
 				code = http.StatusInternalServerError
-				resp = webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
+				resp.Error = errs.ErrServerInternal.Error()
 			}
 			g.AbortWithStatusJSON(code, resp)
 			return
@@ -124,15 +124,15 @@ func (a *authHandler) CreateUser(g *gin.Context) {
 		g.Set("msg", st.Message())
 		var (
 			code int
-			resp any
+			resp webdto.ErrResponse
 		)
 		switch st.Code() {
 		case codes.AlreadyExists:
 			code = http.StatusConflict
-			resp = webdto.ErrResponse{Error: st.Message()}
+			resp.Error = st.Message()
 		default:
 			code = http.StatusInternalServerError
-			resp = webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
+			resp.Error = errs.ErrServerInternal.Error()
 		}
 		g.AbortWithStatusJSON(code, resp)
 		return
@@ -185,18 +185,18 @@ func (a *authHandler) UpdateUser(g *gin.Context) {
 		g.Set("msg", st.Message())
 		var (
 			code int
-			resp any
+			resp webdto.ErrResponse
 		)
 		switch st.Code() {
 		case codes.NotFound:
 			code = http.StatusNotFound
-			resp = webdto.ErrResponse{Error: st.Message()}
+			resp.Error = st.Message()
 		case codes.AlreadyExists:
 			code = http.StatusConflict
-			resp = webdto.ErrResponse{Error: st.Message()}
+			resp.Error = st.Message()
 		default:
 			code = http.StatusInternalServerError
-			resp = webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
+			resp.Error = errs.ErrServerInternal.Error()
 		}
 		g.AbortWithStatusJSON(code, resp)
 		return
@@ -248,18 +248,18 @@ func (a *authHandler) DeleteUser(g *gin.Context) {
 		g.Set("msg", st.Message())
 		var (
 			code int
-			resp any
+			resp webdto.ErrResponse
 		)
 		switch st.Code() {
 		case codes.NotFound:
 			code = http.StatusNotFound
-			resp = webdto.ErrResponse{Error: st.Message()}
+			resp.Error = st.Message()
 		case codes.PermissionDenied:
 			code = http.StatusForbidden
-			resp = webdto.ErrResponse{Error: st.Message()}
+			resp.Error = st.Message()
 		default:
 			code = http.StatusInternalServerError
-			resp = webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
+			resp.Error = errs.ErrServerInternal.Error()
 		}
 		g.AbortWithStatusJSON(code, resp)
 		return
@@ -304,15 +304,15 @@ func (a *authHandler) RefreshToken(g *gin.Context) {
 		g.Set("msg", st.Message())
 		var (
 			code int
-			resp any
+			resp webdto.ErrResponse
 		)
 		switch st.Code() {
 		case codes.Unauthenticated:
 			code = http.StatusUnauthorized
-			resp = webdto.ErrResponse{Error: st.Message()}
+			resp.Error = st.Message()
 		default:
 			code = http.StatusInternalServerError
-			resp = webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
+			resp.Error = errs.ErrServerInternal.Error()
 		}
 		g.AbortWithStatusJSON(code, resp)
 		return
@@ -350,12 +350,12 @@ func (a *authHandler) ListUsers(g *gin.Context) {
 		g.Set("msg", st.Message())
 		var (
 			code int
-			resp any
+			resp webdto.ErrResponse
 		)
 		switch st.Code() {
 		default:
 			code = http.StatusInternalServerError
-			resp = webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
+			resp.Error = errs.ErrServerInternal.Error()
 		}
 		g.AbortWithStatusJSON(code, resp)
 		return
