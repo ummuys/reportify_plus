@@ -1,0 +1,38 @@
+all: false
+force-file-write: true
+formatter: goimports
+include-auto-generated: false
+log-level: info
+recursive: false
+template: testify
+
+packages:
+  # AUTH DATABASE
+  github.com/ummuys/reportify/services/auth/internal/repository:
+    config:
+      dir: services/auth/internal/mocks
+      pkgname: mocks
+      filename: authdb_mock.go
+      structname: Mock{{.InterfaceName}}
+    interfaces:
+      AuthDB:
+
+  # AUTH HASHER 
+  github.com/ummuys/reportify/services/auth/internal/secure:
+    config:
+      dir: services/auth/internal/mocks
+      pkgname: mocks
+      filename: hasher_mock.go
+      structname: Mock{{.InterfaceName}}
+    interfaces:
+      PasswordHasher:
+
+  # AUTH TOKEN
+  github.com/ummuys/reportify/pkg/tm:
+    config:
+      dir: services/auth/internal/mocks
+      pkgname: mocks
+      filename: tm_mock.go
+      structname: Mock{{.InterfaceName}}
+    interfaces:
+      TokenManager:

@@ -194,12 +194,6 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 }
 
 func (p *publish) stepFailed(ctx context.Context, reportID string, err error, befStat string) {
-	p.logger.Error().
-		Err(err).
-		Str("report_id", reportID).
-		Str("before_status", befStat).
-		Msg("report failed")
-
 	errMsg := err.Error()
 
 	fctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)

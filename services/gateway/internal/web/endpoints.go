@@ -16,9 +16,9 @@ const (
 )
 
 const (
-	ListsPath  = "/admin/users"
-	CreatePath = "/admin/users"
-	UpdatePath = "/admin/users"
+	ListsUserPath  = "/admin/users"
+	CreateUserPath = "/admin/users"
+	UpdateUserPath = "/admin/users"
 
 	GetInfoPath = "/admin/users/:user_id"
 	DeletePath  = "/admin/users/:user_id"

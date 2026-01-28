@@ -34,15 +34,18 @@ func (as *authService) Login(ctx context.Context, in dto.LoginParams) (dto.Login
 			as.logger.Error().
 				Err(err).
 				Str("db-method", "Login").
-				Str("username", in.Username).
 				Msg("db login failed")
+			return dto.LoginResult{}, perr
 		}
 
-		return dto.LoginResult{}, errs.PgErrUnauthorized
+		return dto.LoginResult{}, errs.ErrInvalidCredentials
 	}
 
 	if !as.ph.CheckHash(in.Password, out.Password) {
-		return dto.LoginResult{}, errs.PgErrUnauthorized
+		as.logger.Warn().
+			Str("user-id", out.UserID).
+			Msg("invalid credentials")
+		return dto.LoginResult{}, errs.ErrInvalidCredentials
 	}
 
 	at, err := as.tm.GenerateAccessToken(out.UserID, out.Role)
@@ -50,7 +53,7 @@ func (as *authService) Login(ctx context.Context, in dto.LoginParams) (dto.Login
 		as.logger.Error().
 			Err(err).
 			Str("op", "GenerateAccessToken").
-			Str("user_id", out.UserID).
+			Str("user-id", out.UserID).
 			Str("role", out.Role).
 			Msg("token generation failed")
 		return dto.LoginResult{}, err
@@ -61,7 +64,7 @@ func (as *authService) Login(ctx context.Context, in dto.LoginParams) (dto.Login
 		as.logger.Error().
 			Err(err).
 			Str("op", "GenerateRefreshToken").
-			Str("user_id", out.UserID).
+			Str("user-id", out.UserID).
 			Str("role", out.Role).
 			Msg("token generation failed")
 		return dto.LoginResult{}, err
@@ -78,7 +81,6 @@ func (as *authService) CreateUser(ctx context.Context, in dto.CreateUserParams) 
 		as.logger.Error().
 			Err(err).
 			Str("op", "HashPassword").
-			Str("username", in.Username).
 			Msg("create user failed")
 		return dto.CreateUserResult{}, err
 	}
@@ -90,7 +92,6 @@ func (as *authService) CreateUser(ctx context.Context, in dto.CreateUserParams) 
 		as.logger.Error().
 			Err(err).
 			Str("db-method", "CreateUser").
-			Str("username", in.Username).
 			Str("role", in.Role).
 			Msg("create user failed")
 
@@ -99,8 +100,7 @@ func (as *authService) CreateUser(ctx context.Context, in dto.CreateUserParams) 
 
 	as.logger.Info().
 		Str("evt", "user.created").
-		Str("user_id", out.UserID).
-		Str("username", in.Username).
+		Str("user-id", out.UserID).
 		Str("role", in.Role).
 		Msg("user created")
 
@@ -115,7 +115,6 @@ func (as *authService) CreateBaseAdmin(ctx context.Context, in dto.CreateUserPar
 		as.logger.Error().
 			Err(err).
 			Str("op", "HashPassword").
-			Str("username", in.Username).
 			Msg("create base admin failed")
 		return err
 	}
@@ -127,8 +126,6 @@ func (as *authService) CreateBaseAdmin(ctx context.Context, in dto.CreateUserPar
 		as.logger.Error().
 			Err(err).
 			Str("db-method", "CreateUser").
-			Str("username", in.Username).
-			Str("role", in.Role).
 			Msg("create base admin failed")
 
 		return errs.ParsePgError(err)
@@ -136,8 +133,7 @@ func (as *authService) CreateBaseAdmin(ctx context.Context, in dto.CreateUserPar
 
 	as.db.SetAdminUUID(out.UserID)
 	as.logger.Warn().
-		Str("user_id", out.UserID).
-		Str("username", in.Username).
+		Str("user-id", out.UserID).
 		Msg("Admin user created")
 
 	return nil
@@ -154,7 +150,7 @@ func (as *authService) UpdateUser(ctx context.Context, in dto.UpdateUserParams) 
 			as.logger.Error().
 				Err(err).
 				Str("op", "HashPassword").
-				Str("user_id", in.UserID).
+				Str("user-id", in.UserID).
 				Msg("update user failed")
 			return dto.UpdateUserResult{}, err
 		}
@@ -166,7 +162,7 @@ func (as *authService) UpdateUser(ctx context.Context, in dto.UpdateUserParams) 
 		as.logger.Error().
 			Err(err).
 			Str("db-method", "UpdateUser").
-			Str("user_id", in.UserID).
+			Str("user-id", in.UserID).
 			Msg("update user failed")
 
 		return dto.UpdateUserResult{}, errs.ParsePgError(err)
@@ -174,7 +170,7 @@ func (as *authService) UpdateUser(ctx context.Context, in dto.UpdateUserParams) 
 
 	as.logger.Info().
 		Str("evt", "user.updated").
-		Str("user_id", in.UserID).
+		Str("user-id", in.UserID).
 		Bool("changed_password", changedPassword).
 		Bool("changed_username", in.Username != "").
 		Bool("changed_role", in.Role != "").
@@ -194,14 +190,14 @@ func (as *authService) DeleteUser(ctx context.Context, in dto.DeleteUserParams) 
 			as.logger.Error().
 				Err(err).
 				Str("db-method", "DeleteUser").
-				Str("user_id", in.UserID).
+				Str("user-id", in.UserID).
 				Msg("delete user failed")
 		}
 
 		if errors.Is(perr, errs.PgErrInsufficientPrivilege) {
 			as.logger.Warn().
 				Str("evt", "user.delete_forbidden").
-				Str("user_id", in.UserID).
+				Str("user-id", in.UserID).
 				Msg("attempt to delete protected user")
 		}
 
@@ -210,7 +206,7 @@ func (as *authService) DeleteUser(ctx context.Context, in dto.DeleteUserParams) 
 
 	as.logger.Info().
 		Str("evt", "user.deleted").
-		Str("user_id", in.UserID).
+		Str("user-id", in.UserID).
 		Msg("user deleted")
 
 	return out, nil
@@ -251,7 +247,7 @@ func (as *authService) RefreshToken(ctx context.Context, in dto.RefreshTokenPara
 		as.logger.Error().
 			Err(err).
 			Str("op", "GenerateAccessToken").
-			Str("user_id", rc.UserID).
+			Str("user-id", rc.UserID).
 			Str("role", rc.Role).
 			Msg("refresh token failed")
 		return dto.RefreshTokenResult{}, err

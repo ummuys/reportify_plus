@@ -29,7 +29,7 @@ func NewDatasourceHandler(sc datasourceservicev1.DatasourceServiceClient, baseLo
 // @Success 200 {object} webdto.ListSchemasResponse
 // @Failure 401 {object} webdto.ErrResponse
 // @Failure 500 {object} webdto.ErrResponse
-// @Router /schemas [get]
+// @Router /db/schemas [get]
 func (dh *datasourceHandler) ListSchemas(g *gin.Context) {
 	dh.logger.Debug().Str("evt", "call ListSchemas").Msg("")
 
@@ -73,7 +73,7 @@ func (dh *datasourceHandler) ListSchemas(g *gin.Context) {
 // @Failure 400 {object} webdto.ErrResponse
 // @Failure 401 {object} webdto.ErrResponse
 // @Failure 500 {object} webdto.ErrResponse
-// @Router /tables [get]
+// @Router /db/tables [get]
 func (dh *datasourceHandler) ListTables(g *gin.Context) {
 	dh.logger.Debug().Str("evt", "call ListTables").Msg("")
 
@@ -115,18 +115,19 @@ func (dh *datasourceHandler) ListTables(g *gin.Context) {
 	g.JSON(http.StatusOK, resp)
 }
 
-// ListTables godoc
-// @Summary List tables in schema
-// @Description Returns list of tables for given schema
+// ListColumns godoc
+// @Summary List columns in table
+// @Description Returns list of columns for given table
 // @Tags datasource
 // @Produce json
 // @Security BearerAuth
 // @Param schema query string true "Schema name"
+// @Param table query string true "Table name"
 // @Success 200 {object} webdto.ListTablesResponse
 // @Failure 400 {object} webdto.ErrResponse
 // @Failure 401 {object} webdto.ErrResponse
 // @Failure 500 {object} webdto.ErrResponse
-// @Router /tables [get]
+// @Router /db/columns [get]
 func (dh *datasourceHandler) ListColumns(g *gin.Context) {
 	dh.logger.Debug().Str("evt", "call ListColumns").Msg("")
 

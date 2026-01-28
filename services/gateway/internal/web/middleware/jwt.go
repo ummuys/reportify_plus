@@ -9,15 +9,6 @@ import (
 	pkg "github.com/ummuys/reportify/pkg/tm"
 )
 
-// import (
-// 	"net/http"
-// 	"strings"
-
-// 	"github.com/gin-gonic/gin"
-// 	"github.com/ummuys/reportify/internal/errs"
-// 	"github.com/ummuys/reportify/internal/secure"
-// )
-
 func CheckJWT(tm pkg.TokenManager, access []string) gin.HandlerFunc {
 	return func(g *gin.Context) {
 		authHeader := g.GetHeader("Authorization")

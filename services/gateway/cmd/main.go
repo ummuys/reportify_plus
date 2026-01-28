@@ -16,6 +16,20 @@ import (
 	"github.com/ummuys/reportify/services/gateway/internal/web"
 )
 
+// @title           Reportify API
+// @version         1.0
+// @description     API for report generation platform
+
+// @host            127.0.0.1:8088
+// @BasePath        /api/v1
+
+// @schemes         http
+
+// JWT Bearer
+// @securityDefinitions.apikey  BearerAuth
+// @in                          header
+// @name                        Authorization
+
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()

@@ -14,6 +14,12 @@ up:
 	@./$(UPDATE_SECRETS)
 	@-docker network create reportify-network
 	@$(BASE_COMMAND) -f $(COMPOSE) up -d
+	
+update-up:
+	@./$(UPDATE_SECRETS)
+	@$(BASE_COMMAND) -f $(COMPOSE) down
+	@$(BASE_COMMAND) -f $(COMPOSE) up -d --build
+
 
 down: 
 	@$(BASE_COMMAND) -f $(COMPOSE) down
@@ -27,34 +33,7 @@ status:
 
 drop-all-volume:
 	@$(BASE_COMMAND) -f $(COMPOSE) down -v
-	
 
-update-gateway-image:
-	@$(BASE_COMMAND) -f $(COMPOSE) down
-	@-docker image rm gateway-service
-
-update-auth-image:
-	@$(BASE_COMMAND) -f $(COMPOSE) down
-	@-docker image rm auth-service
-
-update-report-image:
-	@$(BASE_COMMAND) -f $(COMPOSE) down
-	@-docker image rm report-service
-
-update-report-worker-image:
-	@$(BASE_COMMAND) -f $(COMPOSE) down
-	@-docker image rm report-worker
-
-update-all-images:
-	@$(BASE_COMMAND) -f $(COMPOSE) down
-	@-docker image rm auth-service
-	@-docker image rm gateway-service
-	@-docker image rm report-service
-	@-docker image rm report-worker
-
-
-
-update-all-images: update-auth-image update-gateway-image
 
 # CI
 

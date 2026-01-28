@@ -65,9 +65,9 @@ func CreateServer(cfg config.GatewayServiceConfig, rh di.RESTHandlers, tm pkg.To
 
 	authAdm := api.Group("")
 	authAdm.Use(middleware.CheckJWT(tm, admPass))
-	authAdm.POST(CreatePath, rh.AuthService.CreateUser)
-	authAdm.PUT(UpdatePath, rh.AuthService.UpdateUser)
-	authAdm.GET(ListsPath, rh.AuthService.ListUsers)
+	authAdm.POST(CreateUserPath, rh.AuthService.CreateUser)
+	authAdm.PUT(UpdateUserPath, rh.AuthService.UpdateUser)
+	authAdm.GET(ListsUserPath, rh.AuthService.ListUsers)
 	authAdm.DELETE(DeletePath, rh.AuthService.DeleteUser)
 
 	server := &http.Server{
@@ -88,5 +88,3 @@ func RunServer(server *http.Server) error {
 	}
 	return nil
 }
-
-// swag init   -d services/gateway   -g cmd/main.go   -o services/gateway/docs   --parseDependency --parseInternal

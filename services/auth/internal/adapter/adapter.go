@@ -34,7 +34,7 @@ func (a *AuthAdapter) Login(ctx context.Context, in *authv1.LoginRequest) (*auth
 
 	if err != nil {
 		switch {
-		case errors.Is(err, errs.PgErrNotFound):
+		case errors.Is(err, errs.ErrInvalidCredentials):
 			return nil, status.Error(codes.Unauthenticated, errs.ErrInvalidCredentials.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())

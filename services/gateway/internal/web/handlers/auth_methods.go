@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -29,11 +30,11 @@ func NewAuthHandler(sc authv1.AuthServiceClient, baseLogger zerolog.Logger) Auth
 // @Accept json
 // @Produce json
 // @Param body body webdto.LoginRequest true "payload"
-// @Success 200 {object} webdto.LoginResponse
-// @Failure 400 {object} webdto.ErrResponse
-// @Failure 404 {object} webdto.ErrResponse
-// @Failure 500 {object} webdto.ErrResponse
-// @Router /auth/login [post]
+// @Success 200 {object} webdto.LoginResponse "OK"
+// @Failure 400 {object} webdto.ErrResponse "Validation error"
+// @Failure 404 {object} webdto.ErrResponse "User not found"
+// @Failure 500 {object} webdto.ErrResponse "Internal error"
+// @Router /secure/login [post]
 func (a *authHandler) Login(refreshTime time.Duration) gin.HandlerFunc {
 	return func(g *gin.Context) {
 		a.logger.Debug().Str("evt", "call Login").Msg("")
@@ -41,6 +42,15 @@ func (a *authHandler) Login(refreshTime time.Duration) gin.HandlerFunc {
 		if err := g.ShouldBindJSON(&req); err != nil {
 			g.Set("msg", err.Error())
 			g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidJSON.Error()})
+			return
+		}
+
+		req.Username = strings.TrimSpace(req.Username)
+		req.Password = strings.TrimSpace(req.Password)
+
+		if req.Username == "" || req.Password == "" {
+			g.Set("msg", errs.ErrInvalidPaylod.Error())
+			g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidPaylod.Error()})
 			return
 		}
 
@@ -65,7 +75,7 @@ func (a *authHandler) Login(refreshTime time.Duration) gin.HandlerFunc {
 			)
 			switch st.Code() {
 			case codes.Unauthenticated:
-				code = http.StatusNotFound
+				code = http.StatusUnauthorized
 				resp.Error = st.Message()
 			default:
 				code = http.StatusInternalServerError
@@ -96,13 +106,23 @@ func (a *authHandler) Login(refreshTime time.Duration) gin.HandlerFunc {
 // @Failure 403 {object} webdto.ErrResponse
 // @Failure 409 {object} webdto.ErrResponse
 // @Failure 500 {object} webdto.ErrResponse
-// @Router /users [post]
+// @Router /admin/users [post]
 func (a *authHandler) CreateUser(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call CreateUser").Msg("")
 	var req webdto.CreateUserRequest
 	if err := g.ShouldBindJSON(&req); err != nil {
 		g.Set("msg", err.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidJSON.Error()})
+		return
+	}
+
+	req.Username = strings.TrimSpace(req.Username)
+	req.Password = strings.TrimSpace(req.Password)
+	req.Role = strings.TrimSpace(req.Role)
+
+	if req.Username == "" || req.Password == "" || req.Role == "" {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidPaylod.Error()})
 		return
 	}
 
@@ -156,13 +176,24 @@ func (a *authHandler) CreateUser(g *gin.Context) {
 // @Failure 404 {object} webdto.ErrResponse
 // @Failure 409 {object} webdto.ErrResponse
 // @Failure 500 {object} webdto.ErrResponse
-// @Router /users [put]
+// @Router /admin/users [put]
 func (a *authHandler) UpdateUser(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call UpdateUser").Msg("")
 	var req webdto.UpdateUserRequest
 	if err := g.ShouldBindJSON(&req); err != nil {
 		g.Set("msg", err.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidJSON.Error()})
+		return
+	}
+
+	req.UserID = strings.TrimSpace(req.UserID)
+	req.Username = strings.TrimSpace(req.Username)
+	req.Password = strings.TrimSpace(req.Password)
+	req.Role = strings.TrimSpace(req.Role)
+
+	if req.UserID == "" || req.Username == "" || req.Password == "" || req.Role == "" {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidPaylod.Error()})
 		return
 	}
 
@@ -218,7 +249,7 @@ func (a *authHandler) UpdateUser(g *gin.Context) {
 // @Failure 403 {object} webdto.ErrResponse
 // @Failure 404 {object} webdto.ErrResponse
 // @Failure 500 {object} webdto.ErrResponse
-// @Router /users/{user_id} [delete]
+// @Router /admin/users/{user_id} [delete]
 func (a *authHandler) DeleteUser(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call DeleteUser").Msg("")
 
@@ -227,9 +258,9 @@ func (a *authHandler) DeleteUser(g *gin.Context) {
 	// TODO: fix validate answer
 	// mark at (04.01.2026) deadline at (10.01.2026)
 	if userID == "" {
-		g.Set("msg", "invalid user_id")
-		g.AbortWithStatusJSON(http.StatusInternalServerError,
-			webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidPaylod.Error()})
 		return
 	}
 	out, gErr := a.sc.DeleteUser(g.Request.Context(), &authv1.DeleteUserRequest{
@@ -277,7 +308,7 @@ func (a *authHandler) DeleteUser(g *gin.Context) {
 // @Success 200 {object} webdto.RefreshTokenResponse
 // @Failure 401 {object} webdto.ErrResponse
 // @Failure 500 {object} webdto.ErrResponse
-// @Router /auth/refresh [get]
+// @Router /secure/auth/refresh [get]
 func (a *authHandler) RefreshToken(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call RefreshToken").Msg("")
 
@@ -332,7 +363,7 @@ func (a *authHandler) RefreshToken(g *gin.Context) {
 // @Failure 401 {object} webdto.ErrResponse
 // @Failure 403 {object} webdto.ErrResponse
 // @Failure 500 {object} webdto.ErrResponse
-// @Router /users [get]
+// @Router /admin/users [get]
 func (a *authHandler) ListUsers(g *gin.Context) {
 	a.logger.Debug().Str("evt", "call ListUsers").Msg("")
 
