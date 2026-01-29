@@ -22,13 +22,13 @@ func NewDatasourceService(db repository.DatasourceDB, baseLogger zerolog.Logger)
 func (ds *datasourceService) ListSchemas(ctx context.Context) (dto.ListSchemasResult, error) {
 	out, err := ds.db.ListSchemas(ctx)
 	if err != nil {
-		errs.ParsePgError(err)
+		perr := errs.ParsePgError(err)
 		ds.logger.Error().
 			Err(err).
 			Str("db-method", "ListSchemas").
 			Msg("list schemas failed")
 
-		return out, errs.ParsePgError(err)
+		return out, perr
 	}
 	return out, nil
 }
