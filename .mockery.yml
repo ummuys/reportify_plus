@@ -47,10 +47,10 @@ packages:
       interfaces:
         DatasourceDB:
           config:
-            filename: datasource_database_mock.go
+            filename: report_datasource_database_mock.go
         ReportDB:
           config:
-            filename: report_database_mock.go
+            filename: report_report_database_mock.go
 
   # REPORT CACHE
   github.com/ummuys/reportify/services/report/internal/cache:
@@ -62,5 +62,57 @@ packages:
       interfaces:
         ReportCache:
         
+  # REPORT-WORKER CACHE
+  github.com/ummuys/reportify/services/report-worker/internal/cache:
+      config:
+        dir: services/report-worker/internal/mocks
+        pkgname: mocks
+        filename: report_worker_cache_mock.go
+        structname: Mock{{.InterfaceName}}
+      interfaces:
+        ReportCache:
 
+  # REPORT-WORKER CONVERT
+  github.com/ummuys/reportify/services/report-worker/internal/convert:
+      config:
+        dir: services/report-worker/internal/mocks
+        pkgname: mocks
+        filename: report_worker_convert_mock.go
+        structname: Mock{{.InterfaceName}}
+      interfaces:
+        ReportConvert:
+
+  # REPORT-WORKER Kafka
+  github.com/ummuys/reportify/services/report-worker/internal/kafkacli:
+      config:
+        dir: services/report-worker/internal/mocks
+        pkgname: mocks
+        filename: report_worker_kafkacli_mock.go
+        structname: Mock{{.InterfaceName}}
+      interfaces:
+        KafkaConsumer:
+
+  # REPORT-WORKER MinIO
+  github.com/ummuys/reportify/services/report-worker/internal/miniocli:
+      config:
+        dir: services/report-worker/internal/mocks
+        pkgname: mocks
+        filename: report_worker_minio_mock.go
+        structname: Mock{{.InterfaceName}}
+      interfaces:
+        MinIOClient:
+
+  # REPORT-WORKER DATASOURCE AND REPORT DATABASE
+  github.com/ummuys/reportify/services/report-worker/internal/repository:
+      config:
+        dir: services/report-worker/internal/mocks
+        pkgname: mocks
+        structname: Mock{{.InterfaceName}}
+      interfaces:
+        DatasourceDB:
+          config:
+            filename: report_worker_datasource_database_mock.go
+        ReportDB:
+          config:
+            filename: report_worker_report_database_mock.go
 
