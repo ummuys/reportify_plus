@@ -61,7 +61,7 @@ func TestAuthService_CreateUser_DbError_ReturnsParsedPgError(t *testing.T) {
 	afterHash := in
 	afterHash.Password = "HASH"
 
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	ph.EXPECT().Hash(in.Password).Return("HASH", nil).Once()
@@ -85,7 +85,7 @@ func TestAuthService_CreateUser_UserAlreadyExists_ReturnsParsedPgError(t *testin
 	afterHash := in
 	afterHash.Password = "HASH"
 
-	dbErr := errs.PgErrDuplicate
+	dbErr := errs.ErrPgDuplicate
 	expected := errs.ParsePgError(dbErr)
 
 	ph.EXPECT().Hash(in.Password).Return("HASH", nil).Once()
@@ -151,7 +151,7 @@ func TestAuthService_CreateBaseAdmin_DbError_ReturnsParsedPgError(t *testing.T) 
 	afterHash := in
 	afterHash.Password = "HASH"
 
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	ph.EXPECT().Hash(in.Password).Return("HASH", nil).Once()
@@ -175,7 +175,7 @@ func TestAuthService_CreateBaseAdmin_UserAlreadyExists_ReturnsParsedPgError(t *t
 	afterHash := in
 	afterHash.Password = "HASH"
 
-	dbErr := errs.PgErrDuplicate
+	dbErr := errs.ErrPgDuplicate
 	expected := errs.ParsePgError(dbErr)
 
 	ph.EXPECT().Hash(in.Password).Return("HASH", nil).Once()

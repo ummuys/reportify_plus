@@ -61,7 +61,7 @@ func main() {
 		Username: cfg.AdmUsername,
 		Password: cfg.AdmPassword,
 		Role:     "admin",
-	}); err != nil && !errors.Is(err, errs.PgErrDuplicate) {
+	}); err != nil && !errors.Is(err, errs.ErrPgDuplicate) {
 		logs.Fatal().Err(err).Msg("Create admin user")
 	}
 

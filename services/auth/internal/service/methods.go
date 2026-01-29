@@ -30,7 +30,7 @@ func (as *authService) Login(ctx context.Context, in dto.LoginParams) (dto.Login
 	out, err := as.db.Login(ctx, in.Username)
 	if err != nil {
 		perr := errs.ParsePgError(err)
-		if !errors.Is(perr, errs.PgErrNotFound) {
+		if !errors.Is(perr, errs.ErrPgNotFound) {
 			as.logger.Error().
 				Err(err).
 				Str("db-method", "Login").
@@ -186,7 +186,7 @@ func (as *authService) DeleteUser(ctx context.Context, in dto.DeleteUserParams) 
 	if err != nil {
 		perr := errs.ParsePgError(err)
 
-		if !errors.Is(perr, errs.PgErrNotFound) && !errors.Is(perr, errs.PgErrInsufficientPrivilege) {
+		if !errors.Is(perr, errs.ErrPgNotFound) && !errors.Is(perr, errs.ErrPgInsufficientPrivilege) {
 			as.logger.Error().
 				Err(err).
 				Str("db-method", "DeleteUser").
@@ -194,7 +194,7 @@ func (as *authService) DeleteUser(ctx context.Context, in dto.DeleteUserParams) 
 				Msg("delete user failed")
 		}
 
-		if errors.Is(perr, errs.PgErrInsufficientPrivilege) {
+		if errors.Is(perr, errs.ErrPgInsufficientPrivilege) {
 			as.logger.Warn().
 				Str("evt", "user.delete_forbidden").
 				Str("user-id", in.UserID).
@@ -239,7 +239,7 @@ func (as *authService) RefreshToken(ctx context.Context, in dto.RefreshTokenPara
 			Err(err).
 			Str("evt", "token.refresh_rejected").
 			Msg("refresh token rejected")
-		return dto.RefreshTokenResult{}, errs.PgErrUnauthorized
+		return dto.RefreshTokenResult{}, errs.ErrPgUnauthorized
 	}
 
 	access, err := as.tm.GenerateAccessToken(rc.UserID, rc.Role)

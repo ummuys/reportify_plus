@@ -30,7 +30,7 @@ func TestReportService_ReportInfo_DbError_ReturnsParsedPgError(t *testing.T) {
 	ctx := context.Background()
 
 	in := dto.ReportInfoParams{ReportID: "r1"}
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().ReportInfo(mock.Anything, in).Return(dto.ReportInfoResult{}, dbErr).Once()

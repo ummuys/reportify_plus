@@ -27,7 +27,7 @@ func TestReportService_DeleteReports_DbError_ReturnsParsedPgError(t *testing.T) 
 	ctx := context.Background()
 
 	in := dto.DeleteReportsParams{AuthorID: "a1"}
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().DeleteReports(mock.Anything, in).Return(dbErr).Once()
@@ -56,7 +56,7 @@ func TestReportService_DeleteReport_DbError_ReturnsParsedPgError(t *testing.T) {
 	ctx := context.Background()
 
 	in := dto.DeleteReportParams{ReportID: "r1", AuthorID: "a1"}
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().DeleteReport(mock.Anything, in).Return(dto.DeleteReportResult{}, dbErr).Once()

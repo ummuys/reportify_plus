@@ -31,7 +31,7 @@ func TestAuthService_DeleteUser_NotFound_ReturnsParsedPgError(t *testing.T) {
 
 	in := dto.DeleteUserParams{UserID: "u1"}
 
-	dbErr := errs.PgErrNotFound
+	dbErr := errs.ErrPgNotFound
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().DeleteUser(mock.Anything, in).Return(dto.DeleteUserResult{}, dbErr).Once()
@@ -49,7 +49,7 @@ func TestAuthService_DeleteUser_InsufficientPrivilege_ReturnsParsedPgError(t *te
 
 	in := dto.DeleteUserParams{UserID: "u1"}
 
-	dbErr := errs.PgErrInsufficientPrivilege
+	dbErr := errs.ErrPgInsufficientPrivilege
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().DeleteUser(mock.Anything, in).Return(dto.DeleteUserResult{}, dbErr).Once()
@@ -66,7 +66,7 @@ func TestAuthService_DeleteUser_DbError_ReturnsParsedPgError(t *testing.T) {
 
 	in := dto.DeleteUserParams{UserID: "u1"}
 
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().DeleteUser(mock.Anything, in).Return(dto.DeleteUserResult{}, dbErr).Once()
@@ -84,7 +84,7 @@ func TestAuthService_DeleteUser_DbErrorWrapped_ReturnsParsedPgError(t *testing.T
 
 	in := dto.DeleteUserParams{UserID: "u1"}
 
-	base := errs.PgErrDeadlock
+	base := errs.ErrPgDeadlock
 	wrapped := errors.New("wrapped db err")
 	expected := errs.ParsePgError(wrapped)
 

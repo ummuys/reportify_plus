@@ -39,7 +39,7 @@ func TestAuthService_RefreshToken_InvalidRefreshToken_ReturnsUnauthorized(t *tes
 
 	res, err := svc.RefreshToken(ctx, in)
 	require.Error(t, err)
-	require.ErrorIs(t, err, errs.PgErrUnauthorized)
+	require.ErrorIs(t, err, errs.ErrPgUnauthorized)
 	require.Equal(t, dto.RefreshTokenResult{}, res)
 
 	tm.AssertNotCalled(t, "GenerateAccessToken", mock.Anything, mock.Anything)

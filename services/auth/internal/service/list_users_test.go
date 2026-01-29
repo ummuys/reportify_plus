@@ -28,7 +28,7 @@ func TestAuthService_ListUsers_DbError_ReturnsParsedPgError(t *testing.T) {
 	svc, db, _, _ := newSvc(t)
 	ctx := context.Background()
 
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().ListUsers(mock.Anything).Return(dto.ListUsersResult{}, dbErr).Once()

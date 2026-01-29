@@ -31,7 +31,7 @@ func TestReportService_ListReports_DbError_ReturnsParsedPgError(t *testing.T) {
 	in := dto.ListReportsParams{AuthorID: "a1"}
 	dbOut := dto.ListReportsResult{}
 
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().ListReports(mock.Anything, in).Return(dbOut, dbErr).Once()

@@ -38,7 +38,7 @@ func TestDatasourceService_ListSchemas_DbError_ReturnsParsedPgError(t *testing.T
 	ctx := context.Background()
 
 	dbOut := dto.ListSchemasResult{}
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().ListSchemas(mock.Anything).Return(dbOut, dbErr).Once()
@@ -71,7 +71,7 @@ func TestDatasourceService_ListTables_DbError_ReturnsParsedPgError(t *testing.T)
 	in := dto.ListTablesParams{Schema: "public"}
 	dbOut := dto.ListTablesResult{}
 
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().ListTables(mock.Anything, in).Return(dbOut, dbErr).Once()
@@ -104,7 +104,7 @@ func TestDatasourceService_ListColumns_DbError_ReturnsParsedPgError(t *testing.T
 	in := dto.ListColumnsParams{Schema: "public", Table: "users"}
 	dbOut := dto.ListColumnsResult{}
 
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().ListColumns(mock.Anything, in).Return(dbOut, dbErr).Once()

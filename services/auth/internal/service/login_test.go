@@ -34,7 +34,7 @@ func TestAuthService_Login_NotFound_ReturnsInvalidCredentials(t *testing.T) {
 	svc, db, ph, tm := newSvc(t)
 	ctx := context.Background()
 
-	db.EXPECT().Login(mock.Anything, "bob").Return(dto.AuthUser{}, errs.PgErrNotFound).Once()
+	db.EXPECT().Login(mock.Anything, "bob").Return(dto.AuthUser{}, errs.ErrPgNotFound).Once()
 
 	out, err := svc.Login(ctx, dto.LoginParams{Username: "bob", Password: "x"})
 	require.Error(t, err)
@@ -50,12 +50,12 @@ func TestAuthService_Login_Database_Err_ReturnsDbErr(t *testing.T) {
 	svc, db, ph, tm := newSvc(t)
 	ctx := context.Background()
 
-	// err != errs.PgErrNotFound
-	db.EXPECT().Login(mock.Anything, "bob").Return(dto.AuthUser{}, errs.PgErrDeadlock).Once()
+	// err != errs.ErrPgNotFound
+	db.EXPECT().Login(mock.Anything, "bob").Return(dto.AuthUser{}, errs.ErrPgDeadlock).Once()
 
 	out, err := svc.Login(ctx, dto.LoginParams{Username: "bob", Password: "x"})
 	require.Error(t, err)
-	require.ErrorIs(t, err, errs.PgErrDeadlock)
+	require.ErrorIs(t, err, errs.ErrPgDeadlock)
 	require.Equal(t, dto.LoginResult{}, out)
 
 	ph.AssertNotCalled(t, "CheckHash", mock.Anything, mock.Anything)

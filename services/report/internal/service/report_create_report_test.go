@@ -30,7 +30,7 @@ func TestReportService_CreateReport_DbError_ReturnsParsedPgError(t *testing.T) {
 	ctx := context.Background()
 
 	in := dto.CreateReportParams{AuthorID: "a1"}
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().CreateReport(mock.Anything, in).Return(dto.CreateReportResult{}, dbErr).Once()
@@ -49,7 +49,7 @@ func TestReportService_CreateReport_Success_CacheSetError_Ignored(t *testing.T) 
 
 	in := dto.CreateReportParams{AuthorID: "a1"}
 	out := dto.CreateReportResult{ReportID: "r1", Status: "created"}
-	cacheErr := errs.PgErrDeadlock
+	cacheErr := errs.ErrPgDeadlock
 
 	db.EXPECT().CreateReport(mock.Anything, in).Return(out, nil).Once()
 	cache.EXPECT().Set(mock.Anything, "r1", "created").Return(cacheErr).Once()

@@ -71,7 +71,7 @@ func TestAuthService_UpdateUser_DbError_NoPasswordChange_ReturnsParsedPgError(t 
 
 	in := dto.UpdateUserParams{UserID: "u1", Username: "Bob", Password: "", Role: "Admin"}
 
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	db.EXPECT().UpdateUser(mock.Anything, in).Return(dto.UpdateUserResult{}, dbErr).Once()
@@ -90,7 +90,7 @@ func TestAuthService_UpdateUser_DbError_WithPasswordChange_ReturnsParsedPgError(
 	afterHash := in
 	afterHash.Password = "HASH"
 
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	ph.EXPECT().Hash("123").Return("HASH", nil).Once()

@@ -68,7 +68,7 @@ func TestReportService_ReportStatus_DbError_ReturnsParsedPgError(t *testing.T) {
 
 	in := dto.ReportStatusParams{ReportID: "r1"}
 	dbOut := dto.ReportStatusResult{}
-	dbErr := errs.PgErrDeadlock
+	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
 	cache.EXPECT().Get(mock.Anything, "r1").Return(nil, redis.Nil).Once()
