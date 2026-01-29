@@ -36,3 +36,31 @@ packages:
       structname: Mock{{.InterfaceName}}
     interfaces:
       TokenManager:
+
+
+  # DATASOURCE AND REPORT DATABASE
+  github.com/ummuys/reportify/services/report/internal/repository:
+      config:
+        dir: services/report/internal/mocks
+        pkgname: mocks
+        structname: Mock{{.InterfaceName}}
+      interfaces:
+        DatasourceDB:
+          config:
+            filename: datasource_database_mock.go
+        ReportDB:
+          config:
+            filename: report_database_mock.go
+
+  # REPORT CACHE
+  github.com/ummuys/reportify/services/report/internal/cache:
+      config:
+        dir: services/report/internal/mocks
+        pkgname: mocks
+        filename: report_cache_mock.go
+        structname: Mock{{.InterfaceName}}
+      interfaces:
+        ReportCache:
+        
+
+

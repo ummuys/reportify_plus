@@ -42,3 +42,12 @@ code-review:
 
 code-auto-format:
 	@cd .. && gofumpt -w $$(find . -name '*.go' -type f)
+
+
+test:
+	@echo "Testing AuthService . . ."
+	@richgo test ../services/auth/internal/service/... -cover
+
+	@echo "Testing ReportService . . ."
+	@richgo test ../services/report/internal/service/... -cover
+	@echo "Testing ReportWorkerService . . ."
