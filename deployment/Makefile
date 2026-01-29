@@ -38,7 +38,7 @@ drop-all-volume:
 # CI
 
 code-review:
-	@cd .. && ./deployment/scripts/pre-commit.sh
+	@cd .. && ./deployment/scripts/pre_commit.sh
 
 code-auto-format:
 	@cd .. && gofumpt -w $$(find . -name '*.go' -type f)

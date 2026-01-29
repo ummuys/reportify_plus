@@ -15,10 +15,7 @@ import (
 func newDatasourceSvc(t *testing.T) (DatasourceService, *mocks.MockDatasourceDB) {
 	t.Helper()
 	db := mocks.NewMockDatasourceDB(t)
-	svc := &datasourceService{
-		db:     db,
-		logger: zerolog.Nop(),
-	}
+	svc := NewDatasourceService(db, zerolog.Nop())
 	return svc, db
 }
 

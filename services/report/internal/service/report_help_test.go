@@ -13,10 +13,10 @@ func newReportSvc(t *testing.T) (ReportService, *mocks.MockReportDB, *mocks.Mock
 	db := mocks.NewMockReportDB(t)
 	cache := mocks.NewMockReportCache(t)
 
-	svc := &reportService{
-		db:     db,
-		cache:  cache,
-		logger: zerolog.Nop(),
-	}
+	svc := NewReportService(
+		db,
+		cache,
+		zerolog.Nop(),
+	)
 	return svc, db, cache
 }
