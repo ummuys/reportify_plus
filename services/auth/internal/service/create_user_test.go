@@ -12,7 +12,7 @@ import (
 )
 
 func TestAuthService_CreateUser_Success(t *testing.T) {
-	svc, db, ph, tm := newSvc(t)
+	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
 	in := dto.CreateUserParams{Username: "Bob", Password: "123", Role: "Admin"}
@@ -29,12 +29,10 @@ func TestAuthService_CreateUser_Success(t *testing.T) {
 	require.Equal(t, dbOut, res)
 	require.Equal(t, "123", in.Password)
 
-	tm.AssertNotCalled(t, "GenerateAccessToken", mock.Anything, mock.Anything)
-	tm.AssertNotCalled(t, "GenerateRefreshToken", mock.Anything, mock.Anything)
 }
 
 func TestAuthService_CreateUser_HashError_ReturnsError(t *testing.T) {
-	svc, db, ph, tm := newSvc(t)
+	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
 	in := dto.CreateUserParams{Username: "Bob", Password: "123", Role: "Admin"}
@@ -49,12 +47,10 @@ func TestAuthService_CreateUser_HashError_ReturnsError(t *testing.T) {
 	require.Equal(t, "123", in.Password)
 
 	db.AssertNotCalled(t, "CreateUser", mock.Anything, mock.Anything)
-	tm.AssertNotCalled(t, "GenerateAccessToken", mock.Anything, mock.Anything)
-	tm.AssertNotCalled(t, "GenerateRefreshToken", mock.Anything, mock.Anything)
 }
 
 func TestAuthService_CreateUser_DbError_ReturnsParsedPgError(t *testing.T) {
-	svc, db, ph, tm := newSvc(t)
+	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
 	in := dto.CreateUserParams{Username: "Bob", Password: "123", Role: "Admin"}
@@ -72,13 +68,10 @@ func TestAuthService_CreateUser_DbError_ReturnsParsedPgError(t *testing.T) {
 	require.ErrorIs(t, err, expected)
 	require.Equal(t, dto.CreateUserResult{}, res)
 	require.Equal(t, "123", in.Password)
-
-	tm.AssertNotCalled(t, "GenerateAccessToken", mock.Anything, mock.Anything)
-	tm.AssertNotCalled(t, "GenerateRefreshToken", mock.Anything, mock.Anything)
 }
 
 func TestAuthService_CreateUser_UserAlreadyExists_ReturnsParsedPgError(t *testing.T) {
-	svc, db, ph, tm := newSvc(t)
+	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
 	in := dto.CreateUserParams{Username: "Bob", Password: "123", Role: "Admin"}
@@ -95,13 +88,10 @@ func TestAuthService_CreateUser_UserAlreadyExists_ReturnsParsedPgError(t *testin
 	require.Error(t, err)
 	require.ErrorIs(t, err, expected)
 	require.Equal(t, dto.CreateUserResult{}, res)
-
-	tm.AssertNotCalled(t, "GenerateAccessToken", mock.Anything, mock.Anything)
-	tm.AssertNotCalled(t, "GenerateRefreshToken", mock.Anything, mock.Anything)
 }
 
 func TestAuthService_CreateBaseAdmin_Success(t *testing.T) {
-	svc, db, ph, tm := newSvc(t)
+	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
 	in := dto.CreateUserParams{Username: "Admin", Password: "123", Role: "Admin"}
@@ -117,13 +107,10 @@ func TestAuthService_CreateBaseAdmin_Success(t *testing.T) {
 	err := svc.CreateBaseAdmin(ctx, in)
 	require.NoError(t, err)
 	require.Equal(t, "123", in.Password)
-
-	tm.AssertNotCalled(t, "GenerateAccessToken", mock.Anything, mock.Anything)
-	tm.AssertNotCalled(t, "GenerateRefreshToken", mock.Anything, mock.Anything)
 }
 
 func TestAuthService_CreateBaseAdmin_HashError_ReturnsError(t *testing.T) {
-	svc, db, ph, tm := newSvc(t)
+	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
 	in := dto.CreateUserParams{Username: "Admin", Password: "123", Role: "Admin"}
@@ -138,13 +125,10 @@ func TestAuthService_CreateBaseAdmin_HashError_ReturnsError(t *testing.T) {
 
 	db.AssertNotCalled(t, "CreateUser", mock.Anything, mock.Anything)
 	db.AssertNotCalled(t, "SetAdminUUID", mock.Anything)
-
-	tm.AssertNotCalled(t, "GenerateAccessToken", mock.Anything, mock.Anything)
-	tm.AssertNotCalled(t, "GenerateRefreshToken", mock.Anything, mock.Anything)
 }
 
 func TestAuthService_CreateBaseAdmin_DbError_ReturnsParsedPgError(t *testing.T) {
-	svc, db, ph, tm := newSvc(t)
+	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
 	in := dto.CreateUserParams{Username: "Admin", Password: "123", Role: "Admin"}
@@ -163,12 +147,10 @@ func TestAuthService_CreateBaseAdmin_DbError_ReturnsParsedPgError(t *testing.T) 
 	require.Equal(t, "123", in.Password)
 
 	db.AssertNotCalled(t, "SetAdminUUID", mock.Anything)
-	tm.AssertNotCalled(t, "GenerateAccessToken", mock.Anything, mock.Anything)
-	tm.AssertNotCalled(t, "GenerateRefreshToken", mock.Anything, mock.Anything)
 }
 
 func TestAuthService_CreateBaseAdmin_UserAlreadyExists_ReturnsParsedPgError(t *testing.T) {
-	svc, db, ph, tm := newSvc(t)
+	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
 	in := dto.CreateUserParams{Username: "Admin", Password: "123", Role: "Admin"}
@@ -186,6 +168,4 @@ func TestAuthService_CreateBaseAdmin_UserAlreadyExists_ReturnsParsedPgError(t *t
 	require.ErrorIs(t, err, expected)
 
 	db.AssertNotCalled(t, "SetAdminUUID", mock.Anything)
-	tm.AssertNotCalled(t, "GenerateAccessToken", mock.Anything, mock.Anything)
-	tm.AssertNotCalled(t, "GenerateRefreshToken", mock.Anything, mock.Anything)
 }

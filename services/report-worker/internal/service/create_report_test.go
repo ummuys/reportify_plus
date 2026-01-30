@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/services/report-worker/internal/dto"
 	"github.com/ummuys/reportify/services/report-worker/internal/mocks"
@@ -43,255 +45,288 @@ func newPublish(t *testing.T) (PublishService,
 	return p, reportDB, datasourceDB, conv, minioCli, cache
 }
 
+func defaultInfo(format string) dto.GetReportInfoResult {
+	return dto.GetReportInfoResult{
+		ReportID: "r1",
+		Name:     "rep",
+		Format:   format,
+		CSVSep:   ';',
+		Query:    "select 1",
+	}
+}
+
+func defaultData() dto.GetDataResult {
+	return dto.GetDataResult{
+		Columns: []string{"c1"},
+		Rows:    [][]any{{"v1"}},
+	}
+}
+
+func expectSetRunningOK(reportDB *mocks.MockReportDB) {
+	reportDB.EXPECT().
+		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
+			return p.ReportID == "r1" &&
+				p.UpdateStatus == repository.StatusRunnig &&
+				p.BeforeStatus == repository.StatusCreated
+		})).
+		Return(nil).
+		Once()
+}
+
+func expectSetRunningErr(reportDB *mocks.MockReportDB, err error) {
+	reportDB.EXPECT().
+		SetReportStatus(mock.Anything, mock.Anything).
+		Return(err).
+		Once()
+}
+
+func expectGetInfoOK(reportDB *mocks.MockReportDB, info dto.GetReportInfoResult) {
+	reportDB.EXPECT().
+		GetReportInfo(mock.Anything, mock.Anything).
+		Return(info, nil).
+		Once()
+}
+
+func expectGetInfoErr(reportDB *mocks.MockReportDB, err error) {
+	reportDB.EXPECT().
+		GetReportInfo(mock.Anything, mock.Anything).
+		Return(dto.GetReportInfoResult{}, err).
+		Once()
+}
+
+func expectGetDataOK(ds *mocks.MockDatasourceDB, query string, data dto.GetDataResult) {
+	ds.EXPECT().
+		GetData(mock.Anything, dto.GetDataParams{Query: query}).
+		Return(data, nil).
+		Once()
+}
+
+func expectGetDataErr(ds *mocks.MockDatasourceDB, query string, err error) {
+	ds.EXPECT().
+		GetData(mock.Anything, dto.GetDataParams{Query: query}).
+		Return(dto.GetDataResult{}, err).
+		Once()
+}
+
+func expectConvert(conv *mocks.MockReportConvert, format string, retErr error) {
+	switch format {
+	case "PDF":
+		conv.EXPECT().ToPDF(mock.Anything).Return(retErr).Once()
+	case "XLSX":
+		conv.EXPECT().ToXLSX(mock.Anything).Return(retErr).Once()
+	case "JSON":
+		conv.EXPECT().ToJSON(mock.Anything).Return(retErr).Once()
+	case "CSV":
+		conv.EXPECT().ToCSV(mock.Anything).Return(retErr).Once()
+	case "DOCX":
+		conv.EXPECT().ToDOCX(mock.Anything).Return(retErr).Once()
+	default:
+	}
+}
+
+func expectUpload(minio *mocks.MockMinIOClient, url string, retErr error) {
+	minio.EXPECT().
+		UploadAndPresign(mock.Anything, mock.Anything).
+		Run(func(ctx context.Context, in dto.PutReportIn) {
+			_, _ = io.ReadAll(in.Reader)
+		}).
+		Return(url, retErr).
+		Once()
+}
+
+func expectSetCompletedOK(reportDB *mocks.MockReportDB, url string) {
+	reportDB.EXPECT().
+		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
+			return p.ReportID == "r1" &&
+				p.UpdateStatus == repository.StatusCompleted &&
+				p.BeforeStatus == repository.StatusRunnig &&
+				p.FilePath != nil && *p.FilePath == url &&
+				p.ExpireAt != nil
+		})).
+		Return(nil).
+		Once()
+}
+
+func expectSetCompletedErr(reportDB *mocks.MockReportDB, err error) {
+	reportDB.EXPECT().
+		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
+			return p.ReportID == "r1" &&
+				p.UpdateStatus == repository.StatusCompleted &&
+				p.BeforeStatus == repository.StatusRunnig
+		})).
+		Return(err).
+		Once()
+}
+
+func expectStepFailedOK(t *testing.T, reportDB *mocks.MockReportDB, cache *mocks.MockReportCache, beforeStatus string) {
+	t.Helper()
+
+	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusFailed).Return(nil).Once()
+
+	reportDB.EXPECT().
+		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
+			return p.ReportID == "r1" &&
+				p.UpdateStatus == repository.StatusFailed &&
+				p.BeforeStatus == beforeStatus &&
+				p.ErrMsg != nil && *p.ErrMsg != ""
+		})).
+		Return(nil).
+		Once()
+}
+
+func expectStepFailed_CacheSetErr(t *testing.T, reportDB *mocks.MockReportDB, cache *mocks.MockReportCache, beforeStatus string) {
+	t.Helper()
+
+	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusFailed).Return(errors.New("cache set failed err")).Once()
+
+	reportDB.EXPECT().
+		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
+			return p.ReportID == "r1" &&
+				p.UpdateStatus == repository.StatusFailed &&
+				p.BeforeStatus == beforeStatus &&
+				p.ErrMsg != nil && *p.ErrMsg != ""
+		})).
+		Return(nil).
+		Once()
+}
+
+func expectStepFailed_DbSetErr(t *testing.T, reportDB *mocks.MockReportDB, cache *mocks.MockReportCache, beforeStatus string) {
+	t.Helper()
+
+	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusFailed).Return(nil).Once()
+
+	reportDB.EXPECT().
+		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
+			return p.ReportID == "r1" &&
+				p.UpdateStatus == repository.StatusFailed &&
+				p.BeforeStatus == beforeStatus &&
+				p.ErrMsg != nil && *p.ErrMsg != ""
+		})).
+		Return(errors.New("db set status failed failed err")).
+		Once()
+}
+
 func TestPublish_CreateReport_Success_AllFormats(t *testing.T) {
 	cases := []struct {
-		name       string
-		format     string
-		expectConv func(conv *mocks.MockReportConvert)
+		name   string
+		format string
 	}{
-		{
-			name:   "PDF",
-			format: "PDF",
-			expectConv: func(conv *mocks.MockReportConvert) {
-				conv.EXPECT().ToPDF(mock.Anything).Return(nil).Once()
-			},
-		},
-		{
-			name:   "XLSX",
-			format: "XLSX",
-			expectConv: func(conv *mocks.MockReportConvert) {
-				conv.EXPECT().ToXLSX(mock.Anything).Return(nil).Once()
-			},
-		},
-		{
-			name:   "JSON",
-			format: "JSON",
-			expectConv: func(conv *mocks.MockReportConvert) {
-				conv.EXPECT().ToJSON(mock.Anything).Return(nil).Once()
-			},
-		},
-		{
-			name:   "DOCX",
-			format: "DOCX",
-			expectConv: func(conv *mocks.MockReportConvert) {
-				conv.EXPECT().ToDOCX(mock.Anything).Return(nil).Once()
-			},
-		},
-		{
-			name:   "CSV",
-			format: "CSV",
-			expectConv: func(conv *mocks.MockReportConvert) {
-				conv.EXPECT().ToCSV(mock.Anything).Return(nil).Once()
-			},
-		},
+		{"PDF", "PDF"},
+		{"XLSX", "XLSX"},
+		{"JSON", "JSON"},
+		{"DOCX", "DOCX"},
+		{"CSV", "CSV"},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			p, reportDB, datasourceDB, conv, minioCli, cache := newPublish(t)
+			p, reportDB, ds, conv, minio, cache := newPublish(t)
 			ctx := context.Background()
-
 			in := dto.KafkaMessage{ReportID: "r1"}
 
-			reportDB.EXPECT().
-				SetReportStatus(mock.Anything, mock.Anything).
-				Return(nil).
-				Once()
+			info := defaultInfo(tc.format)
+			data := defaultData()
 
-			info := dto.GetReportInfoResult{
-				ReportID: "r1",
-				Name:     "rep",
-				Format:   tc.format,
-				CSVSep:   ';',
-				Query:    "select 1",
-			}
-			reportDB.EXPECT().
-				GetReportInfo(mock.Anything, mock.Anything).
-				Return(info, nil).
-				Once()
-
-			data := dto.GetDataResult{
-				Columns: []string{"c1"},
-				Rows:    [][]any{{"v1"}},
-			}
-			datasourceDB.EXPECT().
-				GetData(mock.Anything, dto.GetDataParams{Query: "select 1"}).
-				Return(data, nil).
-				Once()
-
-			tc.expectConv(conv)
-
-			minioCli.EXPECT().
-				UploadAndPresign(mock.Anything, mock.Anything).
-				Run(func(ctx context.Context, in dto.PutReportIn) {
-					_, _ = io.ReadAll(in.Reader)
-				}).
-				Return("https://signed/url", nil).
-				Once()
-
-			reportDB.EXPECT().
-				SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
-					return p.ReportID == "r1" &&
-						p.UpdateStatus == repository.StatusCompleted &&
-						p.BeforeStatus == repository.StatusRunnig &&
-						p.FilePath != nil && *p.FilePath == "https://signed/url" &&
-						p.ExpireAt != nil
-				})).
-				Return(nil).
-				Once()
-
+			expectSetRunningOK(reportDB)
+			expectGetInfoOK(reportDB, info)
+			expectGetDataOK(ds, info.Query, data)
+			expectConvert(conv, info.Format, nil)
+			expectUpload(minio, "https://signed/url", nil)
+			expectSetCompletedOK(reportDB, "https://signed/url")
 			cache.EXPECT().Set(mock.Anything, "r1", repository.StatusCompleted).Return(nil).Once()
 
 			err := p.CreateReport(ctx, in)
 			require.NoError(t, err)
-
 		})
 	}
 }
 
 func TestPublish_CreateReport_SetRunningError_ReturnsParsedPgError_AndStepFailed(t *testing.T) {
-	p, reportDB, datasourceDB, conv, minioCli, cache := newPublish(t)
+	p, reportDB, ds, conv, minio, cache := newPublish(t)
 	ctx := context.Background()
-
 	in := dto.KafkaMessage{ReportID: "r1"}
 
 	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.Anything).
-		Return(dbErr).
-		Once()
-
-	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusFailed).Return(nil).Once()
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
-			return p.ReportID == "r1" &&
-				p.UpdateStatus == repository.StatusFailed &&
-				p.BeforeStatus == repository.StatusCreated &&
-				p.ErrMsg != nil
-		})).
-		Return(nil).
-		Once()
+	expectSetRunningErr(reportDB, dbErr)
+	expectStepFailedOK(t, reportDB, cache, repository.StatusCreated)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
 	require.ErrorIs(t, err, expected)
 
-	datasourceDB.AssertNotCalled(t, "GetData", mock.Anything, mock.Anything)
+	ds.AssertNotCalled(t, "GetData", mock.Anything, mock.Anything)
 	conv.AssertNotCalled(t, "ToCSV", mock.Anything)
-	minioCli.AssertNotCalled(t, "UploadAndPresign", mock.Anything, mock.Anything)
+	minio.AssertNotCalled(t, "UploadAndPresign", mock.Anything, mock.Anything)
 }
 
 func TestPublish_CreateReport_GetInfoError_ReturnsParsedPgError_AndStepFailed(t *testing.T) {
-	p, reportDB, datasourceDB, conv, minioCli, cache := newPublish(t)
+	p, reportDB, ds, conv, minio, cache := newPublish(t)
 	ctx := context.Background()
-
 	in := dto.KafkaMessage{ReportID: "r1"}
-
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.Anything).
-		Return(nil).
-		Once()
 
 	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
-	reportDB.EXPECT().
-		GetReportInfo(mock.Anything, mock.Anything).
-		Return(dto.GetReportInfoResult{}, dbErr).
-		Once()
-
-	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusFailed).Return(nil).Once()
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
-			return p.ReportID == "r1" &&
-				p.UpdateStatus == repository.StatusFailed &&
-				p.BeforeStatus == repository.StatusRunnig &&
-				p.ErrMsg != nil
-		})).
-		Return(nil).
-		Once()
+	expectSetRunningOK(reportDB)
+	expectGetInfoErr(reportDB, dbErr)
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
 	require.ErrorIs(t, err, expected)
 
-	datasourceDB.AssertNotCalled(t, "GetData", mock.Anything, mock.Anything)
+	ds.AssertNotCalled(t, "GetData", mock.Anything, mock.Anything)
 	conv.AssertNotCalled(t, "ToCSV", mock.Anything)
-	minioCli.AssertNotCalled(t, "UploadAndPresign", mock.Anything, mock.Anything)
+	minio.AssertNotCalled(t, "UploadAndPresign", mock.Anything, mock.Anything)
 }
 
 func TestPublish_CreateReport_GetDataError_ReturnsParsedPgError_AndStepFailed(t *testing.T) {
-	p, reportDB, datasourceDB, conv, minioCli, cache := newPublish(t)
+	_, reportDB, _, conv, minio, cache := newPublish(t)
 	ctx := context.Background()
-
 	in := dto.KafkaMessage{ReportID: "r1"}
 
-	reportDB.EXPECT().SetReportStatus(mock.Anything, mock.Anything).Return(nil).Once()
-
-	info := dto.GetReportInfoResult{ReportID: "r1", Name: "rep", Format: "CSV", CSVSep: ';', Query: "select 1"}
-	reportDB.EXPECT().GetReportInfo(mock.Anything, mock.Anything).Return(info, nil).Once()
+	info := defaultInfo("CSV")
 
 	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
-	datasourceDB.EXPECT().GetData(mock.Anything, dto.GetDataParams{Query: "select 1"}).Return(dto.GetDataResult{}, dbErr).Once()
+	expectSetRunningOK(reportDB)
+	expectGetInfoOK(reportDB, info)
 
-	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusFailed).Return(nil).Once()
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
-			return p.ReportID == "r1" &&
-				p.UpdateStatus == repository.StatusFailed &&
-				p.BeforeStatus == repository.StatusRunnig &&
-				p.ErrMsg != nil
-		})).
-		Return(nil).
-		Once()
+	ds := mocks.NewMockDatasourceDB(t)
+	p2, _ := NewPublishService(ds, reportDB, cache, conv, minio, zerolog.Nop())
 
-	err := p.CreateReport(ctx, in)
+	expectGetDataErr(ds, info.Query, dbErr)
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
+
+	err := p2.CreateReport(ctx, in)
 	require.Error(t, err)
 	require.ErrorIs(t, err, expected)
 
 	conv.AssertNotCalled(t, "ToCSV", mock.Anything)
-	minioCli.AssertNotCalled(t, "UploadAndPresign", mock.Anything, mock.Anything)
+	minio.AssertNotCalled(t, "UploadAndPresign", mock.Anything, mock.Anything)
 }
 
 func TestPublish_CreateReport_ConvertError_ReturnsError_AndStepFailed(t *testing.T) {
-	p, reportDB, datasourceDB, conv, minioCli, cache := newPublish(t)
+	p, reportDB, ds, conv, minio, cache := newPublish(t)
 	ctx := context.Background()
-
 	in := dto.KafkaMessage{ReportID: "r1"}
 
-	reportDB.EXPECT().SetReportStatus(mock.Anything, mock.Anything).Return(nil).Once()
+	info := defaultInfo("CSV")
+	data := defaultData()
 
-	info := dto.GetReportInfoResult{ReportID: "r1", Name: "rep", Format: "CSV", CSVSep: ';', Query: "select 1"}
-	reportDB.EXPECT().GetReportInfo(mock.Anything, mock.Anything).Return(info, nil).Once()
-
-	data := dto.GetDataResult{Columns: []string{"c1"}, Rows: [][]any{{"v1"}}}
-	datasourceDB.EXPECT().GetData(mock.Anything, dto.GetDataParams{Query: "select 1"}).Return(data, nil).Once()
+	expectSetRunningOK(reportDB)
+	expectGetInfoOK(reportDB, info)
+	expectGetDataOK(ds, info.Query, data)
 
 	convErr := errors.New("convert err")
-	conv.EXPECT().ToCSV(mock.Anything).Return(convErr).Once()
+	expectConvert(conv, info.Format, convErr)
 
-	minioCli.EXPECT().
-		UploadAndPresign(mock.Anything, mock.Anything).
-		Run(func(ctx context.Context, in dto.PutReportIn) {
-			_, _ = io.ReadAll(in.Reader)
-		}).
-		Return("", nil).
-		Maybe()
+	expectUpload(minio, "", nil)
 
-	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusFailed).Return(nil).Once()
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
-			return p.ReportID == "r1" &&
-				p.UpdateStatus == repository.StatusFailed &&
-				p.BeforeStatus == repository.StatusRunnig &&
-				p.ErrMsg != nil
-		})).
-		Return(nil).
-		Once()
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
@@ -299,40 +334,23 @@ func TestPublish_CreateReport_ConvertError_ReturnsError_AndStepFailed(t *testing
 }
 
 func TestPublish_CreateReport_UploadError_ReturnsError_AndStepFailed(t *testing.T) {
-	p, reportDB, datasourceDB, conv, minioCli, cache := newPublish(t)
+	p, reportDB, ds, conv, minio, cache := newPublish(t)
 	ctx := context.Background()
-
 	in := dto.KafkaMessage{ReportID: "r1"}
 
-	reportDB.EXPECT().SetReportStatus(mock.Anything, mock.Anything).Return(nil).Once()
+	info := defaultInfo("CSV")
+	data := defaultData()
 
-	info := dto.GetReportInfoResult{ReportID: "r1", Name: "rep", Format: "CSV", CSVSep: ';', Query: "select 1"}
-	reportDB.EXPECT().GetReportInfo(mock.Anything, mock.Anything).Return(info, nil).Once()
+	expectSetRunningOK(reportDB)
+	expectGetInfoOK(reportDB, info)
+	expectGetDataOK(ds, info.Query, data)
 
-	data := dto.GetDataResult{Columns: []string{"c1"}, Rows: [][]any{{"v1"}}}
-	datasourceDB.EXPECT().GetData(mock.Anything, dto.GetDataParams{Query: "select 1"}).Return(data, nil).Once()
-
-	conv.EXPECT().ToCSV(mock.Anything).Return(nil).Once()
+	expectConvert(conv, info.Format, nil)
 
 	upErr := errors.New("upload err")
-	minioCli.EXPECT().
-		UploadAndPresign(mock.Anything, mock.Anything).
-		Run(func(ctx context.Context, in dto.PutReportIn) {
-			_, _ = io.ReadAll(in.Reader)
-		}).
-		Return("", upErr).
-		Once()
+	expectUpload(minio, "", upErr)
 
-	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusFailed).Return(nil).Once()
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
-			return p.ReportID == "r1" &&
-				p.UpdateStatus == repository.StatusFailed &&
-				p.BeforeStatus == repository.StatusRunnig &&
-				p.ErrMsg != nil
-		})).
-		Return(nil).
-		Once()
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
@@ -340,54 +358,26 @@ func TestPublish_CreateReport_UploadError_ReturnsError_AndStepFailed(t *testing.
 }
 
 func TestPublish_CreateReport_SetCompletedError_ReturnsParsedPgError_AndStepFailed(t *testing.T) {
-	p, reportDB, datasourceDB, conv, minioCli, cache := newPublish(t)
+	p, reportDB, ds, conv, minio, cache := newPublish(t)
 	ctx := context.Background()
-
 	in := dto.KafkaMessage{ReportID: "r1"}
 
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.Anything).
-		Return(nil).
-		Once()
+	info := defaultInfo("CSV")
+	data := defaultData()
 
-	info := dto.GetReportInfoResult{ReportID: "r1", Name: "rep", Format: "CSV", CSVSep: ';', Query: "select 1"}
-	reportDB.EXPECT().GetReportInfo(mock.Anything, mock.Anything).Return(info, nil).Once()
+	expectSetRunningOK(reportDB)
+	expectGetInfoOK(reportDB, info)
+	expectGetDataOK(ds, info.Query, data)
 
-	data := dto.GetDataResult{Columns: []string{"c1"}, Rows: [][]any{{"v1"}}}
-	datasourceDB.EXPECT().GetData(mock.Anything, dto.GetDataParams{Query: "select 1"}).Return(data, nil).Once()
-
-	conv.EXPECT().ToCSV(mock.Anything).Return(nil).Once()
-
-	minioCli.EXPECT().
-		UploadAndPresign(mock.Anything, mock.Anything).
-		Run(func(ctx context.Context, in dto.PutReportIn) {
-			_, _ = io.ReadAll(in.Reader)
-		}).
-		Return("https://signed/url", nil).
-		Once()
+	expectConvert(conv, info.Format, nil)
+	expectUpload(minio, "https://signed/url", nil)
 
 	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
-			return p.ReportID == "r1" &&
-				p.UpdateStatus == repository.StatusCompleted &&
-				p.BeforeStatus == repository.StatusRunnig
-		})).
-		Return(dbErr).
-		Once()
+	expectSetCompletedErr(reportDB, dbErr)
 
-	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusFailed).Return(nil).Once()
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
-			return p.ReportID == "r1" &&
-				p.UpdateStatus == repository.StatusFailed &&
-				p.BeforeStatus == repository.StatusRunnig &&
-				p.ErrMsg != nil
-		})).
-		Return(nil).
-		Once()
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
@@ -395,43 +385,20 @@ func TestPublish_CreateReport_SetCompletedError_ReturnsParsedPgError_AndStepFail
 }
 
 func TestPublish_CreateReport_UnsupportedFormat_ReturnsError_AndStepFailed(t *testing.T) {
-	p, reportDB, datasourceDB, conv, minioCli, cache := newPublish(t)
+	p, reportDB, ds, conv, minio, cache := newPublish(t)
 	ctx := context.Background()
-
 	in := dto.KafkaMessage{ReportID: "r1"}
 
-	reportDB.EXPECT().SetReportStatus(mock.Anything, mock.Anything).Return(nil).Once()
+	info := defaultInfo("AVI")
+	data := defaultData()
 
-	info := dto.GetReportInfoResult{
-		ReportID: "r1",
-		Name:     "rep",
-		Format:   "AVI",
-		CSVSep:   ';',
-		Query:    "select 1",
-	}
-	reportDB.EXPECT().GetReportInfo(mock.Anything, mock.Anything).Return(info, nil).Once()
+	expectSetRunningOK(reportDB)
+	expectGetInfoOK(reportDB, info)
+	expectGetDataOK(ds, info.Query, data)
 
-	data := dto.GetDataResult{Columns: []string{"c1"}, Rows: [][]any{{"v1"}}}
-	datasourceDB.EXPECT().GetData(mock.Anything, dto.GetDataParams{Query: "select 1"}).Return(data, nil).Once()
+	expectUpload(minio, "", nil)
 
-	minioCli.EXPECT().
-		UploadAndPresign(mock.Anything, mock.Anything).
-		Run(func(ctx context.Context, in dto.PutReportIn) {
-			_, _ = io.ReadAll(in.Reader)
-		}).
-		Return("", nil).
-		Maybe()
-
-	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusFailed).Return(nil).Once()
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
-			return p.ReportID == "r1" &&
-				p.UpdateStatus == repository.StatusFailed &&
-				p.BeforeStatus == repository.StatusRunnig &&
-				p.ErrMsg != nil
-		})).
-		Return(nil).
-		Once()
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
@@ -445,34 +412,19 @@ func TestPublish_CreateReport_UnsupportedFormat_ReturnsError_AndStepFailed(t *te
 }
 
 func TestPublish_CreateReport_CacheSetCompletedError_Ignored(t *testing.T) {
-	p, reportDB, datasourceDB, conv, minioCli, cache := newPublish(t)
+	p, reportDB, ds, conv, minio, cache := newPublish(t)
 	ctx := context.Background()
-
 	in := dto.KafkaMessage{ReportID: "r1"}
 
-	reportDB.EXPECT().SetReportStatus(mock.Anything, mock.Anything).Return(nil).Once()
+	info := defaultInfo("CSV")
+	data := defaultData()
 
-	info := dto.GetReportInfoResult{
-		ReportID: "r1",
-		Name:     "rep",
-		Format:   "CSV",
-		CSVSep:   ';',
-		Query:    "select 1",
-	}
-	reportDB.EXPECT().GetReportInfo(mock.Anything, mock.Anything).Return(info, nil).Once()
-
-	data := dto.GetDataResult{Columns: []string{"c1"}, Rows: [][]any{{"v1"}}}
-	datasourceDB.EXPECT().GetData(mock.Anything, dto.GetDataParams{Query: "select 1"}).Return(data, nil).Once()
-
-	conv.EXPECT().ToCSV(mock.Anything).Return(nil).Once()
-
-	minioCli.EXPECT().
-		UploadAndPresign(mock.Anything, mock.Anything).
-		Run(func(ctx context.Context, in dto.PutReportIn) { _, _ = io.ReadAll(in.Reader) }).
-		Return("https://signed/url", nil).
-		Once()
-
-	reportDB.EXPECT().SetReportStatus(mock.Anything, mock.Anything).Return(nil).Once()
+	expectSetRunningOK(reportDB)
+	expectGetInfoOK(reportDB, info)
+	expectGetDataOK(ds, info.Query, data)
+	expectConvert(conv, info.Format, nil)
+	expectUpload(minio, "https://signed/url", nil)
+	expectSetCompletedOK(reportDB, "https://signed/url")
 
 	cacheErr := errors.New("cache set completed err")
 	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusCompleted).Return(cacheErr).Once()
@@ -484,26 +436,13 @@ func TestPublish_CreateReport_CacheSetCompletedError_Ignored(t *testing.T) {
 func TestPublish_CreateReport_StepFailed_CacheSetFailedError_BranchCovered(t *testing.T) {
 	p, reportDB, _, _, _, cache := newPublish(t)
 	ctx := context.Background()
-
 	in := dto.KafkaMessage{ReportID: "r1"}
 
 	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
-	reportDB.EXPECT().SetReportStatus(mock.Anything, mock.Anything).Return(dbErr).Once()
-
-	cacheSetErr := errors.New("cache set failed err")
-	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusFailed).Return(cacheSetErr).Once()
-
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
-			return p.ReportID == "r1" &&
-				p.UpdateStatus == repository.StatusFailed &&
-				p.BeforeStatus == repository.StatusCreated &&
-				p.ErrMsg != nil
-		})).
-		Return(nil).
-		Once()
+	expectSetRunningErr(reportDB, dbErr)
+	expectStepFailed_CacheSetErr(t, reportDB, cache, repository.StatusCreated)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
@@ -513,28 +452,36 @@ func TestPublish_CreateReport_StepFailed_CacheSetFailedError_BranchCovered(t *te
 func TestPublish_CreateReport_StepFailed_DbSetStatusFailedError_BranchCovered(t *testing.T) {
 	p, reportDB, _, _, _, cache := newPublish(t)
 	ctx := context.Background()
-
 	in := dto.KafkaMessage{ReportID: "r1"}
 
 	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
-	reportDB.EXPECT().SetReportStatus(mock.Anything, mock.Anything).Return(dbErr).Once()
-
-	cache.EXPECT().Set(mock.Anything, "r1", repository.StatusFailed).Return(nil).Once()
-
-	ferr := errors.New("set status failed failed err")
-	reportDB.EXPECT().
-		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
-			return p.ReportID == "r1" &&
-				p.UpdateStatus == repository.StatusFailed &&
-				p.BeforeStatus == repository.StatusCreated &&
-				p.ErrMsg != nil
-		})).
-		Return(ferr).
-		Once()
+	expectSetRunningErr(reportDB, dbErr)
+	expectStepFailed_DbSetErr(t, reportDB, cache, repository.StatusCreated)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
 	require.ErrorIs(t, err, expected)
+}
+
+func TestPublish_CreateReport_ConvertError_IsNotParsed(t *testing.T) {
+	p, reportDB, ds, conv, minio, cache := newPublish(t)
+	ctx := context.Background()
+	in := dto.KafkaMessage{ReportID: "r1"}
+
+	info := defaultInfo("CSV")
+	data := defaultData()
+
+	expectSetRunningOK(reportDB)
+	expectGetInfoOK(reportDB, info)
+	expectGetDataOK(ds, info.Query, data)
+
+	convErr := fmt.Errorf("plain convert err")
+	expectConvert(conv, info.Format, convErr)
+	expectUpload(minio, "", nil)
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
+
+	err := p.CreateReport(ctx, in)
+	require.ErrorIs(t, err, convErr)
 }

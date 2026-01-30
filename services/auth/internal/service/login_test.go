@@ -11,7 +11,6 @@ import (
 	"github.com/ummuys/reportify/services/auth/internal/dto"
 )
 
-// ALL OK
 func TestAuthService_Login_Success(t *testing.T) {
 	svc, db, ph, tm := newSvc(t)
 	ctx := context.Background()
