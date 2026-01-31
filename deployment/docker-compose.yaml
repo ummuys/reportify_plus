@@ -180,7 +180,7 @@ services:
 
 
   report-kafka:
-    image: apache/kafka:latest
+    image: apache/kafka:4.0.0
     container_name: ${REPORT_KAFKA_CONTAINER_NAME}
     env_file:
       - ./../.env
@@ -278,8 +278,6 @@ services:
         condition: service_healthy
     networks:
       - reportify-network
-    deploy:
-      replicas: 3
 
 
 
@@ -334,5 +332,4 @@ volumes:
   datasource-db:
 
 networks:
-  reportify-network:
-    external: true
+  reportify-network: {}
