@@ -55,7 +55,7 @@
 }
 
 .logout-btn {
-  background: var(--btn-bg);
+  background: var(--btn-bg-lgout);
   border: 1px solid var(--color-green-base);
   color: var(--panel);  
   border-radius: 10px;
