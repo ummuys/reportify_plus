@@ -156,6 +156,12 @@
   opacity: 1;
 }
 
+.btn-preview.disabled {
+  opacity: 0.6;
+  cursor: default;
+  pointer-events: all;
+}
+
 .btn.disabled,
 .btn.is-disabled {
   opacity: 0.6;
@@ -188,4 +194,6 @@
   transform: scale(1.02);
 }
 
-
+.btn-preview.disabled:hover {
+    background: var(--mint-tint-800);
+}
