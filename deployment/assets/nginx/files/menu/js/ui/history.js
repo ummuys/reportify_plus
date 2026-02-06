@@ -143,7 +143,8 @@ function buildRawParamsFromEntry(entry) {
 		report_comm: normalizeReportComment(entry.comment),
 		created_at: toISOStringSafe(createdSource),
 		sql,
-		csv_sep: csvSepChar
+		csv_sep: csvSepChar,
+        reportId: entry.reportId || "",
 	};
 }
 
@@ -232,6 +233,11 @@ function normalizeCacheEntry(raw) {
             meta.time = created.toLocaleString();
             meta.savedAt = created.toISOString();
         }
+    }
+
+    const idCandidate = raw.report_id ?? raw.reportId;
+    if (idCandidate) {
+        meta.reportId = idCandidate;
     }
 
     return { sql, meta };
@@ -354,6 +360,21 @@ function deriveMetaFromSql(sql = '') {
 function loadMetaFromStorage() {
     try {
         const raw = localStorage.getItem(HISTORY_META_KEY);
+
+        //console.log(JSON.parse(localStorage.getItem(HISTORY_META_KEY)));
+
+        // {
+        //     "query1": {
+        //         schema: ...,
+        //         table: ...,
+        //         ...
+        //     },
+
+        //     "query2": {
+        //         ...
+        //     }
+        // }
+
         if (!raw) return {};
         const parsed = JSON.parse(raw);
         if (typeof parsed !== 'object' || parsed === null) return {};
@@ -504,7 +525,8 @@ function createEntryFromSql(sql, idx) {
 		csvSep: meta.csvSep || '',
 		savedAt: meta.savedAt || '',
 		favorite: !!meta.favorite,
-		time: meta.time || meta.savedAt || ''
+		time: meta.time || meta.savedAt || '',
+        id: meta.reportId || '',
 	};
 }
 
@@ -546,7 +568,7 @@ export async function clearHistory() {
     return true;
 }
 
-export async function saveHistoryEntry() {
+export async function saveHistoryEntry(reportId) {
     const sqlText = el('sqlText');
     const sql = sqlText?.value?.trim();
     if (!sql) {
@@ -587,7 +609,8 @@ export async function saveHistoryEntry() {
 		sorts,
 		time: now.toLocaleString(),
 		savedAt: now.toISOString(),
-		csvSep: csvSepChar
+		csvSep: csvSepChar,
+        reportId: reportId || "",
 	};
 
     mergeMeta(sql, {
@@ -626,14 +649,18 @@ export async function refreshHistory(options = {}) {
             if (meta.csvSep) patch.csvSep = meta.csvSep;
             if (meta.time) patch.time = meta.time;
             if (meta.savedAt) patch.savedAt = meta.savedAt;
+            if (meta.reportId) patch.reportId = meta.reportId;
             if (Object.keys(patch).length) {
                 mergeMeta(sql, patch);
             }
         });
 
+
         const queries = normalizedEntries.map(entry => entry.sql);
         setFallbackQueries(queries);
         reportHistory = buildHistoryFromQueries(fallbackQueries);
+
+        //console.log(reportHistory);
     } catch (err) {
         lastError = err;
         if (!silent) {
@@ -761,6 +788,7 @@ export function hydrateHistoryEntry(entry) {
 	entry.savedAt = entry.savedAt || meta?.savedAt || '';
 	entry.favorite = typeof entry.favorite === 'boolean' ? entry.favorite : !!meta?.favorite;
 	entry.time = entry.time || meta?.time || meta?.savedAt || '';
+    entry.reportId = entry.reportId || meta?.reportId || '';
 
 	return entry;
 }

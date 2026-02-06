@@ -540,7 +540,7 @@ export function setupEventListeners() {
                 throw new Error(`Неожиданный ответ сервера: ${details?.slice?.(0, 300) || ""}`);
             }
 
-            await saveHistoryEntry();
+            await saveHistoryEntry(result.task.uuid);
             updateReportHistory();
         } catch (e) {
             await showAlert('Не удалось сформировать отчёт:\n' + (e.message || e), "Ошибка");
@@ -552,34 +552,34 @@ export function setupEventListeners() {
     });
 
     // Предпросмотр
-    if (btnPreview) {  // ✅ ДОБАВИЛИ ПРОВЕРКУ
-        btnPreview.addEventListener('click', async () => {
-            if (btnPreview.classList.contains('disabled')) {
-                showToast('Предпросмотр доступен только для PDF');
-                return;
-            }
-            if (!reportName.value.trim()) { showToast('Введите название отчёта'); return; }
-            if (!reportComment.value.trim()) { showToast('Введите комментарий к отчёту'); return; }
-            if (!sqlText.value.trim()) { showToast('SQL пустой'); return; }
+    // if (btnPreview) {  // ДОБАВИЛИ ПРОВЕРКУ
+    //     btnPreview.addEventListener('click', async () => {
+    //         if (btnPreview.classList.contains('disabled')) {
+    //             showToast('Предпросмотр доступен только для PDF');
+    //             return;
+    //         }
+    //         if (!reportName.value.trim()) { showToast('Введите название отчёта'); return; }
+    //         if (!reportComment.value.trim()) { showToast('Введите комментарий к отчёту'); return; }
+    //         if (!sqlText.value.trim()) { showToast('SQL пустой'); return; }
 
-            try {
-                const { blob, format } = await postReportAndGetBlob({
-                    format: state.format,
-                    sql: sqlText.value.trim(),
-                    reportName: reportName.value.trim(),
-                    reportComment: reportComment.value.trim(),
-                    csvSep: csvSeparator?.value || ",",
-                    createdAt: new Date().toISOString(),
-                });
-                (format === 'pdf' || format === 'csv') ? openBlob(blob) : saveBlob(blob, `preview.${format}`);
-                await saveHistoryEntry();
-                updateReportHistory();
-            } catch (e) {
-                await showAlert('Не удалось показать предпросмотр:\n' + (e.message || e), "Ошибка");
-                console.error(e);
-            }
-        });
-    } 
+    //         try {
+    //             const { blob, format } = await postReportAndGetBlob({
+    //                 format: state.format,
+    //                 sql: sqlText.value.trim(),
+    //                 reportName: reportName.value.trim(),
+    //                 reportComment: reportComment.value.trim(),
+    //                 csvSep: csvSeparator?.value || ",",
+    //                 createdAt: new Date().toISOString(),
+    //             });
+    //             (format === 'pdf' || format === 'csv') ? openBlob(blob) : saveBlob(blob, `preview.${format}`);
+    //             await saveHistoryEntry();
+    //             updateReportHistory();
+    //         } catch (e) {
+    //             await showAlert('Не удалось показать предпросмотр:\n' + (e.message || e), "Ошибка");
+    //             console.error(e);
+    //         }
+    //     });
+    // } 
 
     // История - фильтр избранного
     if (favFilterBtn) {
