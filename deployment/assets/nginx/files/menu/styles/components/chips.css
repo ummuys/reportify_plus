@@ -1,34 +1,36 @@
 .chips {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(90px, 1fr));
-    gap: 10px;
-    justify-content: center; 
-    justify-items: center;   
-    margin: 0 auto;          
-    max-width: 500px;  
+	display: grid;
+	grid-template-columns: repeat(3, minmax(90px, 1fr));
+	gap: 10px;
+	justify-content: center;
+	justify-items: center;
+	margin: 0 auto;
+	max-width: 500px;
 }
 
 .chip {
-    padding: 8px 12px;
-    border: 1px solid var(--overlay-white-14);
-    border-radius: 10px;
-    font-size: 13px;
-    background: var(--btn-bg);
-    cursor: pointer;
-    text-align: center;
-    width: 100%;
-    transition: 0.2s ease, transform 0.1s ease;
-    color: var(--bg);
-}
-
-.chip.active {
-    background: var(--btn-bg);
-    font-weight: 550;
-    color: var(--bg);
+	padding: 8px 12px;
+	border: 1px solid var(--overlay-white-14);
+	border-radius: 10px;
+	font-size: 13px;
+	background: var(--btn-bg);
+	cursor: pointer;
+	text-align: center;
+	width: 100%;
+	transition:
+		0.2s ease,
+		transform 0.1s ease;
+	color: var(--bg);
 }
 
 .chip:hover {
-  background: var(--btn-bg-hv);
-  transform: scale(1.03);
-  color: var(--bg);
+	background: var(--btn-bg-hv);
+	transform: scale(1.03);
+	color: var(--bg);
+}
+
+.chip.active {
+	background: var(--btn-bg-active);
+	font-weight: 550;
+	color: var(--bg);
 }

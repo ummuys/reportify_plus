@@ -332,7 +332,7 @@ func (rsh *reportServiceHandler) DeleteReport(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call DeleteReport").Msg("")
 
 	reportID := g.Param("report_id")
-	ID := g.GetString("_id")
+	ID := g.GetString("user_id")
 
 	out, gErr := rsh.sc.DeleteReport(g.Request.Context(), &reportservicev1.DeleteReportRequest{
 		AuthorId: ID,

@@ -51,3 +51,4 @@ test:
 	@richgo test ../services/report/internal/service/... -cover
 	@echo "Testing ReportWorkerService . . ."
 	@richgo test ../services/report-worker/internal/service/... -coverprofile=worker_cover.out
+

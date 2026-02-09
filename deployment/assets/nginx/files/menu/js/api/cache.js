@@ -16,7 +16,7 @@ async function requestJson(url, options = {}) {
 
 // 1) fetch cached queries
 export async function getCache() {
-  return await requestJson(`${CACHE_API}/cache`);
+  return await requestJson(`${CACHE_API}/reports`);
 }
 
 // 2) delete a single cached query
@@ -28,7 +28,7 @@ export async function deleteCacheQuery(rawParams) {
   }
 
   try {
-    await requestJson(`${CACHE_API}/cache`, {
+    await requestJson(`${CACHE_API}/reports/${rawParams.reportId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
@@ -45,7 +45,7 @@ export async function deleteCacheQuery(rawParams) {
 // 3) delete the entire cache
 export async function deleteAllCache() {
   try {
-    await requestJson(`${CACHE_API}/cache/all`, {
+    await requestJson(`${CACHE_API}/reports`, {
       method: 'DELETE'
     });
     return true;
