@@ -16,5 +16,5 @@ export {
     deleteHistoryEntry,
     hydrateHistoryEntry
 } from './history.js';
-export { initChartModal } from './chartModal.js'
+export { initChartModal } from './chartModal.js';
 

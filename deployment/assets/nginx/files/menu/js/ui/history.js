@@ -1,6 +1,7 @@
 ﻿import { state, el } from '../core/index.js';
 import { showToast } from './modals.js';
 import { getCache, deleteCacheQuery, deleteAllCache } from '../api/cache.js';
+import { deleteReport } from '../api/reports.js';
 
 const HISTORY_META_KEY = 'reportHistoryMeta';
 const HISTORY_LIMIT = 50;
@@ -404,12 +405,20 @@ function mergeMeta(sql, partial = {}) {
     persistMeta();
 }
 
-function removeMeta(sql) {
-    const key = normalizeSqlKey(sql);
-    if (!key || !historyMeta[key]) return;
-    delete historyMeta[key];
-    persistMeta();
+function removeMeta(sqlOrId) {
+	// Пробуем удалить по ID
+	if (historyMeta[sqlOrId]) {
+		delete historyMeta[sqlOrId]
+		persistMeta()
+		return
+	}
+
+	const key = normalizeSqlKey(sqlOrId)
+	if (!key || !historyMeta[key]) return
+	delete historyMeta[key]
+	persistMeta()
 }
+
 
 function loadFallbackQueries() {
     try {
@@ -453,15 +462,22 @@ function addFallbackQuery(sql) {
     persistFallbackQueries();
 }
 
-function removeFallbackQuery(sql) {
-    const normalized = normalizeSqlKey(sql);
-    if (!normalized) return;
-    const next = fallbackQueries.filter(q => q !== normalized);
-    if (next.length !== fallbackQueries.length) {
-        fallbackQueries = next;
-        persistFallbackQueries();
-    }
+function removeFallbackQuery(sqlOrId) {
+	let next = fallbackQueries.filter(q => q !== sqlOrId)
+
+	if (next.length === fallbackQueries.length) {
+		const normalized = normalizeSqlKey(sqlOrId)
+		if (normalized) {
+			next = fallbackQueries.filter(q => q !== normalized)
+		}
+	}
+
+	if (next.length !== fallbackQueries.length) {
+		fallbackQueries = next
+		persistFallbackQueries()
+	}
 }
+
 
 function clearFallbackQueries() {
     fallbackQueries = [];
@@ -483,20 +499,37 @@ function cloneSorts(sorts = []) {
     }));
 }
 
-function createEntryFromSql(sql, idx) {
-	const key = normalizeSqlKey(sql);
-	const meta = historyMeta[key] || {};
-	const displaySql = meta.sql || sql;
-	const derived = deriveMetaFromSql(displaySql) || {};
+function createEntryFromSql(keyOrId, idx) {
+	// Проверяем, это UUID/ID или старый SQL-ключ
+	let meta = historyMeta[keyOrId]
+
+	if (!meta) {
+		// Это старый формат - SQL как ключ
+		const sqlKey = normalizeSqlKey(keyOrId)
+		meta = historyMeta[sqlKey] || {}
+	}
+
+	const displaySql = meta.sql || keyOrId
+	const derived = deriveMetaFromSql(displaySql) || {}
 
 	return {
+		id: keyOrId,
 		sql: displaySql,
 		schema: meta.schema || derived.schema || '',
-        table: meta.table || derived.table || '',
-        chosen: Array.isArray(meta.chosen) && meta.chosen.length ? [...meta.chosen] : [...(derived.chosen || [])],
-        filters: Array.isArray(meta.filters) && meta.filters.length ? cloneFilters(meta.filters) : cloneFilters(derived.filters || []),
-        sorts: Array.isArray(meta.sorts) && meta.sorts.length ? cloneSorts(meta.sorts) : cloneSorts(derived.sorts || []),
-        sortField: meta.sortField || derived.sortField || '',
+		table: meta.table || derived.table || '',
+		chosen:
+			Array.isArray(meta.chosen) && meta.chosen.length
+				? [...meta.chosen]
+				: [...(derived.chosen || [])],
+		filters:
+			Array.isArray(meta.filters) && meta.filters.length
+				? cloneFilters(meta.filters)
+				: cloneFilters(derived.filters || []),
+		sorts:
+			Array.isArray(meta.sorts) && meta.sorts.length
+				? cloneSorts(meta.sorts)
+				: cloneSorts(derived.sorts || []),
+		sortField: meta.sortField || derived.sortField || '',
 		sortDir: meta.sortDir || derived.sortDir || 'ASC',
 		limit: meta.limit || derived.limit || '',
 		name: normalizeReportName(meta.name),
@@ -504,9 +537,12 @@ function createEntryFromSql(sql, idx) {
 		csvSep: meta.csvSep || '',
 		savedAt: meta.savedAt || '',
 		favorite: !!meta.favorite,
-		time: meta.time || meta.savedAt || ''
+		status: meta.status || 'CREATED',
+		time: meta.time || meta.savedAt || '',
 	};
 }
+
+
 
 function escapeHtml(str = '') {
     return String(str)
@@ -517,8 +553,23 @@ function escapeHtml(str = '') {
         .replace(/'/g, '&#39;');
 }
 
+
+function formatStatus(status = 'CREATED') {
+	const statusMap = {
+		CREATED: { text: 'Создан', class: 'status-created' },
+		RUNNING: { text: 'Выполняется', class: 'status-running' },
+		COMPLETED: { text: 'Завершён', class: 'status-completed' },
+		FAILED: { text: 'Ошибка', class: 'status-failed' },
+		ARCHIVED: { text: 'Архивирован', class: 'status-archived' },
+	}
+
+	const statusInfo = statusMap[status] || statusMap['CREATED']
+	return { text: statusInfo.text, class: statusInfo.class }
+}
+
+
 function buildHistoryFromQueries(list) {
-    return list.map((sql, idx) => createEntryFromSql(sql, idx));
+    return list.map((key, idx) => createEntryFromSql(key, idx));
 }
 
 export function getShowOnlyFavorites() {
@@ -546,157 +597,242 @@ export async function clearHistory() {
     return true;
 }
 
-export async function saveHistoryEntry() {
-    const sqlText = el('sqlText');
-    const sql = sqlText?.value?.trim();
-    if (!sql) {
-        return;
-    }
+export async function saveHistoryEntry(serverResponse = null) {
+	const sqlText = el('sqlText')
+	const sql = sqlText?.value?.trim()
+	if (!sql) {
+		return
+	}
 
-	const sortField = el("sortField");
-	const sortDir = el("sortDir");
-	const limitInput = el("limitInput");
-	const reportName = el("reportName");
-	const reportComment = el("reportComment");
-	const csvSelect = el("csvSeparator");
-	const csvRaw = (csvSelect?.value || ",").trim();
-	const csvSepChar = csvRaw ? csvRaw.charAt(0) : ",";
-	const now = new Date();
+	const sortField = el('sortField')
+	const sortDir = el('sortDir')
+	const limitInput = el('limitInput')
+	const reportName = el('reportName')
+	const reportComment = el('reportComment')
+	const csvSelect = el('csvSeparator')
+	const csvRaw = (csvSelect?.value || ',').trim()
+	const csvSepChar = csvRaw ? csvRaw.charAt(0) : ','
+	const now = new Date()
 
-    const filters = Array.from(document.querySelectorAll('.filter-row')).map(row => ({
-        field: row.querySelector('.filterField')?.value || "",
-        cond:  row.querySelector('.filterCondition')?.value || "eq",
-        value: row.querySelector('.filterValue')?.value || ""
-    }));
+	// Получаем UUID от сервера или создаём временный
+	const reportId =
+		serverResponse?.uuid ||
+		serverResponse?.report_id ||
+		`temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+	const reportStatus = serverResponse?.status || 'CREATED'
 
-    const sorts = Array.from(document.querySelectorAll('.sort-row')).map(row => ({
-        field: row.querySelector('.sortField')?.value || "",
-        dir: row.querySelector('.sortDir')?.value || "ASC"
-    }));
+	const filters = Array.from(document.querySelectorAll('.filter-row')).map(
+		row => ({
+			field: row.querySelector('.filterField')?.value || '',
+			cond: row.querySelector('.filterCondition')?.value || 'eq',
+			value: row.querySelector('.filterValue')?.value || '',
+		}),
+	)
+
+	const sorts = Array.from(document.querySelectorAll('.sort-row')).map(row => ({
+		field: row.querySelector('.sortField')?.value || '',
+		dir: row.querySelector('.sortDir')?.value || 'ASC',
+	}))
 
 	const entry = {
-		schema: state.schema || "",
-		table: state.table || "",
+		id: reportId,
+		sql: sql, // ✅ ВАЖНО: сохраняем SQL
+		schema: state.schema || '',
+		table: state.table || '',
 		chosen: [...(state.chosen || [])],
-		sortField: sortField?.value || "",
-		sortDir: sortDir?.value || "ASC",
-		limit: limitInput?.value.trim() || "",
+		sortField: sortField?.value || '',
+		sortDir: sortDir?.value || 'ASC',
+		limit: limitInput?.value.trim() || '',
 		name: normalizeReportName(reportName?.value),
 		comment: normalizeReportComment(reportComment?.value),
-		filters,
-		sorts,
+		filters: cloneFilters(filters),
+		sorts: cloneSorts(sorts),
 		time: now.toLocaleString(),
 		savedAt: now.toISOString(),
-		csvSep: csvSepChar
-	};
+		csvSep: csvSepChar,
+		status: reportStatus,
+		favorite: false,
+	}
 
-    mergeMeta(sql, {
-        ...entry,
-        filters: cloneFilters(filters),
-        sorts: cloneSorts(sorts),
-        chosen: [...entry.chosen]
-    });
+	// ✅ СОХРАНЯЕМ в historyMeta с UUID как ключом
+	historyMeta[reportId] = entry
+	persistMeta()
 
-    addFallbackQuery(sql);
-    reportHistory = buildHistoryFromQueries(fallbackQueries);
-    renderHistory();
-    refreshHistory({ silent: true }).catch(() => {});
+	console.log('Сохранен отчет:', reportId, entry) // Отладка
+
+	// Добавляем UUID в начало списка
+	fallbackQueries = [
+		reportId,
+		...fallbackQueries.filter(q => q !== reportId),
+	].slice(0, HISTORY_LIMIT)
+	persistFallbackQueries()
+
+	reportHistory = buildHistoryFromQueries(fallbackQueries)
+	renderHistory()
+
+	return reportId
 }
 
+
 export async function refreshHistory(options = {}) {
-    const { silent = false } = options;
-    const hadHistory = reportHistory.length > 0;
-    isHistoryLoading = true;
-    if (!hadHistory) {
-        renderHistory();
-    }
-    let lastError = null;
-    try {
-        const payload = await getCache();
-        const rawEntries = normalizeCachePayload(payload);
-        const normalizedEntries = rawEntries
-            .map(normalizeCacheEntry)
-            .filter(entry => entry && entry.sql);
+	const { silent = false } = options
+	const hadHistory = reportHistory.length > 0
+	isHistoryLoading = true
+	if (!hadHistory) {
+		renderHistory()
+	}
 
-        normalizedEntries.forEach(({ sql, meta }) => {
-            if (!meta || typeof meta !== 'object') return;
-            const patch = {};
-            if (meta.name) patch.name = meta.name;
-            if (meta.comment) patch.comment = meta.comment;
-            if (meta.csvSep) patch.csvSep = meta.csvSep;
-            if (meta.time) patch.time = meta.time;
-            if (meta.savedAt) patch.savedAt = meta.savedAt;
-            if (Object.keys(patch).length) {
-                mergeMeta(sql, patch);
-            }
-        });
+	// ✅ ЕСЛИ API кэша недоступен - просто загружаем из localStorage
+	try {
+		const payload = await getCache()
+		const rawEntries = normalizeCachePayload(payload)
+		const normalizedEntries = rawEntries
+			.map(normalizeCacheEntry)
+			.filter(entry => entry && entry.sql)
 
-        const queries = normalizedEntries.map(entry => entry.sql);
-        setFallbackQueries(queries);
-        reportHistory = buildHistoryFromQueries(fallbackQueries);
-    } catch (err) {
-        lastError = err;
-        if (!silent) {
-            console.error('Не удалось обновить историю из кэша', err);
-            showToast('Не удалось загрузить историю');
-        }
-        if (!reportHistory.length) {
-            reportHistory = buildHistoryFromQueries(fallbackQueries);
-        }
-    } finally {
-        isHistoryLoading = false;
-        renderHistory();
-    }
-    if (lastError) throw lastError;
-    return reportHistory;
+		normalizedEntries.forEach(({ sql, meta }) => {
+			if (!meta || typeof meta !== 'object') return
+
+			const existingKey = Object.keys(historyMeta).find(key => {
+				const existing = historyMeta[key]
+				return (
+					existing && normalizeSqlKey(existing.sql) === normalizeSqlKey(sql)
+				)
+			})
+
+			if (existingKey) {
+				const patch = {}
+				if (meta.name && !historyMeta[existingKey].name) patch.name = meta.name
+				if (meta.comment && !historyMeta[existingKey].comment)
+					patch.comment = meta.comment
+				if (meta.csvSep) patch.csvSep = meta.csvSep
+				if (meta.time) patch.time = meta.time
+				if (meta.savedAt) patch.savedAt = meta.savedAt
+
+				if (Object.keys(patch).length) {
+					historyMeta[existingKey] = { ...historyMeta[existingKey], ...patch }
+				}
+			} else {
+				const patch = {}
+				if (meta.name) patch.name = meta.name
+				if (meta.comment) patch.comment = meta.comment
+				if (meta.csvSep) patch.csvSep = meta.csvSep
+				if (meta.time) patch.time = meta.time
+				if (meta.savedAt) patch.savedAt = meta.savedAt
+
+				if (Object.keys(patch).length) {
+					mergeMeta(sql, patch)
+				}
+			}
+		})
+
+		const queries = normalizedEntries.map(entry => entry.sql)
+		queries.forEach(sql => {
+			const sqlKey = normalizeSqlKey(sql)
+			const hasLocal = fallbackQueries.some(q => {
+				if (q.startsWith('report_') || q.includes('-')) {
+					const meta = historyMeta[q]
+					return meta && normalizeSqlKey(meta.sql) === sqlKey
+				}
+				return normalizeSqlKey(q) === sqlKey
+			})
+
+			if (!hasLocal) {
+				fallbackQueries.push(sql)
+			}
+		})
+
+		persistFallbackQueries()
+	} catch (err) {
+		// ✅ API кэша недоступен - это нормально, используем localStorage
+		if (!silent) {
+			console.warn(
+				'API кэша недоступен, используется только локальное хранилище',
+			)
+		}
+	} finally {
+		// ✅ ВСЕГДА загружаем из localStorage
+		reportHistory = buildHistoryFromQueries(fallbackQueries)
+		isHistoryLoading = false
+		renderHistory()
+	}
+
+	return reportHistory
+}
+
+
+export function updateReportStatus(uuid, newStatus) {
+	if (!uuid || !historyMeta[uuid]) return false
+
+	historyMeta[uuid].status = newStatus
+	persistMeta()
+
+	// Обновляем отображение
+	reportHistory = buildHistoryFromQueries(fallbackQueries)
+	renderHistory()
+
+	return true
 }
 
 export function renderHistory() {
-    const historyList = document.getElementById('historyList');
-    const favBtn = document.getElementById('btnFavFilter');
-    if (!historyList) return;
+	const historyList = document.getElementById('historyList')
+	const favBtn = document.getElementById('btnFavFilter')
+	if (!historyList) return
 
-    let visibleReports = [...reportHistory];
+	let visibleReports = [...reportHistory]
 
-    if (showOnlyFavorites) {
-        visibleReports = visibleReports.filter(r => r.favorite);
-        favBtn?.classList.add('active');
-    } else {
-        favBtn?.classList.remove('active');
-    }
+	if (showOnlyFavorites) {
+		visibleReports = visibleReports.filter(r => r.favorite)
+		favBtn?.classList.add('active')
+	} else {
+		favBtn?.classList.remove('active')
+	}
 
-    visibleReports.sort((a, b) => Number(!!b.favorite) - Number(!!a.favorite));
+	visibleReports.sort((a, b) => Number(!!b.favorite) - Number(!!a.favorite))
 
-    if (isHistoryLoading && !reportHistory.length) {
-        historyList.innerHTML = '<li class="empty-state"><small>Загрузка истории…</small></li>';
-        return;
-    }
+	if (isHistoryLoading && !reportHistory.length) {
+		historyList.innerHTML =
+			'<li class="empty-state"><small>Загрузка истории…</small></li>'
+		return
+	}
 
-    if (!visibleReports.length) {
-        const msg = showOnlyFavorites ? 'Избранных отчётов пока нет' : 'Пока нет отчётов';
-        historyList.innerHTML = `<li class="empty-state"><small>${msg}</small></li>`;
-        return;
-    }
+	if (!visibleReports.length) {
+		const msg = showOnlyFavorites
+			? 'Избранных отчётов пока нет'
+			: 'Пока нет отчётов'
+		historyList.innerHTML = `<li class="empty-state"><small>${msg}</small></li>`
+		return
+	}
 
-    historyList.innerHTML = visibleReports.map(r => {
-        const originalIndex = reportHistory.indexOf(r);
-        const comment = r.comment ? `<div class="history-comment">${escapeHtml(r.comment)}</div>` : "";
-        const timeMark = `<small class="history-time">${escapeHtml(r.time || 'Время не указано')}</small>`;
-        return `
+	historyList.innerHTML = visibleReports
+		.map(r => {
+			const originalIndex = reportHistory.indexOf(r)
+			const comment = r.comment
+				? `<div class="history-comment">${escapeHtml(r.comment)}</div>`
+				: ''
+			const statusInfo = formatStatus(r.status)
+			const timeMark = `
+            <div class="history-footer">
+                <small class="history-time">${escapeHtml(r.time || 'Время не указано')}</small>
+                <span class="report-status ${statusInfo.class}">${statusInfo.text}</span>
+            </div>`
+
+			return `
         <li data-i="${originalIndex}">
             <div class="history-item">
-            <div class="history-header">
-                <div class="history-title">${escapeHtml(r.name || "Без названия")}</div>
-                <div class="history-controls">
-                <button class="btn-delete-history" title="Удалить отчёт">✕</button>
-                <button class="btn-fav-history ${r.favorite ? 'active' : ''}" title="Избранное">★</button>
+                <div class="history-header">
+                    <div class="history-title">${escapeHtml(r.name || 'Без названия')}</div>
+                    <div class="history-controls">
+                        <button class="btn-delete-history" title="Удалить отчёт">✕</button>
+                        <button class="btn-fav-history ${r.favorite ? 'active' : ''}" title="Избранное">★</button>
+                    </div>
                 </div>
+                ${comment}
+                ${timeMark}
             </div>
-            ${comment}
-            ${timeMark}
-            </div>
-        </li>`;
-    }).join('');
+        </li>`
+		})
+		.join('')
 }
 
 export function getReportHistory() { 
@@ -704,33 +840,73 @@ export function getReportHistory() {
 }
 
 export function toggleFavoriteEntry(index) {
-    const item = reportHistory[index];
-    if (!item) return null;
-    item.favorite = !item.favorite;
-    mergeMeta(item.sql, { favorite: item.favorite });
-    return item.favorite;
-}
+	const item = reportHistory[index]
+	if (!item) return null
 
-export async function deleteHistoryEntry(index) {
-	const item = reportHistory[index];
-	if (!item) return false;
+	item.favorite = !item.favorite
 
-	const payload = buildRawParamsFromEntry(item);
-	if (!payload) {
-		showToast('Не удалось подготовить данные для удаления запроса');
-		return false;
+	const itemId = item.id || normalizeSqlKey(item.sql)
+
+	if (historyMeta[itemId]) {
+		historyMeta[itemId].favorite = item.favorite
+		persistMeta()
 	}
 
-	const ok = await deleteCacheQuery(payload);
-	if (!ok) return false;
-
-	removeMeta(item.sql);
-	removeFallbackQuery(item.sql);
-	reportHistory = buildHistoryFromQueries(fallbackQueries);
-	renderHistory();
-	refreshHistory({ silent: true }).catch(() => {});
-	return true;
+	return item.favorite
 }
+
+
+export async function deleteHistoryEntry(index) {
+	const item = reportHistory[index]
+	if (!item) return false
+
+	const itemId = item.id || normalizeSqlKey(item.sql)
+	const isServerReport =
+		itemId &&
+		(itemId.includes('-') ||
+			/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+				itemId,
+			))
+
+	let serverDeleteSuccess = false
+
+	// ✅ Пытаемся удалить с сервера (но не блокируем если ошибка)
+	if (isServerReport) {
+		try {
+			await deleteReport(itemId)
+			console.log(`Отчет ${itemId} удален с сервера`)
+			serverDeleteSuccess = true
+		} catch (err) {
+			console.warn(
+				'Не удалось удалить отчет с сервера (продолжаем локальное удаление):',
+				err,
+			)
+			// ✅ НЕ возвращаем false - продолжаем удаление локально
+		}
+	}
+
+	// ✅ Локальное удаление (выполняется ВСЕГДА)
+	delete historyMeta[itemId]
+	persistMeta()
+
+	fallbackQueries = fallbackQueries.filter(q => q !== itemId)
+	persistFallbackQueries()
+
+	reportHistory = buildHistoryFromQueries(fallbackQueries)
+	renderHistory()
+
+	// Обновляем список отчетов справа
+	window.dispatchEvent(new CustomEvent('rightPanel:refreshReports'))
+
+	// ✅ Показываем правильное сообщение
+	if (!serverDeleteSuccess && isServerReport) {
+		showToast('Отчет удален локально (возможно остался на сервере)')
+	}
+
+	return true
+}
+
+
 
 export function hydrateHistoryEntry(entry) {
 	if (!entry) return entry;
@@ -760,10 +936,82 @@ export function hydrateHistoryEntry(entry) {
 	entry.csvSep = entry.csvSep || meta?.csvSep || '';
 	entry.savedAt = entry.savedAt || meta?.savedAt || '';
 	entry.favorite = typeof entry.favorite === 'boolean' ? entry.favorite : !!meta?.favorite;
+    entry.status = entry.status || meta?.status || 'CREATED';
 	entry.time = entry.time || meta?.time || meta?.savedAt || '';
 
 	return entry;
 }
 
+export function syncReportStatuses(reportsData) {
+	if (!Array.isArray(reportsData) || !reportsData.length) return
+
+	let hasChanges = false
+
+	reportsData.forEach(report => {
+		const uuid = report.report_id || report.reportId || report.uuid || report.id
+		if (!uuid) return
+
+		// Проверяем, есть ли уже этот отчет локально
+		if (historyMeta[uuid]) {
+			// ✅ ОБНОВЛЯЕМ только статус и время, НЕ трогаем name/comment/sql
+			const newStatus = report.status || 'CREATED'
+
+			if (historyMeta[uuid].status !== newStatus) {
+				historyMeta[uuid].status = newStatus
+				hasChanges = true
+			}
+
+			// Обновляем время если есть
+			if (report.updated_at) {
+				const updated = new Date(report.updated_at)
+				if (!Number.isNaN(updated.getTime())) {
+					const newTime = updated.toLocaleString()
+					if (historyMeta[uuid].time !== newTime) {
+						historyMeta[uuid].time = newTime
+						hasChanges = true
+					}
+				}
+			}
+		} else {
+			// Это новый отчет с сервера - добавляем его
+			const now = new Date(report.created_at || Date.now())
+			historyMeta[uuid] = {
+				id: uuid,
+				sql: report.query || '',
+				name: report.name || 'Отчет с сервера',
+				comment: report.comm || '',
+				status: report.status || 'CREATED',
+				time: now.toLocaleString(),
+				savedAt: report.created_at || now.toISOString(),
+				csvSep: report.csv_sep || ',',
+				favorite: false,
+				schema: '',
+				table: '',
+				chosen: [],
+				filters: [],
+				sorts: [],
+				sortField: '',
+				sortDir: 'ASC',
+				limit: '',
+			}
+
+			if (!fallbackQueries.includes(uuid)) {
+				fallbackQueries.unshift(uuid)
+			}
+			hasChanges = true
+		}
+	})
+
+	if (hasChanges) {
+		persistMeta()
+		persistFallbackQueries()
+		reportHistory = buildHistoryFromQueries(fallbackQueries)
+		renderHistory()
+	}
+}
 
 
+// Экспортируем в window для использования из rightPanel
+if (typeof window !== 'undefined') {
+    window.syncHistoryWithReports = syncReportStatuses;
+}

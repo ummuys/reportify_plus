@@ -35,41 +35,74 @@ function initTypedHeading() {
 }
 
 async function init() {
-  const token = localStorage.getItem("access_token_v1") || "";
-  console.log("Используем токен для API:", token ? "присутствует" : "отсутствует");
-  const currentRole = syncRoleFromToken(token);
-  applyRoleRestrictions(currentRole);
+	const token = localStorage.getItem('access_token_v1') || ''
+	console.log(
+		'Используем токен для API:',
+		token ? 'присутствует' : 'отсутствует',
+	)
+	const currentRole = syncRoleFromToken(token)
+	applyRoleRestrictions(currentRole)
 
-  initTypedHeading();
+	initTypedHeading()
 
-  if (!token) {
-    loader.hide();
-    await showAlert("Требуется авторизация. Войдите в систему.", "Авторизация");
-    window.location.assign('/');
-    return;
-  }
+	if (!token) {
+		loader.hide()
+		await showAlert('Требуется авторизация. Войдите в систему.', 'Авторизация')
+		window.location.assign('/')
+		return
+	}
 
-  try {
-    // ПОКАЗЫВАЕМ loader перед загрузкой данных
-    loader.show();
+	try {
+		loader.show()
 
-    const schemasData = await loadSchemas();
-    await updateSchemaSelect(schemasData);
-    
-    setupEventListeners();
-    refreshHistory().catch(err => console.warn('Не удалось загрузить историю из кэша', err));
-    updateButtons();
-    initChartModal();
+		console.log('Начинаем загрузку схем...')
+		const schemasData = await loadSchemas()
+		console.log('Получены данные схем:', schemasData)
 
-  } catch (e) {
-    console.error("Ошибка при инициализации:", e);
-  } finally {
-    // СКРЫВАЕМ loader после загрузки (даже если была ошибка)
-    setTimeout(() => {
-      loader.hide();
-    }, 500);
-  }
+		if (!schemasData || typeof schemasData !== 'object') {
+			throw new Error('Некорректный формат данных схем')
+		}
+
+		const normalizedSchemas = {
+			user: Array.isArray(schemasData.user) ? schemasData.user : [],
+			sys: Array.isArray(schemasData.sys) ? schemasData.sys : [],
+		}
+
+		console.log('Нормализованные схемы:', normalizedSchemas)
+		await updateSchemaSelect(normalizedSchemas)
+		console.log('Схемы успешно загружены в select')
+
+		setupEventListeners()
+
+		// ✅ ИЗМЕНЕНО: История загружается без API кэша (только localStorage)
+		// API кэша не существует, поэтому используем только локальное хранилище
+		refreshHistory({ silent: true }).catch(err => {
+			console.warn(
+				'История загружается только из localStorage (API кэша недоступен)',
+			)
+		})
+
+		updateButtons()
+		initChartModal()
+	} catch (e) {
+		console.error('Ошибка при инициализации:', e)
+		const schemaError = document.getElementById('schemaError')
+		if (schemaError) {
+			schemaError.textContent =
+				'Не удалось загрузить схемы БД: ' + (e.message || e)
+			schemaError.style.display = 'block'
+		}
+		await showAlert(
+			'Не удалось загрузить схемы базы данных.\n' + (e.message || e),
+			'Ошибка инициализации',
+		)
+	} finally {
+		setTimeout(() => {
+			loader.hide()
+		}, 500)
+	}
 }
+
 
 // Запускаем когда DOM полностью загружен
 if (document.readyState === 'loading') {

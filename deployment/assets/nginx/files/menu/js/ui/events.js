@@ -13,18 +13,42 @@ function updateReportHistory() {
 
 
 export async function updateSchemaSelect(schemasData) {
-    const schemaSel = el("schemaSelect");
-    const { user, sys } = schemasData;
-    
-    const opt = s => `<option value="${s.name}" title="${titleOf(s)}">${labelOf(s)}</option>`; // ИСПРАВЛЕНО
-    
-    let html = `<option value="">Выберите схему</option>`;
-    if (user.length) html += `<optgroup label="Пользовательские">${user.map(opt).join('')}</optgroup>`;
-    if (sys.length) html += `<optgroup label="Системные">${sys.map(opt).join('')}</optgroup>`;
-    
-    schemaSel.innerHTML = html;
-    el('schemaError').style.display = 'none';
+	const schemaSel = el('schemaSelect')
+	if (!schemaSel) {
+		console.error('Элемент schemaSelect не найден')
+		return
+	}
+
+	// ✅ ПРОВЕРКА входных данных
+	if (!schemasData || typeof schemasData !== 'object') {
+		console.error('Некорректные данные схем:', schemasData)
+		schemaSel.innerHTML = '<option value="">Ошибка загрузки схем</option>'
+		return
+	}
+
+	const { user = [], sys = [] } = schemasData
+
+	console.log('Обновляем select схем. User:', user.length, 'Sys:', sys.length)
+
+	const opt = s =>
+		`<option value="${s.name}" title="${titleOf(s)}">${labelOf(s)}</option>`
+
+	let html = `<option value="">Выберите схему</option>`
+	if (user.length)
+		html += `<optgroup label="Пользовательские">${user.map(opt).join('')}</optgroup>`
+	if (sys.length)
+		html += `<optgroup label="Системные">${sys.map(opt).join('')}</optgroup>`
+
+	schemaSel.innerHTML = html
+
+	const schemaError = el('schemaError')
+	if (schemaError) {
+		schemaError.style.display = 'none'
+	}
+
+	console.log('Select схем успешно обновлён')
 }
+
 
 
 export async function updateTableSelect(tables) {
@@ -505,13 +529,22 @@ export function setupEventListeners() {
 
     // Скачивание отчета
     btnDownload.addEventListener('click', async () => {
-        if (!reportName.value.trim()) { showToast('Введите название отчёта'); return; }
-        if (!reportComment.value.trim()) { showToast('Введите комментарий к отчёту'); return; }
-        if (!sqlText.value.trim()) { showToast('SQL пустой'); return; }
+        if (!reportName.value.trim()) {
+            showToast('Введите название отчёта')
+            return
+        }
+        if (!reportComment.value.trim()) {
+            showToast('Введите комментарий к отчёту')
+            return
+        }
+        if (!sqlText.value.trim()) {
+            showToast('SQL пустой')
+            return
+        }
 
-        const originalText = btnDownload.textContent;
-        btnDownload.disabled = true;
-        btnDownload.textContent = 'Готовим...';
+        const originalText = btnDownload.textContent
+        btnDownload.disabled = true
+        btnDownload.textContent = 'Готовим...'
 
         try {
             const result = await postReportAndCreateTask({
@@ -519,9 +552,9 @@ export function setupEventListeners() {
                 sql: sqlText.value.trim(),
                 reportName: reportName.value.trim(),
                 reportComment: reportComment.value.trim(),
-                csvSep: csvSeparator?.value || ",",
+                csvSep: csvSeparator?.value || ',',
                 createdAt: new Date().toISOString(),
-            });
+            })
 
             if (result?.task && (result.task.uuid || result.task.status)) {
                 const lines = [
@@ -531,25 +564,42 @@ export function setupEventListeners() {
                     `Статус: ${result.task.status || '—'}`,
                     `Формат: ${state.format || '—'}`,
                     `Название: ${reportName.value.trim() || '—'}`,
-                ];
-                await showAlert(lines.join('\n'), 'Отчёт поставлен в очередь');
+                ]
+                await showAlert(lines.join('\n'), 'Отчёт поставлен в очередь')
+
+                await saveHistoryEntry({
+                    uuid: result.task.uuid || result.task.report_id,
+                    status: result.task.status || 'CREATED',
+                })
             } else if (result?.blob) {
-                saveBlob(result.blob, result.filename || `report.${(result.format || 'pdf')}`);
+                saveBlob(
+                    result.blob,
+                    result.filename || `report.${result.format || 'pdf'}`,
+                )
+                await saveHistoryEntry()
             } else {
-                const details = typeof result === "string" ? result : JSON.stringify(result);
-                throw new Error(`Неожиданный ответ сервера: ${details?.slice?.(0, 300) || ""}`);
+                const details =
+                    typeof result === 'string' ? result : JSON.stringify(result)
+                throw new Error(
+                    `Неожиданный ответ сервера: ${details?.slice?.(0, 300) || ''}`,
+                )
             }
 
-            await saveHistoryEntry();
-            updateReportHistory();
+            updateReportHistory()
+
+            window.dispatchEvent(new CustomEvent('rightPanel:refreshReports'))
         } catch (e) {
-            await showAlert('Не удалось сформировать отчёт:\n' + (e.message || e), "Ошибка");
-            console.error(e);
+            await showAlert(
+                'Не удалось сформировать отчёт:\n' + (e.message || e),
+                'Ошибка',
+            )
+            console.error(e)
         } finally {
-            btnDownload.textContent = originalText;
-            updateButtons();
+            btnDownload.textContent = originalText
+            updateButtons()
         }
-    });
+	})
+
 
     // Предпросмотр
     if (btnPreview) {  // ✅ ДОБАВИЛИ ПРОВЕРКУ

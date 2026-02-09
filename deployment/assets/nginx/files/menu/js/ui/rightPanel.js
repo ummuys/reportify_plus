@@ -200,7 +200,7 @@ export function initRightPanelTabs() {
       .map(([k, v]) => {
         if (k === 'file_path') {
           const href = String(v || '').trim();
-          const isLink = /^https?:\\/\\//i.test(href);
+          const isLink = /^https?:\/\//i.test(href)
           const valueHtml = isLink
             ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(href)}</a>`
             : escapeHtml(href);
@@ -257,6 +257,10 @@ export function initRightPanelTabs() {
       });
       lastError = null;
 
+      if (typeof window.syncHistoryWithReports === 'function') {
+        window.syncHistoryWithReports(reports);
+      }
+
       if (openReportId) {
         const updated = reports.find(r => String(r.report_id || r.reportId || r.uuid || r.id || '') === openReportId);
         if (updated && detailsOverlay?.style?.display === 'flex') {
@@ -271,6 +275,7 @@ export function initRightPanelTabs() {
       renderReports();
     }
   }
+
 
   function stopPolling() {
     if (pollTimer) {

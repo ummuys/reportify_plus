@@ -224,3 +224,30 @@ export function pickFilename(headers, fallback) {
     if (m && m[1]) return m[1];
     return fallback;
 }
+
+
+export async function deleteReport(reportId) {
+	if (!reportId) {
+		throw new Error('Report ID is required')
+	}
+
+	const url = `${REPORTS_API}/${encodeURIComponent(reportId)}`
+	const response = await fetchWithToken(url, {
+		method: 'DELETE',
+	})
+
+	// ✅ Проверяем ошибки более мягко
+	if (response && (response.error || response.err)) {
+		const errMsg = response.err || response.error || 'Unknown error'
+		throw new Error(errMsg)
+	}
+
+	return response
+}
+
+
+export async function deleteAllReports() {
+    return await fetchWithToken(REPORTS_API, {
+        method: 'DELETE',
+    });
+}
