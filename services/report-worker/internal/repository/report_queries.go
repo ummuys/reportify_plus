@@ -12,6 +12,24 @@ const (
 	SELECT author_id, name, comment, query_sql, format, csv_separator FROM report_metadata.report_requests
 	WHERE report_id = $1;
 	`
+
+	SetBlockQuery = `SELECT pg_try_advisory_lock(42) AS got_lock`
+
+	MarkAsArchivingAndGetReportIdQuery = `
+	WITH picked AS (
+		SELECT report_id
+		FROM report_requests
+		WHERE status = 'COMPLETED'
+			AND created_at < now() - interval '1 hour'
+		ORDER BY created_at
+	)
+	UPDATE report_requests r
+	SET status = 'ARCHIVING',
+		updated_at = now()
+	FROM picked
+	WHERE r.report_id = picked.report_id
+	RETURNING r.report_id;
+	`
 )
 
 func buildStatusQuery(in dto.SetReportStatusParams) (string, []any) {

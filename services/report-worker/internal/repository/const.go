@@ -5,4 +5,6 @@ const (
 	StatusRunnig    = "RUNNING"
 	StatusFailed    = "FAILED"
 	StatusCompleted = "COMPLETED"
+	StatusArchiving = "ARCHIVING"
+	StatusArchived  = "ARCHIVED"
 )

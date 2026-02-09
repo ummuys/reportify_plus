@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 	"github.com/ummuys/reportify/pkg/config"
@@ -69,7 +70,41 @@ func (db *reportDB) SetReportStatus(ctx context.Context, in dto.SetReportStatusP
 }
 
 func (db *reportDB) PickAndMarkArchiving(ctx context.Context, in dto.PickAndMarkArchivingParams) (dto.PickAndMarkArchivingResult, error) {
-	return dto.PickAndMarkArchivingResult{}, nil
+	db.logger.Debug().Str("evt", "call PickAndMarkArchiving").Msg("")
+	qctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	var isBlocked bool
+	if err := db.pool.QueryRow(qctx, SetBlockQuery).Scan(&isBlocked); err != nil {
+		return dto.PickAndMarkArchivingResult{}, err
+	}
+
+	if isBlocked {
+		return dto.PickAndMarkArchivingResult{}, nil
+	}
+
+	rows, err := db.pool.Query(qctx, MarkAsArchivingAndGetReportIdQuery)
+	if err != nil {
+		return dto.PickAndMarkArchivingResult{}, err
+	}
+	defer rows.Close()
+
+	var out dto.PickAndMarkArchivingResult
+	out.ReportsId = make([]string, 0, 50)
+
+	for rows.Next() {
+		var rid uuid.UUID
+		if err := rows.Scan(&rid); err != nil {
+			return dto.PickAndMarkArchivingResult{}, err
+		}
+		out.ReportsId = append(out.ReportsId, rid.String())
+	}
+
+	if err := rows.Err(); err != nil {
+		return dto.PickAndMarkArchivingResult{}, err
+	}
+
+	return out, nil
 }
 
 func (db *reportDB) MarkArchived(ctx context.Context, in dto.MarkArchivedParams) error {
