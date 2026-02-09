@@ -68,6 +68,14 @@ func (db *reportDB) SetReportStatus(ctx context.Context, in dto.SetReportStatusP
 	return nil
 }
 
+func (db *reportDB) PickAndMarkArchiving(ctx context.Context, in dto.PickAndMarkArchivingParams) (dto.PickAndMarkArchivingResult, error) {
+	return dto.PickAndMarkArchivingResult{}, nil
+}
+
+func (db *reportDB) MarkArchived(ctx context.Context, in dto.MarkArchivedParams) error {
+	return nil
+}
+
 func (db *reportDB) Close() {
 	db.pool.Close()
 }

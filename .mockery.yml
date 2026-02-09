@@ -1,17 +1,17 @@
+#Mockery version=v2.53.5
+
 all: false
-force-file-write: true
-formatter: goimports
+recursive: false
 include-auto-generated: false
 log-level: info
-recursive: false
-template: testify
+with-expecter: true
 
 packages:
   # AUTH DATABASE
   github.com/ummuys/reportify/services/auth/internal/repository:
     config:
       dir: services/auth/internal/mocks
-      pkgname: mocks
+      outpkg: mocks
       filename: authdb_mock.go
       structname: Mock{{.InterfaceName}}
     interfaces:
@@ -21,7 +21,7 @@ packages:
   github.com/ummuys/reportify/services/auth/internal/secure:
     config:
       dir: services/auth/internal/mocks
-      pkgname: mocks
+      outpkg: mocks
       filename: hasher_mock.go
       structname: Mock{{.InterfaceName}}
     interfaces:
@@ -31,7 +31,7 @@ packages:
   github.com/ummuys/reportify/pkg/tm:
     config:
       dir: services/auth/internal/mocks
-      pkgname: mocks
+      outpkg: mocks
       filename: tm_mock.go
       structname: Mock{{.InterfaceName}}
     interfaces:
@@ -42,7 +42,7 @@ packages:
   github.com/ummuys/reportify/services/report/internal/repository:
       config:
         dir: services/report/internal/mocks
-        pkgname: mocks
+        outpkg: mocks
         structname: Mock{{.InterfaceName}}
       interfaces:
         DatasourceDB:
@@ -56,7 +56,7 @@ packages:
   github.com/ummuys/reportify/services/report/internal/cache:
       config:
         dir: services/report/internal/mocks
-        pkgname: mocks
+        outpkg: mocks
         filename: report_cache_mock.go
         structname: Mock{{.InterfaceName}}
       interfaces:
@@ -66,7 +66,7 @@ packages:
   github.com/ummuys/reportify/services/report-worker/internal/cache:
       config:
         dir: services/report-worker/internal/mocks
-        pkgname: mocks
+        outpkg: mocks
         filename: report_worker_cache_mock.go
         structname: Mock{{.InterfaceName}}
       interfaces:
@@ -76,7 +76,7 @@ packages:
   github.com/ummuys/reportify/services/report-worker/internal/convert:
       config:
         dir: services/report-worker/internal/mocks
-        pkgname: mocks
+        outpkg: mocks
         filename: report_worker_convert_mock.go
         structname: Mock{{.InterfaceName}}
       interfaces:
@@ -86,7 +86,7 @@ packages:
   github.com/ummuys/reportify/services/report-worker/internal/kafkacli:
       config:
         dir: services/report-worker/internal/mocks
-        pkgname: mocks
+        outpkg: mocks
         filename: report_worker_kafkacli_mock.go
         structname: Mock{{.InterfaceName}}
       interfaces:
@@ -96,7 +96,7 @@ packages:
   github.com/ummuys/reportify/services/report-worker/internal/miniocli:
       config:
         dir: services/report-worker/internal/mocks
-        pkgname: mocks
+        outpkg: mocks
         filename: report_worker_minio_mock.go
         structname: Mock{{.InterfaceName}}
       interfaces:
@@ -106,7 +106,7 @@ packages:
   github.com/ummuys/reportify/services/report-worker/internal/repository:
       config:
         dir: services/report-worker/internal/mocks
-        pkgname: mocks
+        outpkg: mocks
         structname: Mock{{.InterfaceName}}
       interfaces:
         DatasourceDB:

@@ -24,3 +24,15 @@ type SetReportStatusParams struct {
 	ErrMsg       *string
 	ExpireAt     *time.Time
 }
+
+type PickAndMarkArchivingParams struct {
+	TimeLife time.Time
+}
+
+type PickAndMarkArchivingResult struct {
+	ReportsId []string
+}
+
+type MarkArchivedParams struct {
+	ReportsId []string
+}

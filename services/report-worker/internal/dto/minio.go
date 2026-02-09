@@ -13,3 +13,7 @@ type PutReportIn struct {
 	ContentType string
 	Expire      time.Duration
 }
+
+type DeleteExpiredFilesParams struct {
+	Names []string
+}

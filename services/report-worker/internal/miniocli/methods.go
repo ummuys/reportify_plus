@@ -2,6 +2,7 @@ package miniocli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"time"
@@ -90,4 +91,25 @@ func (c *minioCli) UploadAndPresign(ctx context.Context, in dto.PutReportIn) (st
 	}
 
 	return u.String(), nil
+}
+
+func (c *minioCli) DeleteExpiredFiles(ctx context.Context, in dto.DeleteExpiredFilesParams) error {
+
+	objectsCh := make(chan minio.ObjectInfo, 100)
+	go func() {
+		defer close(objectsCh)
+		for _, name := range in.Names {
+			objectsCh <- minio.ObjectInfo{Key: name}
+		}
+	}()
+
+	var errs []error
+	for err := range c.cli.RemoveObjects(ctx, c.bucket, objectsCh, minio.RemoveObjectsOptions{}) {
+		errs = append(errs, err.Err)
+	}
+
+	if len(errs) > 0 {
+		return errors.Join(errs...)
+	}
+	return nil
 }

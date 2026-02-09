@@ -74,6 +74,16 @@ func main() {
 		}
 	})
 
+	wg.Go(func() {
+		err := svc.CleanOldReports(ctx)
+		if err != nil {
+			SDChan <- errs.SDMsg{
+				Err:  err,
+				From: "service (clean old reports)",
+			}
+		}
+	})
+
 	wg.Wait()
 	close(SDChan)
 	errs.ShutdownStatus(logs, SDChan)

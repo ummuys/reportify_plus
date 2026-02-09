@@ -220,3 +220,17 @@ func (p *publish) stepFailed(ctx context.Context, reportID string, err error, be
 			Msg("set status failed failed")
 	}
 }
+
+func (p *publish) CleanOldReports(ctx context.Context) error {
+
+	t := time.NewTicker(time.Hour)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-t.C:
+
+		}
+	}
+
+}
