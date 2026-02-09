@@ -204,7 +204,9 @@ function normalizeCacheEntry(raw) {
     if (typeof raw !== 'object' || Array.isArray(raw)) {
         return null;
     }
-
+    
+    console.log(raw);
+    // ВОТ ЗДЕСЬ ВСЕ НЕ ТАК
     const sqlCandidate = raw.sql ?? raw.Sql ?? raw.query ?? raw.Query;
     const sql = typeof sqlCandidate === 'string' ? sqlCandidate.trim() : '';
     if (!sql) return null;
@@ -635,11 +637,11 @@ export async function refreshHistory(options = {}) {
     }
     let lastError = null;
     try {
-        const payload = await getCache();
-        const rawEntries = normalizeCachePayload(payload);
-        const normalizedEntries = rawEntries
-            .map(normalizeCacheEntry)
-            .filter(entry => entry && entry.sql);
+        const payload = await getCache(); // ВСЕ ЕСТЬ:  { reports: [rep1, rep2, ...] }
+        const rawEntries = normalizeCachePayload(payload); // ОТЛИЧАЕТСЯ ОТ payload: [{ reports: [rep1, rep2, ...] }]
+        console.log(rawEntries);
+        const normalizedRawEntries = rawEntries[0].reports.map(normalizeCacheEntry);
+        const normalizedEntries = normalizedRawEntries.filter(entry => entry && entry.sql);
 
         normalizedEntries.forEach(({ sql, meta }) => {
             if (!meta || typeof meta !== 'object') return;
@@ -655,6 +657,7 @@ export async function refreshHistory(options = {}) {
             }
         });
 
+        // normalizedEntries ПУСТОЙ
 
         const queries = normalizedEntries.map(entry => entry.sql);
         setFallbackQueries(queries);
