@@ -205,8 +205,6 @@ function normalizeCacheEntry(raw) {
         return null;
     }
     
-    console.log(raw);
-    // ВОТ ЗДЕСЬ ВСЕ НЕ ТАК
     const sqlCandidate = raw.sql ?? raw.Sql ?? raw.query ?? raw.Query;
     const sql = typeof sqlCandidate === 'string' ? sqlCandidate.trim() : '';
     if (!sql) return null;
@@ -639,7 +637,6 @@ export async function refreshHistory(options = {}) {
     try {
         const payload = await getCache(); // ВСЕ ЕСТЬ:  { reports: [rep1, rep2, ...] }
         const rawEntries = normalizeCachePayload(payload); // ОТЛИЧАЕТСЯ ОТ payload: [{ reports: [rep1, rep2, ...] }]
-        console.log(rawEntries);
         const normalizedRawEntries = rawEntries[0].reports.map(normalizeCacheEntry);
         const normalizedEntries = normalizedRawEntries.filter(entry => entry && entry.sql);
 
@@ -656,8 +653,6 @@ export async function refreshHistory(options = {}) {
                 mergeMeta(sql, patch);
             }
         });
-
-        // normalizedEntries ПУСТОЙ
 
         const queries = normalizedEntries.map(entry => entry.sql);
         setFallbackQueries(queries);
