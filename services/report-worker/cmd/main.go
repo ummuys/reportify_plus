@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/pkg/logger"
@@ -50,7 +51,12 @@ func main() {
 
 	conv := convert.NewReportConvert(logs)
 
-	svc, err := service.NewPublishService(dataDB, reportDB, reportCache, conv, minioCli, logs)
+	// IN UPDATE GET FROM ENV!!!
+	ttl := time.Hour
+	count := 50
+
+	// HERE
+	svc, err := service.NewPublishService(dataDB, reportDB, reportCache, conv, minioCli, ttl, count, logs)
 	if err != nil {
 		logs.Fatal().Err(err).Msg("service")
 	}
@@ -74,12 +80,15 @@ func main() {
 		}
 	})
 
+	// HERE
 	wg.Go(func() {
-		err := svc.CleanOldReports(ctx)
-		if err != nil {
-			SDChan <- errs.SDMsg{
-				Err:  err,
-				From: "service (clean old reports)",
+		t := time.NewTicker(ttl)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-t.C:
+				svc.CleanOldReports(ctx)
 			}
 		}
 	})

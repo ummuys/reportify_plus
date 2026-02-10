@@ -23,10 +23,13 @@ type publish struct {
 	reportCache  cache.ReportCache
 	conv         convert.ReportConvert
 	minioCli     miniocli.MinIOClient
+
+	reportTTL  time.Duration
+	countBatch int
 }
 
 func NewPublishService(datasourceDB repository.DatasourceDB, reportDB repository.ReportDB, reportCache cache.ReportCache,
-	convert convert.ReportConvert, minioCli miniocli.MinIOClient, baseLogger zerolog.Logger) (PublishService, error) {
+	convert convert.ReportConvert, minioCli miniocli.MinIOClient, reportTTL time.Duration, countBatch int, baseLogger zerolog.Logger) (PublishService, error) {
 	logger := baseLogger.With().Str("component", "svc").Logger()
 	return &publish{
 		datasourceDB: datasourceDB,
@@ -35,6 +38,8 @@ func NewPublishService(datasourceDB repository.DatasourceDB, reportDB repository
 		conv:         convert,
 		logger:       logger,
 		minioCli:     minioCli,
+		reportTTL:    reportTTL,
+		countBatch:   countBatch,
 	}, nil
 }
 
@@ -125,7 +130,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	})
 
 	var path string
-	reportTTL := time.Hour * 1
+	reportTTL := p.reportTTL
 
 	eg.Go(func() error {
 		defer pr.Close()
@@ -221,16 +226,38 @@ func (p *publish) stepFailed(ctx context.Context, reportID string, err error, be
 	}
 }
 
-func (p *publish) CleanOldReports(ctx context.Context) error {
+func (p *publish) CleanOldReports(ctx context.Context) {
 
-	t := time.NewTicker(time.Hour)
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case <-t.C:
+	out, err := p.reportDB.PickAndMarkArchiving(ctx, dto.PickAndMarkArchivingParams{TimeLife: p.reportTTL, CountBatch: p.countBatch})
+	if err != nil {
+		p.logger.Error().
+			Err(err).
+			Str("op", "reportDB.PickAndMarkArchiving").
+			Msg("failed to pick and mark reports")
+		return
+	}
 
-		}
+	if len(out.ReportsId) == 0 {
+		return
+	}
+
+	derr := p.minioCli.DeleteExpiredFiles(ctx, dto.DeleteExpiredFilesParams{Names: out.ReportsId})
+	if derr != nil {
+		p.logger.Error().
+			Err(derr).
+			Str("op", "minioCli.DeleteExpiredFiles").
+			Msg("failed to delete reports from MinIO")
+	}
+
+	if err = p.reportDB.MarkArchived(ctx, dto.MarkArchivedParams{
+		ReportsId: out.ReportsId,
+		Error:     derr,
+	}); err != nil {
+		p.logger.Error().
+			Err(err).
+			Str("op", "reportDB.MarkArchived").
+			Msg("failed to pick reports")
+		return
 	}
 
 }

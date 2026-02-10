@@ -82,7 +82,6 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-
 		logs.Info().Msg("Service is running")
 		if err := web.RunServer(server); err != nil {
 			SDChan <- errs.SDMsg{

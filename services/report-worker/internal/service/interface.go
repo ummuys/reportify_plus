@@ -8,5 +8,5 @@ import (
 
 type PublishService interface {
 	CreateReport(ctx context.Context, in dto.KafkaMessage) error
-	CleanOldReports(ctx context.Context) error
+	CleanOldReports(ctx context.Context)
 }

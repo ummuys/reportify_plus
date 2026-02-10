@@ -26,7 +26,8 @@ type SetReportStatusParams struct {
 }
 
 type PickAndMarkArchivingParams struct {
-	TimeLife time.Time
+	TimeLife   time.Duration
+	CountBatch int
 }
 
 type PickAndMarkArchivingResult struct {
@@ -35,4 +36,5 @@ type PickAndMarkArchivingResult struct {
 
 type MarkArchivedParams struct {
 	ReportsId []string
+	Error     error
 }

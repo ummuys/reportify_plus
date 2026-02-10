@@ -13,22 +13,36 @@ const (
 	WHERE report_id = $1;
 	`
 
-	SetBlockQuery = `SELECT pg_try_advisory_lock(42) AS got_lock`
-
 	MarkAsArchivingAndGetReportIdQuery = `
-	WITH picked AS (
+	WITH picked as (
 		SELECT report_id
-		FROM report_requests
+		FROM report_metadata.report_requests
 		WHERE status = 'COMPLETED'
-			AND created_at < now() - interval '1 hour'
-		ORDER BY created_at
+			and updated_at < $1
+		ORDER BY updated_at
+		FOR UPDATE SKIP LOCKED
+		LIMIT $2
 	)
-	UPDATE report_requests r
-	SET status = 'ARCHIVING',
+	UPDATE report_metadata.report_requests AS r
+	SET status = 'ARCHIVING'
+	FROM picked as p
+	WHERE r.report_id = p.report_id
+	RETURNING r.report_id
+	`
+
+	MarkAsAchivedQuery = `
+	UPDATE report_metadata.report_requests
+	SET status = 'ARCHIVED',
 		updated_at = now()
-	FROM picked
-	WHERE r.report_id = picked.report_id
-	RETURNING r.report_id;
+	WHERE report_id = ANY($1::uuid[]);
+	`
+
+	MarkAsErrorAchivedQuery = `
+	UPDATE report_metadata.report_requests
+	SET status = 'ARCHIVED_FAILED',
+		updated_at = now(),
+		error_message = $1
+	WHERE report_id = ANY($2::uuid[]);
 	`
 )
 

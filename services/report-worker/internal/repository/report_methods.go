@@ -74,23 +74,14 @@ func (db *reportDB) PickAndMarkArchiving(ctx context.Context, in dto.PickAndMark
 	qctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
-	var isBlocked bool
-	if err := db.pool.QueryRow(qctx, SetBlockQuery).Scan(&isBlocked); err != nil {
-		return dto.PickAndMarkArchivingResult{}, err
-	}
-
-	if isBlocked {
-		return dto.PickAndMarkArchivingResult{}, nil
-	}
-
-	rows, err := db.pool.Query(qctx, MarkAsArchivingAndGetReportIdQuery)
+	rows, err := db.pool.Query(qctx, MarkAsArchivingAndGetReportIdQuery, time.Now().Add(-in.TimeLife), in.CountBatch)
 	if err != nil {
 		return dto.PickAndMarkArchivingResult{}, err
 	}
 	defer rows.Close()
 
 	var out dto.PickAndMarkArchivingResult
-	out.ReportsId = make([]string, 0, 50)
+	out.ReportsId = make([]string, 0, in.CountBatch)
 
 	for rows.Next() {
 		var rid uuid.UUID
@@ -108,7 +99,22 @@ func (db *reportDB) PickAndMarkArchiving(ctx context.Context, in dto.PickAndMark
 }
 
 func (db *reportDB) MarkArchived(ctx context.Context, in dto.MarkArchivedParams) error {
+	db.logger.Debug().Str("evt", "call MarkArchived").Msg("")
+	qctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	if in.Error == nil {
+		if _, err := db.pool.Exec(qctx, MarkAsAchivedQuery, in.ReportsId); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if _, err := db.pool.Exec(qctx, MarkAsErrorAchivedQuery, in.Error.Error(), in.ReportsId); err != nil {
+		return err
+	}
 	return nil
+
 }
 
 func (db *reportDB) Close() {

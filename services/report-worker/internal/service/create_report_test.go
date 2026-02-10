@@ -7,6 +7,7 @@ import (
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/mock"
@@ -39,6 +40,8 @@ func newPublish(t *testing.T) (PublishService,
 		cache,
 		conv,
 		minioCli,
+		time.Hour,
+		50,
 		zerolog.Nop(),
 	)
 
@@ -296,7 +299,7 @@ func TestPublish_CreateReport_GetDataError_ReturnsParsedPgError_AndStepFailed(t 
 	expectGetInfoOK(reportDB, info)
 
 	ds := mocks.NewMockDatasourceDB(t)
-	p2, _ := NewPublishService(ds, reportDB, cache, conv, minio, zerolog.Nop())
+	p2, _ := NewPublishService(ds, reportDB, cache, conv, minio, time.Hour, 50, zerolog.Nop())
 
 	expectGetDataErr(ds, info.Query, dbErr)
 	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
