@@ -1,4 +1,5 @@
-CREATE TYPE report_status_type AS ENUM ('CREATED', 'RUNNING', 'COMPLETED', 'FAILED', 'ARCHIVED', 'DELETING_FILE', 'FILE_DELETED', 'FILE_DELETE_FAILED');
+CREATE TYPE report_status_type AS ENUM ('CREATED', 'RUNNING', 'COMPLETED', 'FAILED', 'ARCHIVED');
+CREATE TYPE report_file_status_type AS ENUM ('NOT_EXISTS', 'EXISTS', 'DELETING', 'DELETED', 'DELETE_FAILED');
 CREATE TYPE report_output_format AS ENUM ('CSV', 'JSON', 'PDF', 'XLSX', 'DOCX');
 
 CREATE TABLE IF NOT EXISTS report_metadata.report_requests (
@@ -10,6 +11,7 @@ CREATE TABLE IF NOT EXISTS report_metadata.report_requests (
     format report_output_format NOT NULL,
     csv_separator VARCHAR(1) NOT NULL DEFAULT ',',
     status report_status_type NOT NULL DEFAULT 'CREATED', 
+    file_status report_file_status_type NOT NULL DEFAULT 'NOT_EXISTS',
     file_path TEXT NOT NULL DEFAULT '',
     error_message TEXT DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),

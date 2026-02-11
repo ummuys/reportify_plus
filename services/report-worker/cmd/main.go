@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ummuys/reportify/pkg/config"
 	"github.com/ummuys/reportify/pkg/errs"
 	"github.com/ummuys/reportify/pkg/logger"
 	"github.com/ummuys/reportify/services/report-worker/internal/cache"
@@ -23,6 +24,11 @@ func main() {
 	defer cancel()
 
 	logs, err := logger.InitLogger("report-worker", "LOG_LEVEL_REPORT_WORKER")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cfg, err := config.ParseReportWorkerConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,13 +56,7 @@ func main() {
 	}
 
 	conv := convert.NewReportConvert(logs)
-
-	// IN UPDATE GET FROM ENV!!!
-	ttl := time.Second * 15
-	count := 50
-
-	// HERE
-	svc, err := service.NewPublishService(dataDB, reportDB, reportCache, conv, minioCli, ttl, count, logs)
+	svc, err := service.NewPublishService(dataDB, reportDB, reportCache, conv, minioCli, cfg.FileTTL, cfg.DeleteBatch, logs)
 	if err != nil {
 		logs.Fatal().Err(err).Msg("service")
 	}
@@ -82,7 +82,7 @@ func main() {
 
 	// HERE
 	wg.Go(func() {
-		t := time.NewTicker(ttl)
+		t := time.NewTicker(cfg.FileTTL)
 		for {
 			select {
 			case <-ctx.Done():

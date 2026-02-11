@@ -7,7 +7,8 @@ const (
 	StatusCompleted = "COMPLETED"
 	StatusArchived  = "ARCHIVED"
 
-	StatusDeletingFile      = "DELETING_FILE"
-	StatusFileDeleted       = "FILE_DELETED"
-	StatusFileDeletedFailed = "FILE_DELETE_FAILED"
+	StatusFileExists        = "EXISTS"
+	StatusFileDeleting      = "DELETING"
+	StatusFileDeleted       = "DELETED"
+	StatusFileDeletedFailed = "DELETE_FAILED"
 )

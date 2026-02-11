@@ -18,12 +18,13 @@ const (
 		SELECT report_id
 		FROM report_metadata.report_requests
 		WHERE expire_at < $1
+		and file_status = 'EXISTS'
 		ORDER BY updated_at
 		FOR UPDATE SKIP LOCKED
 		LIMIT $2
 	)
 	UPDATE report_metadata.report_requests AS r
-	SET status = 'DELETING_FILE'
+	SET file_status = 'DELETING'
 	FROM picked as p
 	WHERE r.report_id = p.report_id
 	RETURNING r.report_id
@@ -31,14 +32,14 @@ const (
 
 	MarkAsFileDeletedQuery = `
 	UPDATE report_metadata.report_requests
-	SET status = 'FILE_DELETED',
+	SET file_status = 'DELETED',
 		updated_at = now()
 	WHERE report_id = ANY($1::uuid[]);
 	`
 
 	MarkAsErrorFileDeletedQuery = `
 	UPDATE report_metadata.report_requests
-	SET status = 'FILE_DELETE_FAILED',
+	SET file_status = 'DELETE_FAILED',
 		updated_at = now(),
 		error_message = $1
 	WHERE report_id = ANY($2::uuid[]);
@@ -59,6 +60,9 @@ func buildStatusQuery(in dto.SetReportStatusParams) (string, []any) {
 	if in.FilePath != nil {
 		args = append(args, *in.FilePath)
 		set = append(set, fmt.Sprintf("file_path = $%d", len(args)))
+
+		args = append(args, StatusFileExists)
+		set = append(set, fmt.Sprintf("file_status = $%d", len(args)))
 	}
 
 	if in.ExpireAt != nil {

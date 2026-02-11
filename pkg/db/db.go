@@ -14,6 +14,7 @@ func PoolFromConfig(ctx context.Context, config config.DBConfig, dbName string) 
 	if err != nil {
 		return nil, err
 	}
+
 	poolCfg.MinConns = config.MinConn
 	poolCfg.MaxConns = config.MaxConn
 	poolCfg.MaxConnLifetime = config.MaxConnLifetime
