@@ -228,20 +228,18 @@ func (p *publish) stepFailed(ctx context.Context, reportID string, err error, be
 
 func (p *publish) CleanOldReports(ctx context.Context) {
 
-	out, err := p.reportDB.PickAndMarkArchiving(ctx, dto.PickAndMarkArchivingParams{TimeLife: p.reportTTL, CountBatch: p.countBatch})
+	out, err := p.reportDB.PickAndMarkDeletingFile(ctx, dto.PickAndMarkDeletingFileParams{TimeLife: p.reportTTL, CountBatch: p.countBatch})
 	if err != nil {
 		p.logger.Error().
 			Err(err).
-			Str("op", "reportDB.PickAndMarkArchiving").
+			Str("op", "reportDB.PickAndMarkDeletingFile").
 			Msg("failed to pick and mark reports")
 		return
 	}
 
-	if len(out.ReportsId) == 0 {
-		return
-	}
-
-	derr := p.minioCli.DeleteExpiredFiles(ctx, dto.DeleteExpiredFilesParams{Names: out.ReportsId})
+	derr := p.minioCli.DeleteExpiredFiles(ctx, dto.DeleteExpiredFilesParams{
+		Names:  out.ReportsId,
+		Bucket: "report"})
 	if derr != nil {
 		p.logger.Error().
 			Err(derr).

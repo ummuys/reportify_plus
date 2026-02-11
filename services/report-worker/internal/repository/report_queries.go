@@ -13,33 +13,32 @@ const (
 	WHERE report_id = $1;
 	`
 
-	MarkAsArchivingAndGetReportIdQuery = `
+	MarkAsDeletingFileAndGetReportIdQuery = `
 	WITH picked as (
 		SELECT report_id
 		FROM report_metadata.report_requests
-		WHERE status = 'COMPLETED'
-			and updated_at < $1
+		WHERE expire_at < $1
 		ORDER BY updated_at
 		FOR UPDATE SKIP LOCKED
 		LIMIT $2
 	)
 	UPDATE report_metadata.report_requests AS r
-	SET status = 'ARCHIVING'
+	SET status = 'DELETING_FILE'
 	FROM picked as p
 	WHERE r.report_id = p.report_id
 	RETURNING r.report_id
 	`
 
-	MarkAsAchivedQuery = `
+	MarkAsFileDeletedQuery = `
 	UPDATE report_metadata.report_requests
-	SET status = 'ARCHIVED',
+	SET status = 'FILE_DELETED',
 		updated_at = now()
 	WHERE report_id = ANY($1::uuid[]);
 	`
 
-	MarkAsErrorAchivedQuery = `
+	MarkAsErrorFileDeletedQuery = `
 	UPDATE report_metadata.report_requests
-	SET status = 'ARCHIVED_FAILED',
+	SET status = 'FILE_DELETE_FAILED',
 		updated_at = now(),
 		error_message = $1
 	WHERE report_id = ANY($2::uuid[]);

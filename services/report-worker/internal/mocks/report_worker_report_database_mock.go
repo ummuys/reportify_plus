@@ -158,26 +158,26 @@ func (_c *MockReportDB_MarkArchived_Call) RunAndReturn(run func(context.Context,
 	return _c
 }
 
-// PickAndMarkArchiving provides a mock function with given fields: ctx, in
-func (_m *MockReportDB) PickAndMarkArchiving(ctx context.Context, in dto.PickAndMarkArchivingParams) (dto.PickAndMarkArchivingResult, error) {
+// PickAndMarkDeletingFile provides a mock function with given fields: ctx, in
+func (_m *MockReportDB) PickAndMarkDeletingFile(ctx context.Context, in dto.PickAndMarkDeletingFileParams) (dto.PickAndMarkDeletingFileResult, error) {
 	ret := _m.Called(ctx, in)
 
 	if len(ret) == 0 {
-		panic("no return value specified for PickAndMarkArchiving")
+		panic("no return value specified for PickAndMarkDeletingFile")
 	}
 
-	var r0 dto.PickAndMarkArchivingResult
+	var r0 dto.PickAndMarkDeletingFileResult
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, dto.PickAndMarkArchivingParams) (dto.PickAndMarkArchivingResult, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, dto.PickAndMarkDeletingFileParams) (dto.PickAndMarkDeletingFileResult, error)); ok {
 		return rf(ctx, in)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, dto.PickAndMarkArchivingParams) dto.PickAndMarkArchivingResult); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, dto.PickAndMarkDeletingFileParams) dto.PickAndMarkDeletingFileResult); ok {
 		r0 = rf(ctx, in)
 	} else {
-		r0 = ret.Get(0).(dto.PickAndMarkArchivingResult)
+		r0 = ret.Get(0).(dto.PickAndMarkDeletingFileResult)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, dto.PickAndMarkArchivingParams) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, dto.PickAndMarkDeletingFileParams) error); ok {
 		r1 = rf(ctx, in)
 	} else {
 		r1 = ret.Error(1)
@@ -186,31 +186,31 @@ func (_m *MockReportDB) PickAndMarkArchiving(ctx context.Context, in dto.PickAnd
 	return r0, r1
 }
 
-// MockReportDB_PickAndMarkArchiving_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PickAndMarkArchiving'
-type MockReportDB_PickAndMarkArchiving_Call struct {
+// MockReportDB_PickAndMarkDeletingFile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PickAndMarkDeletingFile'
+type MockReportDB_PickAndMarkDeletingFile_Call struct {
 	*mock.Call
 }
 
-// PickAndMarkArchiving is a helper method to define mock.On call
+// PickAndMarkDeletingFile is a helper method to define mock.On call
 //   - ctx context.Context
-//   - in dto.PickAndMarkArchivingParams
-func (_e *MockReportDB_Expecter) PickAndMarkArchiving(ctx interface{}, in interface{}) *MockReportDB_PickAndMarkArchiving_Call {
-	return &MockReportDB_PickAndMarkArchiving_Call{Call: _e.mock.On("PickAndMarkArchiving", ctx, in)}
+//   - in dto.PickAndMarkDeletingFileParams
+func (_e *MockReportDB_Expecter) PickAndMarkDeletingFile(ctx interface{}, in interface{}) *MockReportDB_PickAndMarkDeletingFile_Call {
+	return &MockReportDB_PickAndMarkDeletingFile_Call{Call: _e.mock.On("PickAndMarkDeletingFile", ctx, in)}
 }
 
-func (_c *MockReportDB_PickAndMarkArchiving_Call) Run(run func(ctx context.Context, in dto.PickAndMarkArchivingParams)) *MockReportDB_PickAndMarkArchiving_Call {
+func (_c *MockReportDB_PickAndMarkDeletingFile_Call) Run(run func(ctx context.Context, in dto.PickAndMarkDeletingFileParams)) *MockReportDB_PickAndMarkDeletingFile_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(dto.PickAndMarkArchivingParams))
+		run(args[0].(context.Context), args[1].(dto.PickAndMarkDeletingFileParams))
 	})
 	return _c
 }
 
-func (_c *MockReportDB_PickAndMarkArchiving_Call) Return(_a0 dto.PickAndMarkArchivingResult, _a1 error) *MockReportDB_PickAndMarkArchiving_Call {
+func (_c *MockReportDB_PickAndMarkDeletingFile_Call) Return(_a0 dto.PickAndMarkDeletingFileResult, _a1 error) *MockReportDB_PickAndMarkDeletingFile_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockReportDB_PickAndMarkArchiving_Call) RunAndReturn(run func(context.Context, dto.PickAndMarkArchivingParams) (dto.PickAndMarkArchivingResult, error)) *MockReportDB_PickAndMarkArchiving_Call {
+func (_c *MockReportDB_PickAndMarkDeletingFile_Call) RunAndReturn(run func(context.Context, dto.PickAndMarkDeletingFileParams) (dto.PickAndMarkDeletingFileResult, error)) *MockReportDB_PickAndMarkDeletingFile_Call {
 	_c.Call.Return(run)
 	return _c
 }

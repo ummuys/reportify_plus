@@ -25,12 +25,12 @@ type SetReportStatusParams struct {
 	ExpireAt     *time.Time
 }
 
-type PickAndMarkArchivingParams struct {
+type PickAndMarkDeletingFileParams struct {
 	TimeLife   time.Duration
 	CountBatch int
 }
 
-type PickAndMarkArchivingResult struct {
+type PickAndMarkDeletingFileResult struct {
 	ReportsId []string
 }
 

@@ -18,7 +18,6 @@ type minioCli struct {
 	cli    *minio.Client
 	pcli   *minio.Client
 	logger zerolog.Logger
-	bucket string
 }
 
 func NewMinIOCli(baseLogger zerolog.Logger) (MinIOClient, error) {
@@ -104,7 +103,7 @@ func (c *minioCli) DeleteExpiredFiles(ctx context.Context, in dto.DeleteExpiredF
 	}()
 
 	var errs []error
-	for err := range c.cli.RemoveObjects(ctx, c.bucket, objectsCh, minio.RemoveObjectsOptions{}) {
+	for err := range c.cli.RemoveObjects(ctx, in.Bucket, objectsCh, minio.RemoveObjectsOptions{}) {
 		errs = append(errs, err.Err)
 	}
 

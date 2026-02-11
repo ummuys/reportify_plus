@@ -15,5 +15,6 @@ type PutReportIn struct {
 }
 
 type DeleteExpiredFilesParams struct {
-	Names []string
+	Names  []string
+	Bucket string
 }

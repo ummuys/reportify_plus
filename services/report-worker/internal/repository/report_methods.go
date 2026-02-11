@@ -69,30 +69,30 @@ func (db *reportDB) SetReportStatus(ctx context.Context, in dto.SetReportStatusP
 	return nil
 }
 
-func (db *reportDB) PickAndMarkArchiving(ctx context.Context, in dto.PickAndMarkArchivingParams) (dto.PickAndMarkArchivingResult, error) {
-	db.logger.Debug().Str("evt", "call PickAndMarkArchiving").Msg("")
+func (db *reportDB) PickAndMarkDeletingFile(ctx context.Context, in dto.PickAndMarkDeletingFileParams) (dto.PickAndMarkDeletingFileResult, error) {
+	db.logger.Debug().Str("evt", "call PickAndMarkDeletingFile").Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
-	rows, err := db.pool.Query(qctx, MarkAsArchivingAndGetReportIdQuery, time.Now().Add(-in.TimeLife), in.CountBatch)
+	rows, err := db.pool.Query(qctx, MarkAsDeletingFileAndGetReportIdQuery, time.Now().Add(-in.TimeLife), in.CountBatch)
 	if err != nil {
-		return dto.PickAndMarkArchivingResult{}, err
+		return dto.PickAndMarkDeletingFileResult{}, err
 	}
 	defer rows.Close()
 
-	var out dto.PickAndMarkArchivingResult
+	var out dto.PickAndMarkDeletingFileResult
 	out.ReportsId = make([]string, 0, in.CountBatch)
 
 	for rows.Next() {
 		var rid uuid.UUID
 		if err := rows.Scan(&rid); err != nil {
-			return dto.PickAndMarkArchivingResult{}, err
+			return dto.PickAndMarkDeletingFileResult{}, err
 		}
 		out.ReportsId = append(out.ReportsId, rid.String())
 	}
 
 	if err := rows.Err(); err != nil {
-		return dto.PickAndMarkArchivingResult{}, err
+		return dto.PickAndMarkDeletingFileResult{}, err
 	}
 
 	return out, nil
@@ -104,13 +104,13 @@ func (db *reportDB) MarkArchived(ctx context.Context, in dto.MarkArchivedParams)
 	defer cancel()
 
 	if in.Error == nil {
-		if _, err := db.pool.Exec(qctx, MarkAsAchivedQuery, in.ReportsId); err != nil {
+		if _, err := db.pool.Exec(qctx, MarkAsFileDeletedQuery, in.ReportsId); err != nil {
 			return err
 		}
 		return nil
 	}
 
-	if _, err := db.pool.Exec(qctx, MarkAsErrorAchivedQuery, in.Error.Error(), in.ReportsId); err != nil {
+	if _, err := db.pool.Exec(qctx, MarkAsErrorFileDeletedQuery, in.Error.Error(), in.ReportsId); err != nil {
 		return err
 	}
 	return nil

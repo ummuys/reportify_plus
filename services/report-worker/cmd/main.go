@@ -52,7 +52,7 @@ func main() {
 	conv := convert.NewReportConvert(logs)
 
 	// IN UPDATE GET FROM ENV!!!
-	ttl := time.Hour
+	ttl := time.Second * 15
 	count := 50
 
 	// HERE
