@@ -637,7 +637,7 @@ export async function saveHistoryEntry(reportId) {
 	const now = new Date()
 
 	// Получаем UUID от сервера или создаём временный
-	const reportId =
+	reportId =
 		serverResponse?.uuid ||
 		serverResponse?.report_id ||
 		`temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
