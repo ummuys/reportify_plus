@@ -144,7 +144,8 @@ function buildRawParamsFromEntry(entry) {
 		report_comm: normalizeReportComment(entry.comment),
 		created_at: toISOStringSafe(createdSource),
 		sql,
-		csv_sep: csvSepChar
+		csv_sep: csvSepChar,
+        reportId: entry.reportId || "",
 	};
 }
 
@@ -204,7 +205,7 @@ function normalizeCacheEntry(raw) {
     if (typeof raw !== 'object' || Array.isArray(raw)) {
         return null;
     }
-
+    
     const sqlCandidate = raw.sql ?? raw.Sql ?? raw.query ?? raw.Query;
     const sql = typeof sqlCandidate === 'string' ? sqlCandidate.trim() : '';
     if (!sql) return null;
@@ -233,6 +234,11 @@ function normalizeCacheEntry(raw) {
             meta.time = created.toLocaleString();
             meta.savedAt = created.toISOString();
         }
+    }
+
+    const idCandidate = raw.report_id ?? raw.reportId;
+    if (idCandidate) {
+        meta.reportId = idCandidate;
     }
 
     return { sql, meta };
@@ -355,6 +361,21 @@ function deriveMetaFromSql(sql = '') {
 function loadMetaFromStorage() {
     try {
         const raw = localStorage.getItem(HISTORY_META_KEY);
+
+        //console.log(JSON.parse(localStorage.getItem(HISTORY_META_KEY)));
+
+        // {
+        //     "query1": {
+        //         schema: ...,
+        //         table: ...,
+        //         ...
+        //     },
+
+        //     "query2": {
+        //         ...
+        //     }
+        // }
+
         if (!raw) return {};
         const parsed = JSON.parse(raw);
         if (typeof parsed !== 'object' || parsed === null) return {};
@@ -539,6 +560,7 @@ function createEntryFromSql(keyOrId, idx) {
 		favorite: !!meta.favorite,
 		status: meta.status || 'CREATED',
 		time: meta.time || meta.savedAt || '',
+        id: meta.reportId || '',
 	};
 }
 
@@ -597,12 +619,12 @@ export async function clearHistory() {
     return true;
 }
 
-export async function saveHistoryEntry(serverResponse = null) {
-	const sqlText = el('sqlText')
-	const sql = sqlText?.value?.trim()
-	if (!sql) {
-		return
-	}
+export async function saveHistoryEntry(reportId) {
+    const sqlText = el('sqlText');
+    const sql = sqlText?.value?.trim();
+    if (!sql) {
+        return;
+    }
 
 	const sortField = el('sortField')
 	const sortDir = el('sortDir')
@@ -652,7 +674,8 @@ export async function saveHistoryEntry(serverResponse = null) {
 		csvSep: csvSepChar,
 		status: reportStatus,
 		favorite: false,
-	}
+        reportId: reportId || "",
+	};
 
 	// ✅ СОХРАНЯЕМ в historyMeta с UUID как ключом
 	historyMeta[reportId] = entry
@@ -675,103 +698,53 @@ export async function saveHistoryEntry(serverResponse = null) {
 
 
 export async function refreshHistory(options = {}) {
-	const { silent = false } = options
-	const hadHistory = reportHistory.length > 0
-	isHistoryLoading = true
-	if (!hadHistory) {
-		renderHistory()
-	}
+    const { silent = false } = options;
+    const hadHistory = reportHistory.length > 0;
+    isHistoryLoading = true;
+    if (!hadHistory) {
+        renderHistory();
+    }
+    let lastError = null;
+    try {
+        const payload = await getCache(); // ВСЕ ЕСТЬ:  { reports: [rep1, rep2, ...] }
+        const rawEntries = normalizeCachePayload(payload); // ОТЛИЧАЕТСЯ ОТ payload: [{ reports: [rep1, rep2, ...] }]
+        const normalizedRawEntries = rawEntries[0].reports.map(normalizeCacheEntry);
+        const normalizedEntries = normalizedRawEntries.filter(entry => entry && entry.sql);
 
-	// ✅ ЕСЛИ API кэша недоступен - просто загружаем из localStorage
-	try {
-		const payload = await getCache()
-		const rawEntries = normalizeCachePayload(payload)
-		const normalizedEntries = rawEntries
-			.map(normalizeCacheEntry)
-			.filter(entry => entry && entry.sql)
+        normalizedEntries.forEach(({ sql, meta }) => {
+            if (!meta || typeof meta !== 'object') return;
+            const patch = {};
+            if (meta.name) patch.name = meta.name;
+            if (meta.comment) patch.comment = meta.comment;
+            if (meta.csvSep) patch.csvSep = meta.csvSep;
+            if (meta.time) patch.time = meta.time;
+            if (meta.savedAt) patch.savedAt = meta.savedAt;
+            if (meta.reportId) patch.reportId = meta.reportId;
+            if (Object.keys(patch).length) {
+                mergeMeta(sql, patch);
+            }
+        });
 
-		normalizedEntries.forEach(({ sql, meta }) => {
-			if (!meta || typeof meta !== 'object') return
+        const queries = normalizedEntries.map(entry => entry.sql);
+        setFallbackQueries(queries);
+        reportHistory = buildHistoryFromQueries(fallbackQueries);
 
-			const existingKey = Object.keys(historyMeta).find(key => {
-				const existing = historyMeta[key]
-				return (
-					existing && normalizeSqlKey(existing.sql) === normalizeSqlKey(sql)
-				)
-			})
-
-			if (existingKey) {
-				const patch = {}
-				if (meta.name && !historyMeta[existingKey].name) patch.name = meta.name
-				if (meta.comment && !historyMeta[existingKey].comment)
-					patch.comment = meta.comment
-				if (meta.csvSep) patch.csvSep = meta.csvSep
-				if (meta.time) patch.time = meta.time
-				if (meta.savedAt) patch.savedAt = meta.savedAt
-
-				if (Object.keys(patch).length) {
-					historyMeta[existingKey] = { ...historyMeta[existingKey], ...patch }
-				}
-			} else {
-				const patch = {}
-				if (meta.name) patch.name = meta.name
-				if (meta.comment) patch.comment = meta.comment
-				if (meta.csvSep) patch.csvSep = meta.csvSep
-				if (meta.time) patch.time = meta.time
-				if (meta.savedAt) patch.savedAt = meta.savedAt
-
-				if (Object.keys(patch).length) {
-					mergeMeta(sql, patch)
-				}
-			}
-		})
-
-		const queries = normalizedEntries.map(entry => entry.sql)
-		queries.forEach(sql => {
-			const sqlKey = normalizeSqlKey(sql)
-			const hasLocal = fallbackQueries.some(q => {
-				if (q.startsWith('report_') || q.includes('-')) {
-					const meta = historyMeta[q]
-					return meta && normalizeSqlKey(meta.sql) === sqlKey
-				}
-				return normalizeSqlKey(q) === sqlKey
-			})
-
-			if (!hasLocal) {
-				fallbackQueries.push(sql)
-			}
-		})
-
-		persistFallbackQueries()
-	} catch (err) {
-		// ✅ API кэша недоступен - это нормально, используем localStorage
-		if (!silent) {
-			console.warn(
-				'API кэша недоступен, используется только локальное хранилище',
-			)
-		}
-	} finally {
-		// ✅ ВСЕГДА загружаем из localStorage
-		reportHistory = buildHistoryFromQueries(fallbackQueries)
-		isHistoryLoading = false
-		renderHistory()
-	}
-
-	return reportHistory
-}
-
-
-export function updateReportStatus(uuid, newStatus) {
-	if (!uuid || !historyMeta[uuid]) return false
-
-	historyMeta[uuid].status = newStatus
-	persistMeta()
-
-	// Обновляем отображение
-	reportHistory = buildHistoryFromQueries(fallbackQueries)
-	renderHistory()
-
-	return true
+        //console.log(reportHistory);
+    } catch (err) {
+        lastError = err;
+        if (!silent) {
+            console.error('Не удалось обновить историю из кэша', err);
+            showToast('Не удалось загрузить историю');
+        }
+        if (!reportHistory.length) {
+            reportHistory = buildHistoryFromQueries(fallbackQueries);
+        }
+    } finally {
+        isHistoryLoading = false;
+        renderHistory();
+    }
+    if (lastError) throw lastError;
+    return reportHistory;
 }
 
 export function renderHistory() {
@@ -938,6 +911,7 @@ export function hydrateHistoryEntry(entry) {
 	entry.favorite = typeof entry.favorite === 'boolean' ? entry.favorite : !!meta?.favorite;
     entry.status = entry.status || meta?.status || 'CREATED';
 	entry.time = entry.time || meta?.time || meta?.savedAt || '';
+    entry.reportId = entry.reportId || meta?.reportId || '';
 
 	return entry;
 }
