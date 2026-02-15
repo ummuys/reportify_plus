@@ -20,12 +20,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ReportService_CreateReport_FullMethodName  = "/report.service.v1.ReportService/CreateReport"
-	ReportService_ReportStatus_FullMethodName  = "/report.service.v1.ReportService/ReportStatus"
-	ReportService_ListReports_FullMethodName   = "/report.service.v1.ReportService/ListReports"
-	ReportService_ReportInfo_FullMethodName    = "/report.service.v1.ReportService/ReportInfo"
-	ReportService_DeleteReports_FullMethodName = "/report.service.v1.ReportService/DeleteReports"
-	ReportService_DeleteReport_FullMethodName  = "/report.service.v1.ReportService/DeleteReport"
+	ReportService_CreateReport_FullMethodName   = "/report.service.v1.ReportService/CreateReport"
+	ReportService_RecreateReport_FullMethodName = "/report.service.v1.ReportService/RecreateReport"
+	ReportService_ReportStatus_FullMethodName   = "/report.service.v1.ReportService/ReportStatus"
+	ReportService_ListReports_FullMethodName    = "/report.service.v1.ReportService/ListReports"
+	ReportService_ReportInfo_FullMethodName     = "/report.service.v1.ReportService/ReportInfo"
+	ReportService_DeleteReports_FullMethodName  = "/report.service.v1.ReportService/DeleteReports"
+	ReportService_DeleteReport_FullMethodName   = "/report.service.v1.ReportService/DeleteReport"
 )
 
 // ReportServiceClient is the client API for ReportService service.
@@ -33,6 +34,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ReportServiceClient interface {
 	CreateReport(ctx context.Context, in *CreateReportRequest, opts ...grpc.CallOption) (*CreateReportResponse, error)
+	RecreateReport(ctx context.Context, in *RecreateReportRequest, opts ...grpc.CallOption) (*RecreateReportResponse, error)
 	ReportStatus(ctx context.Context, in *ReportStatusRequest, opts ...grpc.CallOption) (*ReportStatusResponse, error)
 	ListReports(ctx context.Context, in *ListReportsRequest, opts ...grpc.CallOption) (*ListReportsResponse, error)
 	ReportInfo(ctx context.Context, in *ReportInfoRequest, opts ...grpc.CallOption) (*ReportInfoResponse, error)
@@ -52,6 +54,16 @@ func (c *reportServiceClient) CreateReport(ctx context.Context, in *CreateReport
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateReportResponse)
 	err := c.cc.Invoke(ctx, ReportService_CreateReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reportServiceClient) RecreateReport(ctx context.Context, in *RecreateReportRequest, opts ...grpc.CallOption) (*RecreateReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RecreateReportResponse)
+	err := c.cc.Invoke(ctx, ReportService_RecreateReport_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +125,7 @@ func (c *reportServiceClient) DeleteReport(ctx context.Context, in *DeleteReport
 // for forward compatibility.
 type ReportServiceServer interface {
 	CreateReport(context.Context, *CreateReportRequest) (*CreateReportResponse, error)
+	RecreateReport(context.Context, *RecreateReportRequest) (*RecreateReportResponse, error)
 	ReportStatus(context.Context, *ReportStatusRequest) (*ReportStatusResponse, error)
 	ListReports(context.Context, *ListReportsRequest) (*ListReportsResponse, error)
 	ReportInfo(context.Context, *ReportInfoRequest) (*ReportInfoResponse, error)
@@ -130,6 +143,9 @@ type UnimplementedReportServiceServer struct{}
 
 func (UnimplementedReportServiceServer) CreateReport(context.Context, *CreateReportRequest) (*CreateReportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateReport not implemented")
+}
+func (UnimplementedReportServiceServer) RecreateReport(context.Context, *RecreateReportRequest) (*RecreateReportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RecreateReport not implemented")
 }
 func (UnimplementedReportServiceServer) ReportStatus(context.Context, *ReportStatusRequest) (*ReportStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportStatus not implemented")
@@ -181,6 +197,24 @@ func _ReportService_CreateReport_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ReportServiceServer).CreateReport(ctx, req.(*CreateReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReportService_RecreateReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecreateReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReportServiceServer).RecreateReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReportService_RecreateReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReportServiceServer).RecreateReport(ctx, req.(*RecreateReportRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -285,6 +319,10 @@ var ReportService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateReport",
 			Handler:    _ReportService_CreateReport_Handler,
+		},
+		{
+			MethodName: "RecreateReport",
+			Handler:    _ReportService_RecreateReport_Handler,
 		},
 		{
 			MethodName: "ReportStatus",

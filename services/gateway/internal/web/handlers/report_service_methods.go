@@ -79,6 +79,45 @@ func (rsh *reportServiceHandler) CreateReport(g *gin.Context) {
 	})
 }
 
+func (rsh *reportServiceHandler) RecreateReport(g *gin.Context) {
+	rsh.logger.Debug().Str("evt", "call RecreateReport").Msg("")
+
+	reportID := g.Param("report_id")
+	userID := g.GetString("user_id")
+
+	out, gErr := rsh.sc.RecreateReport(g.Request.Context(), &reportservicev1.RecreateReportRequest{
+		AuthorId: userID,
+		ReportId: reportID,
+	})
+
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
+			return
+		}
+
+		g.Set("msg", st.Message())
+
+		code := http.StatusInternalServerError
+		resp := webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
+
+		// switch st.Code() {
+		// default:
+		// }
+
+		g.AbortWithStatusJSON(code, resp)
+		return
+	}
+
+	g.Set("msg", "report recreation started")
+	g.JSON(http.StatusCreated, webdto.RecreateReportResponse{
+		ReportID: out.ReportId,
+		Status:   out.Status,
+	})
+}
+
 // ListReports godoc
 // @Summary List user reports
 // @Tags reports
@@ -139,6 +178,10 @@ func (rsh *reportServiceHandler) ListReports(g *gin.Context) {
 
 		if pbReport.CreatedAt != nil {
 			metadata.CreatedAt = pbReport.CreatedAt.AsTime()
+		}
+
+		if pbReport.UpdatedAt != nil {
+			metadata.UpdatedAt = pbReport.UpdatedAt.AsTime()
 		}
 
 		resp.Reports = append(resp.Reports, metadata)

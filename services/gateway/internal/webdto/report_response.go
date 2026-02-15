@@ -7,6 +7,11 @@ type CreateReportResponse struct {
 	Status   string `json:"status"`
 }
 
+type RecreateReportResponse struct {
+	ReportID string `json:"report_id"`
+	Status   string `json:"status"`
+}
+
 type DeleteReportResponse struct {
 	ReportID string `json:"report_id"`
 }

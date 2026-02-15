@@ -7,6 +7,11 @@ type CreateReportResult struct {
 	Status   string
 }
 
+type RecreateReportResult struct {
+	ReportID string
+	Status   string
+}
+
 type DeleteReportResult struct {
 	ReportID string
 }
@@ -24,6 +29,7 @@ type ReportMetadata struct {
 	CSVSep    string
 	Status    string
 	CreatedAt time.Time
+	UpdatedAt time.Time
 	FilePath  string
 	ErrMsg    string
 }

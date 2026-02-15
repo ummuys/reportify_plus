@@ -9,6 +9,11 @@ type CreateReportParams struct {
 	CSVSep   string
 }
 
+type RecreateReportParams struct {
+	AuthorID string
+	ReportID string
+}
+
 type DeleteReportsParams struct {
 	AuthorID string
 }

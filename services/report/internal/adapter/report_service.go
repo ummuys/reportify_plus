@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/rs/zerolog"
@@ -42,9 +43,18 @@ func (ra *ReportAdapter) CreateReport(ctx context.Context, in *rsv1.CreateReport
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	payload, err := json.Marshal(dto.KafkaValue{
+		ReportID:   out.ReportID,
+		Recreating: false,
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
 	ra.tunnel <- dto.KafkaMessage{
 		Key:   nil,
-		Value: []byte(out.ReportID),
+		Value: payload,
 	}
 
 	ra.logger.Info().
@@ -54,6 +64,40 @@ func (ra *ReportAdapter) CreateReport(ctx context.Context, in *rsv1.CreateReport
 		Msg("report task created")
 
 	return &rsv1.CreateReportResponse{ReportId: out.ReportID, Status: out.Status}, nil
+}
+
+func (ra *ReportAdapter) RecreateReport(ctx context.Context, in *rsv1.RecreateReportRequest) (*rsv1.RecreateReportResponse, error) {
+	ra.logger.Debug().Str("evt", "call RecreateReport").Msg("")
+
+	out, err := ra.reportSvc.RecreateReport(ctx, dto.RecreateReportParams{AuthorID: in.AuthorId, ReportID: in.ReportId})
+	if err != nil {
+		switch {
+		case errors.Is(err, errs.ErrPgNotFound):
+			return nil, status.Error(codes.NotFound, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	payload, err := json.Marshal(dto.KafkaValue{
+		ReportID:   out.ReportID,
+		Recreating: true,
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	ra.tunnel <- dto.KafkaMessage{
+		Key:   nil,
+		Value: payload,
+	}
+
+	ra.logger.Info().
+		Str("report_id", out.ReportID).
+		Str("author_id", in.AuthorId).
+		Msg("report recreation started")
+	return &rsv1.RecreateReportResponse{ReportId: out.ReportID, Status: out.Status}, nil
 }
 
 func (ra *ReportAdapter) ReportStatus(ctx context.Context, in *rsv1.ReportStatusRequest) (*rsv1.ReportStatusResponse, error) {
@@ -97,6 +141,7 @@ func (ra *ReportAdapter) ListReports(ctx context.Context, in *rsv1.ListReportsRe
 			CsvSep:    r.CSVSep,
 			Status:    r.Status,
 			CreatedAt: timestamppb.New(r.CreatedAt),
+			UpdatedAt: timestamppb.New(r.UpdatedAt),
 			FilePath:  r.FilePath,
 			ErrMsg:    r.ErrMsg,
 		})

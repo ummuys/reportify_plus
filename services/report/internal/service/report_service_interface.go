@@ -8,6 +8,7 @@ import (
 
 type ReportService interface {
 	CreateReport(ctx context.Context, in dto.CreateReportParams) (dto.CreateReportResult, error)
+	RecreateReport(ctx context.Context, in dto.RecreateReportParams) (dto.RecreateReportResult, error)
 	ListReports(ctx context.Context, in dto.ListReportsParams) (dto.ListReportsResult, error)
 	ReportStatus(ctx context.Context, in dto.ReportStatusParams) (dto.ReportStatusResult, error)
 	ReportInfo(ctx context.Context, in dto.ReportInfoParams) (dto.ReportInfoResult, error)

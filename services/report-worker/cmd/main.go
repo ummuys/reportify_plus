@@ -61,7 +61,7 @@ func main() {
 		logs.Fatal().Err(err).Msg("service")
 	}
 
-	kafkacli, err := kafkacli.NewKafkaConsumer(svc, logs)
+	rcc, err := kafkacli.NewReportCreateConsumer(svc, logs)
 	if err != nil {
 		logs.Fatal().Err(err).Msg("kafka-consumer")
 	}
@@ -71,7 +71,7 @@ func main() {
 	wg := sync.WaitGroup{}
 	wg.Go(func() {
 		logs.Info().Msg("Worker is running")
-		err := kafkacli.Run(ctx)
+		err := rcc.Run(ctx)
 		if err != nil {
 			SDChan <- errs.SDMsg{
 				Err:  err,

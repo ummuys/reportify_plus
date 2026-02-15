@@ -9,6 +9,7 @@ package reportservicev1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
@@ -31,6 +32,7 @@ type CreateReportRequest struct {
 	Query         string                 `protobuf:"bytes,4,opt,name=query,proto3" json:"query,omitempty"`
 	Format        string                 `protobuf:"bytes,5,opt,name=format,proto3" json:"format,omitempty"`
 	CsvSep        string                 `protobuf:"bytes,6,opt,name=csv_sep,json=csvSep,proto3" json:"csv_sep,omitempty"`
+	Ttl           *durationpb.Duration   `protobuf:"bytes,7,opt,name=ttl,proto3" json:"ttl,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -107,6 +109,13 @@ func (x *CreateReportRequest) GetCsvSep() string {
 	return ""
 }
 
+func (x *CreateReportRequest) GetTtl() *durationpb.Duration {
+	if x != nil {
+		return x.Ttl
+	}
+	return nil
+}
+
 type CreateReportResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ReportId      string                 `protobuf:"bytes,1,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
@@ -159,6 +168,118 @@ func (x *CreateReportResponse) GetStatus() string {
 	return ""
 }
 
+type RecreateReportRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AuthorId      string                 `protobuf:"bytes,1,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
+	ReportId      string                 `protobuf:"bytes,2,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
+	Ttl           *durationpb.Duration   `protobuf:"bytes,3,opt,name=ttl,proto3" json:"ttl,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecreateReportRequest) Reset() {
+	*x = RecreateReportRequest{}
+	mi := &file_report_service_v1_report_service_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecreateReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecreateReportRequest) ProtoMessage() {}
+
+func (x *RecreateReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_report_service_v1_report_service_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecreateReportRequest.ProtoReflect.Descriptor instead.
+func (*RecreateReportRequest) Descriptor() ([]byte, []int) {
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RecreateReportRequest) GetAuthorId() string {
+	if x != nil {
+		return x.AuthorId
+	}
+	return ""
+}
+
+func (x *RecreateReportRequest) GetReportId() string {
+	if x != nil {
+		return x.ReportId
+	}
+	return ""
+}
+
+func (x *RecreateReportRequest) GetTtl() *durationpb.Duration {
+	if x != nil {
+		return x.Ttl
+	}
+	return nil
+}
+
+type RecreateReportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ReportId      string                 `protobuf:"bytes,1,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecreateReportResponse) Reset() {
+	*x = RecreateReportResponse{}
+	mi := &file_report_service_v1_report_service_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecreateReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecreateReportResponse) ProtoMessage() {}
+
+func (x *RecreateReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_report_service_v1_report_service_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecreateReportResponse.ProtoReflect.Descriptor instead.
+func (*RecreateReportResponse) Descriptor() ([]byte, []int) {
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RecreateReportResponse) GetReportId() string {
+	if x != nil {
+		return x.ReportId
+	}
+	return ""
+}
+
+func (x *RecreateReportResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 type ReportStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AuthorId      string                 `protobuf:"bytes,1,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
@@ -169,7 +290,7 @@ type ReportStatusRequest struct {
 
 func (x *ReportStatusRequest) Reset() {
 	*x = ReportStatusRequest{}
-	mi := &file_report_service_v1_report_service_proto_msgTypes[2]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -181,7 +302,7 @@ func (x *ReportStatusRequest) String() string {
 func (*ReportStatusRequest) ProtoMessage() {}
 
 func (x *ReportStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_report_service_v1_report_service_proto_msgTypes[2]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -194,7 +315,7 @@ func (x *ReportStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportStatusRequest.ProtoReflect.Descriptor instead.
 func (*ReportStatusRequest) Descriptor() ([]byte, []int) {
-	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{2}
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ReportStatusRequest) GetAuthorId() string {
@@ -221,7 +342,7 @@ type ReportStatusResponse struct {
 
 func (x *ReportStatusResponse) Reset() {
 	*x = ReportStatusResponse{}
-	mi := &file_report_service_v1_report_service_proto_msgTypes[3]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -233,7 +354,7 @@ func (x *ReportStatusResponse) String() string {
 func (*ReportStatusResponse) ProtoMessage() {}
 
 func (x *ReportStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_report_service_v1_report_service_proto_msgTypes[3]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -246,7 +367,7 @@ func (x *ReportStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportStatusResponse.ProtoReflect.Descriptor instead.
 func (*ReportStatusResponse) Descriptor() ([]byte, []int) {
-	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{3}
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ReportStatusResponse) GetReportId() string {
@@ -272,7 +393,7 @@ type ListReportsRequest struct {
 
 func (x *ListReportsRequest) Reset() {
 	*x = ListReportsRequest{}
-	mi := &file_report_service_v1_report_service_proto_msgTypes[4]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -284,7 +405,7 @@ func (x *ListReportsRequest) String() string {
 func (*ListReportsRequest) ProtoMessage() {}
 
 func (x *ListReportsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_report_service_v1_report_service_proto_msgTypes[4]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -297,7 +418,7 @@ func (x *ListReportsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListReportsRequest.ProtoReflect.Descriptor instead.
 func (*ListReportsRequest) Descriptor() ([]byte, []int) {
-	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{4}
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ListReportsRequest) GetAuthorId() string {
@@ -316,7 +437,7 @@ type ListReportsResponse struct {
 
 func (x *ListReportsResponse) Reset() {
 	*x = ListReportsResponse{}
-	mi := &file_report_service_v1_report_service_proto_msgTypes[5]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -328,7 +449,7 @@ func (x *ListReportsResponse) String() string {
 func (*ListReportsResponse) ProtoMessage() {}
 
 func (x *ListReportsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_report_service_v1_report_service_proto_msgTypes[5]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -341,7 +462,7 @@ func (x *ListReportsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListReportsResponse.ProtoReflect.Descriptor instead.
 func (*ListReportsResponse) Descriptor() ([]byte, []int) {
-	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{5}
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListReportsResponse) GetReports() []*ReportMetadata {
@@ -361,7 +482,7 @@ type ReportInfoRequest struct {
 
 func (x *ReportInfoRequest) Reset() {
 	*x = ReportInfoRequest{}
-	mi := &file_report_service_v1_report_service_proto_msgTypes[6]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -373,7 +494,7 @@ func (x *ReportInfoRequest) String() string {
 func (*ReportInfoRequest) ProtoMessage() {}
 
 func (x *ReportInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_report_service_v1_report_service_proto_msgTypes[6]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -386,7 +507,7 @@ func (x *ReportInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportInfoRequest.ProtoReflect.Descriptor instead.
 func (*ReportInfoRequest) Descriptor() ([]byte, []int) {
-	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{6}
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ReportInfoRequest) GetAuthorId() string {
@@ -412,7 +533,7 @@ type ReportInfoResponse struct {
 
 func (x *ReportInfoResponse) Reset() {
 	*x = ReportInfoResponse{}
-	mi := &file_report_service_v1_report_service_proto_msgTypes[7]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -424,7 +545,7 @@ func (x *ReportInfoResponse) String() string {
 func (*ReportInfoResponse) ProtoMessage() {}
 
 func (x *ReportInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_report_service_v1_report_service_proto_msgTypes[7]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -437,7 +558,7 @@ func (x *ReportInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportInfoResponse.ProtoReflect.Descriptor instead.
 func (*ReportInfoResponse) Descriptor() ([]byte, []int) {
-	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{7}
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ReportInfoResponse) GetReport() *ReportMetadata {
@@ -456,7 +577,7 @@ type DeleteReportsRequest struct {
 
 func (x *DeleteReportsRequest) Reset() {
 	*x = DeleteReportsRequest{}
-	mi := &file_report_service_v1_report_service_proto_msgTypes[8]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -468,7 +589,7 @@ func (x *DeleteReportsRequest) String() string {
 func (*DeleteReportsRequest) ProtoMessage() {}
 
 func (x *DeleteReportsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_report_service_v1_report_service_proto_msgTypes[8]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -481,7 +602,7 @@ func (x *DeleteReportsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteReportsRequest.ProtoReflect.Descriptor instead.
 func (*DeleteReportsRequest) Descriptor() ([]byte, []int) {
-	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{8}
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *DeleteReportsRequest) GetAuthorId() string {
@@ -501,7 +622,7 @@ type DeleteReportRequest struct {
 
 func (x *DeleteReportRequest) Reset() {
 	*x = DeleteReportRequest{}
-	mi := &file_report_service_v1_report_service_proto_msgTypes[9]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -513,7 +634,7 @@ func (x *DeleteReportRequest) String() string {
 func (*DeleteReportRequest) ProtoMessage() {}
 
 func (x *DeleteReportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_report_service_v1_report_service_proto_msgTypes[9]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -526,7 +647,7 @@ func (x *DeleteReportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteReportRequest.ProtoReflect.Descriptor instead.
 func (*DeleteReportRequest) Descriptor() ([]byte, []int) {
-	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{9}
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *DeleteReportRequest) GetAuthorId() string {
@@ -552,7 +673,7 @@ type DeleteReportResponse struct {
 
 func (x *DeleteReportResponse) Reset() {
 	*x = DeleteReportResponse{}
-	mi := &file_report_service_v1_report_service_proto_msgTypes[10]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -564,7 +685,7 @@ func (x *DeleteReportResponse) String() string {
 func (*DeleteReportResponse) ProtoMessage() {}
 
 func (x *DeleteReportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_report_service_v1_report_service_proto_msgTypes[10]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -577,7 +698,7 @@ func (x *DeleteReportResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteReportResponse.ProtoReflect.Descriptor instead.
 func (*DeleteReportResponse) Descriptor() ([]byte, []int) {
-	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{10}
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *DeleteReportResponse) GetReportId() string {
@@ -598,14 +719,15 @@ type ReportMetadata struct {
 	Status        string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
 	FilePath      string                 `protobuf:"bytes,8,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	ErrMsg        string                 `protobuf:"bytes,10,opt,name=err_msg,json=errMsg,proto3" json:"err_msg,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	ErrMsg        string                 `protobuf:"bytes,11,opt,name=err_msg,json=errMsg,proto3" json:"err_msg,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ReportMetadata) Reset() {
 	*x = ReportMetadata{}
-	mi := &file_report_service_v1_report_service_proto_msgTypes[11]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -617,7 +739,7 @@ func (x *ReportMetadata) String() string {
 func (*ReportMetadata) ProtoMessage() {}
 
 func (x *ReportMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_report_service_v1_report_service_proto_msgTypes[11]
+	mi := &file_report_service_v1_report_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -630,7 +752,7 @@ func (x *ReportMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportMetadata.ProtoReflect.Descriptor instead.
 func (*ReportMetadata) Descriptor() ([]byte, []int) {
-	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{11}
+	return file_report_service_v1_report_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ReportMetadata) GetReportId() string {
@@ -696,6 +818,13 @@ func (x *ReportMetadata) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *ReportMetadata) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
 func (x *ReportMetadata) GetErrMsg() string {
 	if x != nil {
 		return x.ErrMsg
@@ -707,15 +836,23 @@ var File_report_service_v1_report_service_proto protoreflect.FileDescriptor
 
 const file_report_service_v1_report_service_proto_rawDesc = "" +
 	"\n" +
-	"&report/service/v1/report_service.proto\x12\x11report.service.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xa1\x01\n" +
+	"&report/service/v1/report_service.proto\x12\x11report.service.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/duration.proto\"\xce\x01\n" +
 	"\x13CreateReportRequest\x12\x1b\n" +
 	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
 	"\x04comm\x18\x03 \x01(\tR\x04comm\x12\x14\n" +
 	"\x05query\x18\x04 \x01(\tR\x05query\x12\x16\n" +
 	"\x06format\x18\x05 \x01(\tR\x06format\x12\x17\n" +
-	"\acsv_sep\x18\x06 \x01(\tR\x06csvSep\"K\n" +
+	"\acsv_sep\x18\x06 \x01(\tR\x06csvSep\x12+\n" +
+	"\x03ttl\x18\a \x01(\v2\x19.google.protobuf.DurationR\x03ttl\"K\n" +
 	"\x14CreateReportResponse\x12\x1b\n" +
+	"\treport_id\x18\x01 \x01(\tR\breportId\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\"~\n" +
+	"\x15RecreateReportRequest\x12\x1b\n" +
+	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\x12\x1b\n" +
+	"\treport_id\x18\x02 \x01(\tR\breportId\x12+\n" +
+	"\x03ttl\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\x03ttl\"M\n" +
+	"\x16RecreateReportResponse\x12\x1b\n" +
 	"\treport_id\x18\x01 \x01(\tR\breportId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\"O\n" +
 	"\x13ReportStatusRequest\x12\x1b\n" +
@@ -739,7 +876,7 @@ const file_report_service_v1_report_service_proto_rawDesc = "" +
 	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\x12\x1b\n" +
 	"\treport_id\x18\x02 \x01(\tR\breportId\"3\n" +
 	"\x14DeleteReportResponse\x12\x1b\n" +
-	"\treport_id\x18\x01 \x01(\tR\breportId\"\xa5\x02\n" +
+	"\treport_id\x18\x01 \x01(\tR\breportId\"\xe0\x02\n" +
 	"\x0eReportMetadata\x12\x1b\n" +
 	"\treport_id\x18\x01 \x01(\tR\breportId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -750,11 +887,14 @@ const file_report_service_v1_report_service_proto_rawDesc = "" +
 	"\x06status\x18\a \x01(\tR\x06status\x12\x1b\n" +
 	"\tfile_path\x18\b \x01(\tR\bfilePath\x129\n" +
 	"\n" +
-	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x17\n" +
-	"\aerr_msg\x18\n" +
-	" \x01(\tR\x06errMsg2\xbd\x04\n" +
+	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x17\n" +
+	"\aerr_msg\x18\v \x01(\tR\x06errMsg2\xa4\x05\n" +
 	"\rReportService\x12_\n" +
-	"\fCreateReport\x12&.report.service.v1.CreateReportRequest\x1a'.report.service.v1.CreateReportResponse\x12_\n" +
+	"\fCreateReport\x12&.report.service.v1.CreateReportRequest\x1a'.report.service.v1.CreateReportResponse\x12e\n" +
+	"\x0eRecreateReport\x12(.report.service.v1.RecreateReportRequest\x1a).report.service.v1.RecreateReportResponse\x12_\n" +
 	"\fReportStatus\x12&.report.service.v1.ReportStatusRequest\x1a'.report.service.v1.ReportStatusResponse\x12\\\n" +
 	"\vListReports\x12%.report.service.v1.ListReportsRequest\x1a&.report.service.v1.ListReportsResponse\x12Y\n" +
 	"\n" +
@@ -774,44 +914,52 @@ func file_report_service_v1_report_service_proto_rawDescGZIP() []byte {
 	return file_report_service_v1_report_service_proto_rawDescData
 }
 
-var file_report_service_v1_report_service_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_report_service_v1_report_service_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_report_service_v1_report_service_proto_goTypes = []any{
-	(*CreateReportRequest)(nil),   // 0: report.service.v1.CreateReportRequest
-	(*CreateReportResponse)(nil),  // 1: report.service.v1.CreateReportResponse
-	(*ReportStatusRequest)(nil),   // 2: report.service.v1.ReportStatusRequest
-	(*ReportStatusResponse)(nil),  // 3: report.service.v1.ReportStatusResponse
-	(*ListReportsRequest)(nil),    // 4: report.service.v1.ListReportsRequest
-	(*ListReportsResponse)(nil),   // 5: report.service.v1.ListReportsResponse
-	(*ReportInfoRequest)(nil),     // 6: report.service.v1.ReportInfoRequest
-	(*ReportInfoResponse)(nil),    // 7: report.service.v1.ReportInfoResponse
-	(*DeleteReportsRequest)(nil),  // 8: report.service.v1.DeleteReportsRequest
-	(*DeleteReportRequest)(nil),   // 9: report.service.v1.DeleteReportRequest
-	(*DeleteReportResponse)(nil),  // 10: report.service.v1.DeleteReportResponse
-	(*ReportMetadata)(nil),        // 11: report.service.v1.ReportMetadata
-	(*timestamppb.Timestamp)(nil), // 12: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),         // 13: google.protobuf.Empty
+	(*CreateReportRequest)(nil),    // 0: report.service.v1.CreateReportRequest
+	(*CreateReportResponse)(nil),   // 1: report.service.v1.CreateReportResponse
+	(*RecreateReportRequest)(nil),  // 2: report.service.v1.RecreateReportRequest
+	(*RecreateReportResponse)(nil), // 3: report.service.v1.RecreateReportResponse
+	(*ReportStatusRequest)(nil),    // 4: report.service.v1.ReportStatusRequest
+	(*ReportStatusResponse)(nil),   // 5: report.service.v1.ReportStatusResponse
+	(*ListReportsRequest)(nil),     // 6: report.service.v1.ListReportsRequest
+	(*ListReportsResponse)(nil),    // 7: report.service.v1.ListReportsResponse
+	(*ReportInfoRequest)(nil),      // 8: report.service.v1.ReportInfoRequest
+	(*ReportInfoResponse)(nil),     // 9: report.service.v1.ReportInfoResponse
+	(*DeleteReportsRequest)(nil),   // 10: report.service.v1.DeleteReportsRequest
+	(*DeleteReportRequest)(nil),    // 11: report.service.v1.DeleteReportRequest
+	(*DeleteReportResponse)(nil),   // 12: report.service.v1.DeleteReportResponse
+	(*ReportMetadata)(nil),         // 13: report.service.v1.ReportMetadata
+	(*durationpb.Duration)(nil),    // 14: google.protobuf.Duration
+	(*timestamppb.Timestamp)(nil),  // 15: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),          // 16: google.protobuf.Empty
 }
 var file_report_service_v1_report_service_proto_depIdxs = []int32{
-	11, // 0: report.service.v1.ListReportsResponse.reports:type_name -> report.service.v1.ReportMetadata
-	11, // 1: report.service.v1.ReportInfoResponse.report:type_name -> report.service.v1.ReportMetadata
-	12, // 2: report.service.v1.ReportMetadata.created_at:type_name -> google.protobuf.Timestamp
-	0,  // 3: report.service.v1.ReportService.CreateReport:input_type -> report.service.v1.CreateReportRequest
-	2,  // 4: report.service.v1.ReportService.ReportStatus:input_type -> report.service.v1.ReportStatusRequest
-	4,  // 5: report.service.v1.ReportService.ListReports:input_type -> report.service.v1.ListReportsRequest
-	6,  // 6: report.service.v1.ReportService.ReportInfo:input_type -> report.service.v1.ReportInfoRequest
-	8,  // 7: report.service.v1.ReportService.DeleteReports:input_type -> report.service.v1.DeleteReportsRequest
-	9,  // 8: report.service.v1.ReportService.DeleteReport:input_type -> report.service.v1.DeleteReportRequest
-	1,  // 9: report.service.v1.ReportService.CreateReport:output_type -> report.service.v1.CreateReportResponse
-	3,  // 10: report.service.v1.ReportService.ReportStatus:output_type -> report.service.v1.ReportStatusResponse
-	5,  // 11: report.service.v1.ReportService.ListReports:output_type -> report.service.v1.ListReportsResponse
-	7,  // 12: report.service.v1.ReportService.ReportInfo:output_type -> report.service.v1.ReportInfoResponse
-	13, // 13: report.service.v1.ReportService.DeleteReports:output_type -> google.protobuf.Empty
-	10, // 14: report.service.v1.ReportService.DeleteReport:output_type -> report.service.v1.DeleteReportResponse
-	9,  // [9:15] is the sub-list for method output_type
-	3,  // [3:9] is the sub-list for method input_type
-	3,  // [3:3] is the sub-list for extension type_name
-	3,  // [3:3] is the sub-list for extension extendee
-	0,  // [0:3] is the sub-list for field type_name
+	14, // 0: report.service.v1.CreateReportRequest.ttl:type_name -> google.protobuf.Duration
+	14, // 1: report.service.v1.RecreateReportRequest.ttl:type_name -> google.protobuf.Duration
+	13, // 2: report.service.v1.ListReportsResponse.reports:type_name -> report.service.v1.ReportMetadata
+	13, // 3: report.service.v1.ReportInfoResponse.report:type_name -> report.service.v1.ReportMetadata
+	15, // 4: report.service.v1.ReportMetadata.created_at:type_name -> google.protobuf.Timestamp
+	15, // 5: report.service.v1.ReportMetadata.updated_at:type_name -> google.protobuf.Timestamp
+	0,  // 6: report.service.v1.ReportService.CreateReport:input_type -> report.service.v1.CreateReportRequest
+	2,  // 7: report.service.v1.ReportService.RecreateReport:input_type -> report.service.v1.RecreateReportRequest
+	4,  // 8: report.service.v1.ReportService.ReportStatus:input_type -> report.service.v1.ReportStatusRequest
+	6,  // 9: report.service.v1.ReportService.ListReports:input_type -> report.service.v1.ListReportsRequest
+	8,  // 10: report.service.v1.ReportService.ReportInfo:input_type -> report.service.v1.ReportInfoRequest
+	10, // 11: report.service.v1.ReportService.DeleteReports:input_type -> report.service.v1.DeleteReportsRequest
+	11, // 12: report.service.v1.ReportService.DeleteReport:input_type -> report.service.v1.DeleteReportRequest
+	1,  // 13: report.service.v1.ReportService.CreateReport:output_type -> report.service.v1.CreateReportResponse
+	3,  // 14: report.service.v1.ReportService.RecreateReport:output_type -> report.service.v1.RecreateReportResponse
+	5,  // 15: report.service.v1.ReportService.ReportStatus:output_type -> report.service.v1.ReportStatusResponse
+	7,  // 16: report.service.v1.ReportService.ListReports:output_type -> report.service.v1.ListReportsResponse
+	9,  // 17: report.service.v1.ReportService.ReportInfo:output_type -> report.service.v1.ReportInfoResponse
+	16, // 18: report.service.v1.ReportService.DeleteReports:output_type -> google.protobuf.Empty
+	12, // 19: report.service.v1.ReportService.DeleteReport:output_type -> report.service.v1.DeleteReportResponse
+	13, // [13:20] is the sub-list for method output_type
+	6,  // [6:13] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_report_service_v1_report_service_proto_init() }
@@ -825,7 +973,7 @@ func file_report_service_v1_report_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_report_service_v1_report_service_proto_rawDesc), len(file_report_service_v1_report_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

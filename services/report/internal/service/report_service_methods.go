@@ -48,6 +48,22 @@ func (rs *reportService) CreateReport(ctx context.Context, in dto.CreateReportPa
 	return out, nil
 }
 
+func (rs *reportService) RecreateReport(ctx context.Context, in dto.RecreateReportParams) (dto.RecreateReportResult, error) {
+	rs.logger.Debug().Str("evt", "call RecreateReport").Msg("")
+
+	out, err := rs.db.RecreateReport(ctx, in)
+	if err != nil {
+		rs.logger.Error().
+			Err(err).
+			Str("db-method", "RecreateReport").
+			Str("author_id", in.AuthorID).
+			Str("report_id", in.ReportID).
+			Msg("recreate report failed")
+		return out, errs.ParsePgError(err)
+	}
+	return out, nil
+}
+
 func (rs *reportService) ListReports(ctx context.Context, in dto.ListReportsParams) (dto.ListReportsResult, error) {
 	rs.logger.Debug().Str("evt", "call ListReports").Msg("")
 

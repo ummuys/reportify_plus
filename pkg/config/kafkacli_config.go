@@ -47,7 +47,7 @@ func ParseKafkaProducerConfig() (KafkaProducerConfig, error) {
 	}, nil
 }
 
-type KafkaConsumerConfig struct {
+type ReportCreateConsumerConfig struct {
 	ClientID string
 	Group    string
 	Broker   string
@@ -55,7 +55,7 @@ type KafkaConsumerConfig struct {
 	TopicDLQ string
 }
 
-func ParseKafkaConsumerConfig() (KafkaConsumerConfig, error) {
+func ParseReportCreateConsumerConfig() (ReportCreateConsumerConfig, error) {
 	var errs []string
 	add := func(err error) {
 		if err != nil {
@@ -81,10 +81,10 @@ func ParseKafkaConsumerConfig() (KafkaConsumerConfig, error) {
 	add(err)
 
 	if len(errs) > 0 {
-		return KafkaConsumerConfig{}, errors.New(strings.Join(errs, ", "))
+		return ReportCreateConsumerConfig{}, errors.New(strings.Join(errs, ", "))
 	}
 
-	return KafkaConsumerConfig{
+	return ReportCreateConsumerConfig{
 		ClientID: cid,
 		Broker:   name + ":" + port,
 		Group:    group,

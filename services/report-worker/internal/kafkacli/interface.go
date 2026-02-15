@@ -2,6 +2,6 @@ package kafkacli
 
 import "context"
 
-type KafkaConsumer interface {
+type ReportCreateConsumer interface {
 	Run(ctx context.Context) error
 }

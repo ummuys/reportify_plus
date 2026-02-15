@@ -9,6 +9,17 @@ const (
 	RETURNING status;
 	`
 
+	recreateReportQuery = `
+	UPDATE report_metadata.report_requests
+	SET status = 'CREATED',
+		file_status = 'NOT_EXISTS',
+		updated_at = now()
+	WHERE author_id = $1
+	AND report_id = $2
+	AND file_status IN ('EXISTS', 'DELETED', 'DELETE_FAILED')
+	RETURNING report_id;
+`
+
 	reportStatusQuery = `
 	SELECT status FROM report_metadata.report_requests
 	where author_id = $1
@@ -25,13 +36,14 @@ const (
 		format, 
 		csv_separator, 
 		status, 
-		created_at, 
+		created_at,
+		updated_at, 
 		file_path, 
 		error_message
 	FROM report_metadata.report_requests
 	WHERE author_id = $1
 	and status != 'ARCHIVED'
-	ORDER BY created_at ASC;
+	ORDER BY created_at DESC;
 	`
 
 	reportInfoQuery = `

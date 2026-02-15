@@ -23,12 +23,12 @@ func (_m *MockMinIOClient) EXPECT() *MockMinIOClient_Expecter {
 	return &MockMinIOClient_Expecter{mock: &_m.Mock}
 }
 
-// DeleteExpiredFiles provides a mock function with given fields: ctx, in
-func (_m *MockMinIOClient) DeleteExpiredFiles(ctx context.Context, in dto.DeleteExpiredFilesParams) error {
+// DeleteFiles provides a mock function with given fields: ctx, in
+func (_m *MockMinIOClient) DeleteFiles(ctx context.Context, in dto.DeleteExpiredFilesParams) error {
 	ret := _m.Called(ctx, in)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteExpiredFiles")
+		panic("no return value specified for DeleteFiles")
 	}
 
 	var r0 error
@@ -41,31 +41,31 @@ func (_m *MockMinIOClient) DeleteExpiredFiles(ctx context.Context, in dto.Delete
 	return r0
 }
 
-// MockMinIOClient_DeleteExpiredFiles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteExpiredFiles'
-type MockMinIOClient_DeleteExpiredFiles_Call struct {
+// MockMinIOClient_DeleteFiles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteFiles'
+type MockMinIOClient_DeleteFiles_Call struct {
 	*mock.Call
 }
 
-// DeleteExpiredFiles is a helper method to define mock.On call
+// DeleteFiles is a helper method to define mock.On call
 //   - ctx context.Context
 //   - in dto.DeleteExpiredFilesParams
-func (_e *MockMinIOClient_Expecter) DeleteExpiredFiles(ctx interface{}, in interface{}) *MockMinIOClient_DeleteExpiredFiles_Call {
-	return &MockMinIOClient_DeleteExpiredFiles_Call{Call: _e.mock.On("DeleteExpiredFiles", ctx, in)}
+func (_e *MockMinIOClient_Expecter) DeleteFiles(ctx interface{}, in interface{}) *MockMinIOClient_DeleteFiles_Call {
+	return &MockMinIOClient_DeleteFiles_Call{Call: _e.mock.On("DeleteFiles", ctx, in)}
 }
 
-func (_c *MockMinIOClient_DeleteExpiredFiles_Call) Run(run func(ctx context.Context, in dto.DeleteExpiredFilesParams)) *MockMinIOClient_DeleteExpiredFiles_Call {
+func (_c *MockMinIOClient_DeleteFiles_Call) Run(run func(ctx context.Context, in dto.DeleteExpiredFilesParams)) *MockMinIOClient_DeleteFiles_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(dto.DeleteExpiredFilesParams))
 	})
 	return _c
 }
 
-func (_c *MockMinIOClient_DeleteExpiredFiles_Call) Return(_a0 error) *MockMinIOClient_DeleteExpiredFiles_Call {
+func (_c *MockMinIOClient_DeleteFiles_Call) Return(_a0 error) *MockMinIOClient_DeleteFiles_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockMinIOClient_DeleteExpiredFiles_Call) RunAndReturn(run func(context.Context, dto.DeleteExpiredFilesParams) error) *MockMinIOClient_DeleteExpiredFiles_Call {
+func (_c *MockMinIOClient_DeleteFiles_Call) RunAndReturn(run func(context.Context, dto.DeleteExpiredFilesParams) error) *MockMinIOClient_DeleteFiles_Call {
 	_c.Call.Return(run)
 	return _c
 }
