@@ -596,8 +596,8 @@ export async function saveHistoryEntry(reportId) {
         dir: row.querySelector('.sortDir')?.value || "ASC"
     }));
 
-    console.log(reportComment.value);
-    console.log(normalizeReportComment(reportComment.value));
+    // console.log(reportComment.value);
+    // console.log(normalizeReportComment(reportComment.value));
 	const entry = {
 		schema: state.schema || "",
 		table: state.table || "",
@@ -682,8 +682,8 @@ export function renderHistory() {
     if (!historyList) return;
 
     let visibleReports = [...reportHistory];
-    console.log(reportHistory);
-    console.log(visibleReports);
+    // console.log(reportHistory);
+    // console.log(visibleReports);
 
     if (showOnlyFavorites) {
         visibleReports = visibleReports.filter(r => r.favorite);
