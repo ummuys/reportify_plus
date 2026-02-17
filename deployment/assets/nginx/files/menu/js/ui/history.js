@@ -463,7 +463,7 @@ function setFallbackQueries(list = []) {
     const normalized = list
         .map(normalizeSqlKey)
         .filter(Boolean);
-    fallbackQueries = Array.from(new Set(normalized)).slice(0, HISTORY_LIMIT);
+    fallbackQueries = normalized.slice(0, HISTORY_LIMIT); // убрал Set (было Array.from(new Set(normalized)).slice(0, HISTORY_LIMIT))
     persistFallbackQueries();
 }
 
@@ -596,6 +596,8 @@ export async function saveHistoryEntry(reportId) {
         dir: row.querySelector('.sortDir')?.value || "ASC"
     }));
 
+    console.log(reportComment.value);
+    console.log(normalizeReportComment(reportComment.value));
 	const entry = {
 		schema: state.schema || "",
 		table: state.table || "",
@@ -657,8 +659,6 @@ export async function refreshHistory(options = {}) {
         const queries = normalizedEntries.map(entry => entry.sql);
         setFallbackQueries(queries);
         reportHistory = buildHistoryFromQueries(fallbackQueries);
-
-        //console.log(reportHistory);
     } catch (err) {
         lastError = err;
         if (!silent) {
@@ -682,6 +682,8 @@ export function renderHistory() {
     if (!historyList) return;
 
     let visibleReports = [...reportHistory];
+    console.log(reportHistory);
+    console.log(visibleReports);
 
     if (showOnlyFavorites) {
         visibleReports = visibleReports.filter(r => r.favorite);
