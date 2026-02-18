@@ -731,7 +731,10 @@ export function setupEventListeners() {
         const li = e.target.closest('li[data-i]');
         if (!li) return;
         const index = +li.dataset.i;
+        // console.log("index: ", index);
+        // console.log("reportHistory: ", reportHistory);
         const item = hydrateHistoryEntry(reportHistory[index]);
+        // console.log("item: ", item);
         if (!item) return;
 
         const btnFav = e.target.closest('.btn-fav-history');
