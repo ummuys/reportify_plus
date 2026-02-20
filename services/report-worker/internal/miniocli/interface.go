@@ -8,5 +8,5 @@ import (
 
 type MinIOClient interface {
 	UploadAndPresign(ctx context.Context, in dto.PutReportIn) (string, error)
-	DeleteExpiredFiles(ctx context.Context, in dto.DeleteExpiredFilesParams) error
+	DeleteFiles(ctx context.Context, in dto.DeleteExpiredFilesParams) error
 }

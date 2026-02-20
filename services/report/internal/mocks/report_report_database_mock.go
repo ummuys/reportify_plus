@@ -272,6 +272,63 @@ func (_c *MockReportDB_ListReports_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// RecreateReport provides a mock function with given fields: ctx, in
+func (_m *MockReportDB) RecreateReport(ctx context.Context, in dto.RecreateReportParams) (dto.RecreateReportResult, error) {
+	ret := _m.Called(ctx, in)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RecreateReport")
+	}
+
+	var r0 dto.RecreateReportResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, dto.RecreateReportParams) (dto.RecreateReportResult, error)); ok {
+		return rf(ctx, in)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, dto.RecreateReportParams) dto.RecreateReportResult); ok {
+		r0 = rf(ctx, in)
+	} else {
+		r0 = ret.Get(0).(dto.RecreateReportResult)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, dto.RecreateReportParams) error); ok {
+		r1 = rf(ctx, in)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockReportDB_RecreateReport_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RecreateReport'
+type MockReportDB_RecreateReport_Call struct {
+	*mock.Call
+}
+
+// RecreateReport is a helper method to define mock.On call
+//   - ctx context.Context
+//   - in dto.RecreateReportParams
+func (_e *MockReportDB_Expecter) RecreateReport(ctx interface{}, in interface{}) *MockReportDB_RecreateReport_Call {
+	return &MockReportDB_RecreateReport_Call{Call: _e.mock.On("RecreateReport", ctx, in)}
+}
+
+func (_c *MockReportDB_RecreateReport_Call) Run(run func(ctx context.Context, in dto.RecreateReportParams)) *MockReportDB_RecreateReport_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(dto.RecreateReportParams))
+	})
+	return _c
+}
+
+func (_c *MockReportDB_RecreateReport_Call) Return(_a0 dto.RecreateReportResult, _a1 error) *MockReportDB_RecreateReport_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockReportDB_RecreateReport_Call) RunAndReturn(run func(context.Context, dto.RecreateReportParams) (dto.RecreateReportResult, error)) *MockReportDB_RecreateReport_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ReportInfo provides a mock function with given fields: ctx, in
 func (_m *MockReportDB) ReportInfo(ctx context.Context, in dto.ReportInfoParams) (dto.ReportInfoResult, error) {
 	ret := _m.Called(ctx, in)

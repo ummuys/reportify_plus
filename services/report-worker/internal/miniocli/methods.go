@@ -92,7 +92,7 @@ func (c *minioCli) UploadAndPresign(ctx context.Context, in dto.PutReportIn) (st
 	return u.String(), nil
 }
 
-func (c *minioCli) DeleteExpiredFiles(ctx context.Context, in dto.DeleteExpiredFilesParams) error {
+func (c *minioCli) DeleteFiles(ctx context.Context, in dto.DeleteExpiredFilesParams) error {
 
 	objectsCh := make(chan minio.ObjectInfo, 100)
 	go func() {

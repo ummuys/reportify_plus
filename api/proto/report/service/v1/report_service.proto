@@ -6,9 +6,11 @@ option go_package = "github.com/ummuys/reportify/api/pb/report/service/v1;report
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/duration.proto";
 
 service ReportService {
   rpc CreateReport (CreateReportRequest) returns (CreateReportResponse);
+  rpc RecreateReport (RecreateReportRequest) returns (RecreateReportResponse);
   rpc ReportStatus (ReportStatusRequest) returns (ReportStatusResponse);
   rpc ListReports (ListReportsRequest) returns (ListReportsResponse);
   rpc ReportInfo (ReportInfoRequest) returns (ReportInfoResponse);
@@ -23,10 +25,23 @@ message CreateReportRequest {
   string query = 4;
   string format = 5;
   string csv_sep = 6;
-  bool graphic_mode = 7;
+  google.protobuf.Duration ttl = 7;
+  bool graphic_mode = 8;
+
 }
 
 message CreateReportResponse {
+  string report_id = 1;
+  string status = 2;
+}
+
+message RecreateReportRequest {
+  string author_id = 1;
+  string report_id = 2;
+  google.protobuf.Duration ttl = 3;
+}
+
+message RecreateReportResponse {
   string report_id = 1;
   string status = 2;
 }
@@ -81,5 +96,6 @@ message ReportMetadata {
   string status = 7;
   string file_path = 8;
   google.protobuf.Timestamp created_at = 9;
-  string err_msg = 10;
+  google.protobuf.Timestamp updated_at = 10;
+  string err_msg = 11;
 }

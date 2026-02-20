@@ -61,7 +61,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 		return errs.ParsePgError(err)
 	}
 
-	info, err := p.reportDB.GetReportInfo(ctx, dto.GetReportInfoParams(in))
+	info, err := p.reportDB.GetReportInfo(ctx, dto.GetReportInfoParams{ReportID: in.ReportID})
 	if err != nil {
 		p.logger.Error().
 			Err(err).
@@ -130,7 +130,12 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	})
 
 	var path string
-	reportTTL := p.reportTTL
+
+	var reportTTL time.Duration
+	if in.GraphicMode {
+		reportTTL = time.Second * 60
+	}
+	reportTTL = p.reportTTL
 
 	eg.Go(func() error {
 		defer pr.Close()
@@ -198,6 +203,18 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	return nil
 }
 
+func (p *publish) RecreateReport(ctx context.Context, in dto.KafkaMessage) error {
+	if err := p.minioCli.DeleteFiles(ctx, dto.DeleteExpiredFilesParams{Names: []string{in.ReportID}, Bucket: "report"}); err != nil {
+		return err
+	}
+
+	if err := p.CreateReport(ctx, in); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (p *publish) stepFailed(ctx context.Context, reportID string, err error, befStat string) {
 	errMsg := err.Error()
 
@@ -237,7 +254,7 @@ func (p *publish) CleanOldReports(ctx context.Context) {
 		return
 	}
 
-	derr := p.minioCli.DeleteExpiredFiles(ctx, dto.DeleteExpiredFilesParams{
+	derr := p.minioCli.DeleteFiles(ctx, dto.DeleteExpiredFilesParams{
 		Names:  out.ReportsId,
 		Bucket: "report"})
 	if derr != nil {

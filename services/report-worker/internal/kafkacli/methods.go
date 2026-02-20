@@ -2,6 +2,7 @@ package kafkacli
 
 import (
 	"context"
+	"encoding/json"
 	"sync"
 	"time"
 
@@ -21,8 +22,8 @@ type consumer struct {
 	cWorkers int
 }
 
-func NewKafkaConsumer(svc service.PublishService, baseLogger zerolog.Logger) (KafkaConsumer, error) {
-	cfg, err := config.ParseKafkaConsumerConfig()
+func NewReportCreateConsumer(svc service.PublishService, baseLogger zerolog.Logger) (ReportCreateConsumer, error) {
+	cfg, err := config.ParseReportCreateConsumerConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -63,17 +64,29 @@ func (c *consumer) Run(ctx context.Context) error {
 			for r := range records {
 				wctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 				defer cancel()
-				reportID := string(r.Value)
+
+				var payload dto.KafkaMessage
+				if err := json.Unmarshal(r.Value, &payload); err != nil {
+					c.toDLQ(ctx, payload.ReportID, r, err)
+					continue
+				}
 
 				c.logger.Info().
 					Str("topic", r.Topic).
-					Str("report_id", reportID).
+					Str("report_id", payload.ReportID).
 					Msg("catch new message")
 
-				if err := c.svc.CreateReport(wctx, dto.KafkaMessage{
-					ReportID: reportID,
-				}); err != nil {
-					c.toDLQ(ctx, reportID, r, err)
+				msg := dto.KafkaMessage{ReportID: payload.ReportID}
+
+				var err error
+				if payload.Recreating {
+					err = c.svc.RecreateReport(wctx, msg)
+				} else {
+					err = c.svc.CreateReport(wctx, msg)
+				}
+
+				if err != nil {
+					c.toDLQ(ctx, payload.ReportID, r, err)
 					continue
 				}
 
@@ -81,7 +94,7 @@ func (c *consumer) Run(ctx context.Context) error {
 
 				c.logger.Info().
 					Str("topic", r.Topic).
-					Str("report_id", reportID).
+					Str("report_id", payload.ReportID).
 					Msg("report created")
 			}
 		})

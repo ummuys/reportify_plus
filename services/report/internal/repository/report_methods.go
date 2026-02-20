@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 	"github.com/ummuys/reportify/pkg/config"
@@ -65,6 +66,23 @@ func (db *reportDB) CreateReport(ctx context.Context, in dto.CreateReportParams)
 	return out, nil
 }
 
+func (db *reportDB) RecreateReport(ctx context.Context, in dto.RecreateReportParams) (dto.RecreateReportResult, error) {
+	db.logger.Debug().Str("evt", "call RecreateReport ").Msg("")
+	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
+
+	ct, err := db.pool.Exec(qctx, recreateReportQuery, in.AuthorID, in.ReportID)
+	if err != nil {
+		return dto.RecreateReportResult{}, err
+	}
+
+	if ct.RowsAffected() == 0 {
+		return dto.RecreateReportResult{}, pgx.ErrNoRows
+	}
+
+	return dto.RecreateReportResult{ReportID: in.ReportID, Status: "CREATED"}, nil
+}
+
 func (db *reportDB) ListReports(ctx context.Context, in dto.ListReportsParams) (dto.ListReportsResult, error) {
 	db.logger.Debug().Str("evt", "call ListReports").Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
@@ -88,6 +106,7 @@ func (db *reportDB) ListReports(ctx context.Context, in dto.ListReportsParams) (
 			&rmd.CSVSep,
 			&rmd.Status,
 			&rmd.CreatedAt,
+			&rmd.UpdatedAt,
 			&rmd.FilePath,
 			&rmd.ErrMsg,
 		); err != nil {

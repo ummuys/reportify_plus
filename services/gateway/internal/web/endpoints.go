@@ -1,12 +1,13 @@
 package web
 
 const (
-	CreateReportPath = "reports"                   // POST
-	ListReportsPath  = "reports"                   // GET
-	ReportInfoPath   = "reports/:report_id"        // GET
-	ReportStatusPath = "reports/:report_id/status" // GET
-	DeleteReports    = "reports"                   // DELETE
-	DeleteReport     = "reports/:report_id"        // DELETE
+	CreateReportPath = "reports"                     // POST
+	RecreateReport   = "reports/:report_id/recreate" // POST
+	ListReportsPath  = "reports"                     // GET
+	ReportInfoPath   = "reports/:report_id"          // GET
+	ReportStatusPath = "reports/:report_id/status"   // GET
+	DeleteReports    = "reports"                     // DELETE
+	DeleteReport     = "reports/:report_id"          // DELETE
 )
 
 const (
@@ -19,9 +20,8 @@ const (
 	ListsUserPath  = "/admin/users"
 	CreateUserPath = "/admin/users"
 	UpdateUserPath = "/admin/users"
-
-	GetInfoPath = "/admin/users/:user_id"
-	DeletePath  = "/admin/users/:user_id"
+	GetInfoPath    = "/admin/users/:user_id"
+	DeletePath     = "/admin/users/:user_id"
 )
 
 const (

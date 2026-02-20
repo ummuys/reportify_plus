@@ -10,6 +10,11 @@ type CreateReportParams struct {
 	GraphicMode bool
 }
 
+type RecreateReportParams struct {
+	AuthorID string
+	ReportID string
+}
+
 type DeleteReportsParams struct {
 	AuthorID string
 }
