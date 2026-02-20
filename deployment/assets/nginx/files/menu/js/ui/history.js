@@ -759,7 +759,7 @@ export function toggleFavoriteEntry(index) {
     const item = reportHistory[index];
     if (!item) return null;
     item.favorite = !item.favorite;
-    mergeMeta(item.sql, { favorite: item.favorite });
+    mergeMeta(item.id, { favorite: item.favorite });
     return item.favorite;
 }
 
