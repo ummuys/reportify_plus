@@ -144,7 +144,7 @@ function buildRawParamsFromEntry(entry) {
 		created_at: toISOStringSafe(createdSource),
 		sql,
 		csv_sep: csvSepChar,
-        reportId: entry.reportId || "",
+        reportId: entry.id || "",
 	};
 }
 
@@ -375,6 +375,20 @@ function loadMetaFromStorage() {
         //     }
         // }
 
+        // ---IDEA---
+        // {
+        //     "id1": {
+        //         sql: ...,
+        //         schema: ...,
+        //         table: ...,
+        //         ...
+        //     },
+
+        //     "id2": {
+        //         ...
+        //     }
+        // }
+
         if (!raw) return {};
         const parsed = JSON.parse(raw);
         if (typeof parsed !== 'object' || parsed === null) return {};
@@ -390,6 +404,9 @@ function loadMetaFromStorage() {
             normalized[normKey] = { ...value, sql: value.sql || key };
         });
 
+        // console.log("raw: ", raw);
+        // console.log("parsed: ", parsed);
+        // console.log("normalized: ", normalized);
         if (changed) {
             try {
                 localStorage.setItem(HISTORY_META_KEY, JSON.stringify(normalized));
@@ -413,22 +430,21 @@ function persistMeta() {
     }
 }
 
-function mergeMeta(sql, partial = {}) {
-    const key = normalizeSqlKey(sql);
-    if (!key) return;
+function mergeMeta(reportId, partial = {}) {
+    //const key = normalizeSqlKey(sql);
+    if (!reportId) return;
     const clean = {};
     Object.entries(partial).forEach(([key, value]) => {
         if (value !== undefined) clean[key] = value;
     });
     if (!Object.keys(clean).length) return;
-    historyMeta[key] = { ...(historyMeta[key] || {}), ...clean, sql: sql };
+    historyMeta[reportId] = { ...(historyMeta[reportId] || {}), ...clean, sql: partial.sql };
     persistMeta();
 }
 
-function removeMeta(sql) {
-    const key = normalizeSqlKey(sql);
-    if (!key || !historyMeta[key]) return;
-    delete historyMeta[key];
+function removeMeta(reportId = "") {
+    if (!reportId || !historyMeta[reportId]) return;
+    delete historyMeta[reportId];
     persistMeta();
 }
 
@@ -463,21 +479,23 @@ function setFallbackQueries(list = []) {
     const normalized = list
         .map(normalizeSqlKey)
         .filter(Boolean);
-    fallbackQueries = Array.from(new Set(normalized)).slice(0, HISTORY_LIMIT);
+    // убрал Set (было fallbackQueries = Array.from(new Set(normalized)).slice(0, HISTORY_LIMIT)) 
+    fallbackQueries = normalized.slice(0, HISTORY_LIMIT);
     persistFallbackQueries();
 }
 
-function addFallbackQuery(sql) {
-    const normalized = normalizeSqlKey(sql);
-    if (!normalized) return;
-    fallbackQueries = [normalized, ...fallbackQueries.filter(q => q !== normalized)].slice(0, HISTORY_LIMIT);
+
+function addFallbackQuery(reportId = "") {
+    if (!reportId) return;
+    // Убрал filter (было fallbackQueries = [normalized, ...fallbackQueries.filter(q => q !== normalized)].slice(0, HISTORY_LIMIT))
+    // Теперь в fallbackQueries добавляются дубликаты 
+    fallbackQueries = [reportId, ...fallbackQueries.filter(id => id !== reportId)].slice(0, HISTORY_LIMIT); 
     persistFallbackQueries();
 }
 
-function removeFallbackQuery(sql) {
-    const normalized = normalizeSqlKey(sql);
-    if (!normalized) return;
-    const next = fallbackQueries.filter(q => q !== normalized);
+function removeFallbackQuery(reportId = "") {
+    if (!reportId) return;
+    const next = fallbackQueries.filter(id => id !== reportId);
     if (next.length !== fallbackQueries.length) {
         fallbackQueries = next;
         persistFallbackQueries();
@@ -504,14 +522,12 @@ function cloneSorts(sorts = []) {
     }));
 }
 
-function createEntryFromSql(sql, idx) {
-	const key = normalizeSqlKey(sql);
-	const meta = historyMeta[key] || {};
-	const displaySql = meta.sql || sql;
-	const derived = deriveMetaFromSql(displaySql) || {};
+function createEntryFromId(reportId = "") {
+	const meta = historyMeta[reportId] || {};
+	const derived = deriveMetaFromSql(meta.sql) || {};
 
 	return {
-		sql: displaySql,
+		sql: meta.sql || "",
 		schema: meta.schema || derived.schema || '',
         table: meta.table || derived.table || '',
         chosen: Array.isArray(meta.chosen) && meta.chosen.length ? [...meta.chosen] : [...(derived.chosen || [])],
@@ -526,7 +542,7 @@ function createEntryFromSql(sql, idx) {
 		savedAt: meta.savedAt || '',
 		favorite: !!meta.favorite,
 		time: meta.time || meta.savedAt || '',
-        id: meta.reportId || '',
+        id: reportId || meta.reportId || '',
 	};
 }
 
@@ -539,8 +555,8 @@ function escapeHtml(str = '') {
         .replace(/'/g, '&#39;');
 }
 
-function buildHistoryFromQueries(list) {
-    return list.map((sql, idx) => createEntryFromSql(sql, idx));
+function buildHistoryFromId(list) {
+    return list.map(id => createEntryFromId(id));
 }
 
 export function getShowOnlyFavorites() {
@@ -596,6 +612,8 @@ export async function saveHistoryEntry(reportId) {
         dir: row.querySelector('.sortDir')?.value || "ASC"
     }));
 
+    // console.log(reportComment.value);
+    // console.log(normalizeReportComment(reportComment.value));
 	const entry = {
 		schema: state.schema || "",
 		table: state.table || "",
@@ -611,17 +629,26 @@ export async function saveHistoryEntry(reportId) {
 		savedAt: now.toISOString(),
 		csvSep: csvSepChar,
         reportId: reportId || "",
+        sql: sql,
 	};
 
-    mergeMeta(sql, {
+    mergeMeta(reportId, {
         ...entry,
         filters: cloneFilters(filters),
         sorts: cloneSorts(sorts),
         chosen: [...entry.chosen]
     });
 
-    addFallbackQuery(sql);
-    reportHistory = buildHistoryFromQueries(fallbackQueries);
+    addFallbackQuery(reportId);
+    // fallbackQueries: ["...", "...", ...]
+
+    //Допустим идея 
+    //fallbackQueries = {
+    //     id1: "query1",
+    //     id2: "query2",
+    //     ... 
+    // }
+    reportHistory = buildHistoryFromId(fallbackQueries);
     renderHistory();
     refreshHistory({ silent: true }).catch(() => {});
 }
@@ -635,11 +662,10 @@ export async function refreshHistory(options = {}) {
     }
     let lastError = null;
     try {
-        const payload = await getCache(); // ВСЕ ЕСТЬ:  { reports: [rep1, rep2, ...] }
-        const rawEntries = normalizeCachePayload(payload); // ОТЛИЧАЕТСЯ ОТ payload: [{ reports: [rep1, rep2, ...] }]
+        const payload = await getCache(); // { reports: [rep1, rep2, ...] }
+        const rawEntries = normalizeCachePayload(payload); // [{ reports: [rep1, rep2, ...] }]
         const normalizedRawEntries = rawEntries[0].reports.map(normalizeCacheEntry);
         const normalizedEntries = normalizedRawEntries.filter(entry => entry && entry.sql);
-
         normalizedEntries.forEach(({ sql, meta }) => {
             if (!meta || typeof meta !== 'object') return;
             const patch = {};
@@ -649,16 +675,15 @@ export async function refreshHistory(options = {}) {
             if (meta.time) patch.time = meta.time;
             if (meta.savedAt) patch.savedAt = meta.savedAt;
             if (meta.reportId) patch.reportId = meta.reportId;
+            if (sql) patch.sql = sql;
             if (Object.keys(patch).length) {
-                mergeMeta(sql, patch);
+                mergeMeta(patch.reportId, patch);
             }
         });
 
-        const queries = normalizedEntries.map(entry => entry.sql);
-        setFallbackQueries(queries);
-        reportHistory = buildHistoryFromQueries(fallbackQueries);
-
-        //console.log(reportHistory);
+        const ids = normalizedEntries.map(entry => entry.meta?.reportId);
+        setFallbackQueries(ids);
+        reportHistory = buildHistoryFromId(fallbackQueries);
     } catch (err) {
         lastError = err;
         if (!silent) {
@@ -666,7 +691,7 @@ export async function refreshHistory(options = {}) {
             showToast('Не удалось загрузить историю');
         }
         if (!reportHistory.length) {
-            reportHistory = buildHistoryFromQueries(fallbackQueries);
+            reportHistory = buildHistoryFromId(fallbackQueries);
         }
     } finally {
         isHistoryLoading = false;
@@ -682,6 +707,8 @@ export function renderHistory() {
     if (!historyList) return;
 
     let visibleReports = [...reportHistory];
+    // console.log(reportHistory);
+    // console.log(visibleReports);
 
     if (showOnlyFavorites) {
         visibleReports = visibleReports.filter(r => r.favorite);
@@ -748,19 +775,18 @@ export async function deleteHistoryEntry(index) {
 
 	const ok = await deleteCacheQuery(payload);
 	if (!ok) return false;
-
-	removeMeta(item.sql);
-	removeFallbackQuery(item.sql);
-	reportHistory = buildHistoryFromQueries(fallbackQueries);
+	removeMeta(payload.reportId);
+	removeFallbackQuery(payload.reportId);
+	reportHistory = buildHistoryFromId(fallbackQueries);
 	renderHistory();
 	refreshHistory({ silent: true }).catch(() => {});
 	return true;
 }
 
 export function hydrateHistoryEntry(entry) {
+    console.log("entry: ", entry);
 	if (!entry) return entry;
-	const key = normalizeSqlKey(entry.sql || '');
-	const meta = historyMeta[key];
+	const meta = historyMeta[entry.reportId];
 	const derived = deriveMetaFromSql(entry.sql || '');
 	if (!meta && !derived) return entry;
 

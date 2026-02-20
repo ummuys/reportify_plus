@@ -641,28 +641,28 @@ export function setupEventListeners() {
 
         try {
             if (hasSchema) {
-            const tables = await loadTables(item.schema);
-            await updateTableSelect(tables);
-        }
+                const tables = await loadTables(item.schema);
+                await updateTableSelect(tables);
+            }
 
-        if (hasSchema && hasTable) {
-            tableSel.value = item.table;
-            state.table = item.table;
-        } else if (hasSchema) {
-            state.table = "";
-            tableSel.disabled = false;
-            tableSel.value = "";
-        }
+            if (hasSchema && hasTable) {
+                tableSel.value = item.table;
+                state.table = item.table;
+            } else if (hasSchema) {
+                state.table = "";
+                tableSel.disabled = false;
+                tableSel.value = "";
+            }
 
-        if (hasSchema && hasTable) {
-            state.chosen = Array.from(new Set(item.chosen || []));
-            const columns = await loadColumns(item.schema, item.table);
-            updateColumnsList(columns);
-            applyColumnSelection(state.chosen);
-        } else if (hasSchema) {
-            state.chosen = Array.from(new Set(item.chosen || []));
-            applyColumnSelection(state.chosen);
-        }
+            if (hasSchema && hasTable) {
+                state.chosen = Array.from(new Set(item.chosen || []));
+                const columns = await loadColumns(item.schema, item.table);
+                updateColumnsList(columns);
+                applyColumnSelection(state.chosen);
+            } else if (hasSchema) {
+                state.chosen = Array.from(new Set(item.chosen || []));
+                applyColumnSelection(state.chosen);
+            }
 
             const filtersContainer = el("filtersContainer");
             if (filtersContainer) {
@@ -731,7 +731,10 @@ export function setupEventListeners() {
         const li = e.target.closest('li[data-i]');
         if (!li) return;
         const index = +li.dataset.i;
+        // console.log("index: ", index);
+        // console.log("reportHistory: ", reportHistory);
         const item = hydrateHistoryEntry(reportHistory[index]);
+        // console.log("item: ", item);
         if (!item) return;
 
         const btnFav = e.target.closest('.btn-fav-history');
@@ -799,17 +802,17 @@ export function setupEventListeners() {
     }
 
     // Бургер-меню
-    if (burgerBtn && burgerMenu) {
-        burgerBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            burgerMenu.classList.toggle('show');
-        });
+    // if (burgerBtn && burgerMenu) {
+    //     burgerBtn.addEventListener('click', (e) => {
+    //         e.stopPropagation();
+    //         burgerMenu.classList.toggle('show');
+    //     });
 
-        document.addEventListener('click', (e) => {
-            if (!burgerMenu.contains(e.target) && e.target !== burgerBtn) {
-                burgerMenu.classList.remove('show');
-            }
-        });
-    }
+    //     document.addEventListener('click', (e) => {
+    //         if (!burgerMenu.contains(e.target) && e.target !== burgerBtn) {
+    //             burgerMenu.classList.remove('show');
+    //         }
+    //     });
+    // }
 }
 

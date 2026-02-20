@@ -200,7 +200,7 @@ export function initRightPanelTabs() {
       .map(([k, v]) => {
         if (k === 'file_path') {
           const href = String(v || '').trim();
-          const isLink = /^https?:\\/\\//i.test(href);
+          const isLink = /^https?:\/\//i.test(href);
           const valueHtml = isLink
             ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(href)}</a>`
             : escapeHtml(href);
