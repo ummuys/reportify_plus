@@ -31,6 +31,7 @@ type CreateReportRequest struct {
 	Query         string                 `protobuf:"bytes,4,opt,name=query,proto3" json:"query,omitempty"`
 	Format        string                 `protobuf:"bytes,5,opt,name=format,proto3" json:"format,omitempty"`
 	CsvSep        string                 `protobuf:"bytes,6,opt,name=csv_sep,json=csvSep,proto3" json:"csv_sep,omitempty"`
+	GraphicMode   bool                   `protobuf:"varint,7,opt,name=graphic_mode,json=graphicMode,proto3" json:"graphic_mode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -105,6 +106,13 @@ func (x *CreateReportRequest) GetCsvSep() string {
 		return x.CsvSep
 	}
 	return ""
+}
+
+func (x *CreateReportRequest) GetGraphicMode() bool {
+	if x != nil {
+		return x.GraphicMode
+	}
+	return false
 }
 
 type CreateReportResponse struct {
@@ -707,14 +715,15 @@ var File_report_service_v1_report_service_proto protoreflect.FileDescriptor
 
 const file_report_service_v1_report_service_proto_rawDesc = "" +
 	"\n" +
-	"&report/service/v1/report_service.proto\x12\x11report.service.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xa1\x01\n" +
+	"&report/service/v1/report_service.proto\x12\x11report.service.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xc4\x01\n" +
 	"\x13CreateReportRequest\x12\x1b\n" +
 	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
 	"\x04comm\x18\x03 \x01(\tR\x04comm\x12\x14\n" +
 	"\x05query\x18\x04 \x01(\tR\x05query\x12\x16\n" +
 	"\x06format\x18\x05 \x01(\tR\x06format\x12\x17\n" +
-	"\acsv_sep\x18\x06 \x01(\tR\x06csvSep\"K\n" +
+	"\acsv_sep\x18\x06 \x01(\tR\x06csvSep\x12!\n" +
+	"\fgraphic_mode\x18\a \x01(\bR\vgraphicMode\"K\n" +
 	"\x14CreateReportResponse\x12\x1b\n" +
 	"\treport_id\x18\x01 \x01(\tR\breportId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\"O\n" +

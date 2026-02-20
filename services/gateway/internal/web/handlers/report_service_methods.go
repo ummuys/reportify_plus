@@ -44,13 +44,15 @@ func (rsh *reportServiceHandler) CreateReport(g *gin.Context) {
 	}
 
 	out, gErr := rsh.sc.CreateReport(g.Request.Context(), &reportservicev1.CreateReportRequest{
-		AuthorId: userID,
-		Name:     req.Name,
-		Comm:     req.Comm,
-		Query:    req.Query,
-		Format:   req.Format,
-		CsvSep:   req.CSVSep,
+		AuthorId:    userID,
+		Name:        req.Name,
+		Comm:        req.Comm,
+		Query:       req.Query,
+		Format:      req.Format,
+		CsvSep:      req.CSVSep,
+		GraphicMode: req.GraphicMode,
 	})
+
 	if gErr != nil {
 		st, ok := errs.GRPCtoREST(gErr)
 		if !ok {

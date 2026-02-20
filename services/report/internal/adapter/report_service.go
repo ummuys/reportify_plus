@@ -38,6 +38,7 @@ func (ra *ReportAdapter) CreateReport(ctx context.Context, in *rsv1.CreateReport
 		Format:   in.Format,
 		CSVSep:   in.CsvSep,
 	})
+
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

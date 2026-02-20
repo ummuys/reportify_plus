@@ -23,6 +23,7 @@ message CreateReportRequest {
   string query = 4;
   string format = 5;
   string csv_sep = 6;
+  bool graphic_mode = 7;
 }
 
 message CreateReportResponse {
