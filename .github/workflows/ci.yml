@@ -116,3 +116,4 @@ jobs:
       - name: Check required jobs
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: exit 1
+        
