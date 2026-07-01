@@ -174,8 +174,12 @@ func (db *reportDB) DeleteReports(ctx context.Context, in dto.DeleteReportsParam
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
-	if _, err := db.pool.Exec(qctx, deleteUserReportsQuery, in.AuthorID); err != nil {
+	ct, err := db.pool.Exec(qctx, deleteUserReportsQuery, in.AuthorID)
+	if err != nil {
 		return err
+	}
+	if ct.RowsAffected() == 0 {
+		return pgx.ErrNoRows
 	}
 	return nil
 }
@@ -185,13 +189,17 @@ func (db *reportDB) DeleteReport(ctx context.Context, in dto.DeleteReportParams)
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
-	if _, err := db.pool.Exec(
+	ct, err := db.pool.Exec(
 		qctx,
 		deleteUserReportQuery,
 		in.AuthorID,
 		in.ReportID,
-	); err != nil {
+	)
+	if err != nil {
 		return dto.DeleteReportResult{}, err
+	}
+	if ct.RowsAffected() == 0 {
+		return dto.DeleteReportResult{}, pgx.ErrNoRows
 	}
 
 	return dto.DeleteReportResult{ReportID: in.ReportID}, nil
