@@ -54,7 +54,7 @@ func (db *datasourceDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.
 	}
 
 	defer func() {
-		if rbErr := tx.Rollback(qctx); rbErr != nil && errors.Is(rbErr, pgx.ErrTxClosed) {
+		if rbErr := tx.Rollback(qctx); rbErr != nil && !errors.Is(rbErr, pgx.ErrTxClosed) {
 			db.logger.Error().Err(rbErr).Str("evt", "call GetData").Msg("")
 		}
 	}()
