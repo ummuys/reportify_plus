@@ -31,7 +31,6 @@ func (a *AuthAdapter) Login(ctx context.Context, in *authv1.LoginRequest) (*auth
 		Username: in.Username,
 		Password: in.Password,
 	})
-
 	if err != nil {
 		switch {
 		case errors.Is(err, errs.ErrInvalidCredentials):

@@ -235,7 +235,6 @@ func (a *authHandler) UpdateUser(g *gin.Context) {
 
 	g.Set("msg", "user updated")
 	g.JSON(http.StatusOK, webdto.UpdateUserResponse{UserID: out.UserId, Username: out.Username, Role: out.Role, IsActive: out.IsActive})
-
 }
 
 // DeleteUser godoc
@@ -351,7 +350,6 @@ func (a *authHandler) RefreshToken(g *gin.Context) {
 
 	g.Set("msg", "access token refreshed")
 	g.JSON(http.StatusOK, webdto.RefreshTokenResponse{AccessToken: out.AccessToken})
-
 }
 
 // ListUsers godoc

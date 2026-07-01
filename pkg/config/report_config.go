@@ -11,7 +11,6 @@ type ReportServiceConfig struct {
 }
 
 func ParseReportServiceConfig() (ReportServiceConfig, error) {
-
 	var errs []string
 	add := func(err error) {
 		if err != nil {

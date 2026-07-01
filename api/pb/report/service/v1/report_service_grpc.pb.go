@@ -8,6 +8,7 @@ package reportservicev1
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -144,21 +145,27 @@ type UnimplementedReportServiceServer struct{}
 func (UnimplementedReportServiceServer) CreateReport(context.Context, *CreateReportRequest) (*CreateReportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateReport not implemented")
 }
+
 func (UnimplementedReportServiceServer) RecreateReport(context.Context, *RecreateReportRequest) (*RecreateReportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RecreateReport not implemented")
 }
+
 func (UnimplementedReportServiceServer) ReportStatus(context.Context, *ReportStatusRequest) (*ReportStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportStatus not implemented")
 }
+
 func (UnimplementedReportServiceServer) ListReports(context.Context, *ListReportsRequest) (*ListReportsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListReports not implemented")
 }
+
 func (UnimplementedReportServiceServer) ReportInfo(context.Context, *ReportInfoRequest) (*ReportInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportInfo not implemented")
 }
+
 func (UnimplementedReportServiceServer) DeleteReports(context.Context, *DeleteReportsRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteReports not implemented")
 }
+
 func (UnimplementedReportServiceServer) DeleteReport(context.Context, *DeleteReportRequest) (*DeleteReportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteReport not implemented")
 }

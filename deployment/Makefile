@@ -1,11 +1,14 @@
 
 ####################################################
 
+ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 SCRIPTS_PATH=scripts
 UPDATE_SECRETS=$(SCRIPTS_PATH)/update_secrets.sh
 COMPOSE=docker-compose.yaml
 ENV_PATH=../.env
 BASE_COMMAND=-docker compose --env-file $(ENV_PATH)
+GOBIN := $(shell go env GOPATH)/bin
+GOFUMPT_BIN := $(GOBIN)/gofumpt
 
 ####################################################
 
@@ -40,7 +43,11 @@ code-review:
 	@cd .. && ./deployment/scripts/pre_commit.sh
 
 code-auto-format:
-	@cd .. && gofumpt -w $$(find . -name '*.go' -type f)
+	@if [ ! -x "$(GOFUMPT_BIN)" ]; then \
+		echo "Installing gofumpt..."; \
+		go install mvdan.cc/gofumpt@latest; \
+	fi
+	@cd $(ROOT_DIR) && "$(GOFUMPT_BIN)" -w $$(find . -name '*.go' -type f)
 
 
 test:

@@ -35,7 +35,6 @@ func NewReportCreateConsumer(svc service.PublishService, baseLogger zerolog.Logg
 		kgo.ClientID(cfg.ClientID),
 		kgo.ConsumeResetOffset(kgo.NewOffset().AtStart()),
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +128,8 @@ func (c *consumer) toDLQ(ctx context.Context, reportID string, r *kgo.Record, er
 		Topic: c.topicDLQ,
 		Key:   nil,
 		Value: r.Value,
-		Headers: append(r.Headers,
+		Headers: append(
+			r.Headers,
 			kgo.RecordHeader{Key: "dlq_error", Value: []byte(err.Error())},
 			kgo.RecordHeader{Key: "src_topic", Value: []byte(r.Topic)},
 		),

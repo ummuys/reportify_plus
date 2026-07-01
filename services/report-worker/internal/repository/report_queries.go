@@ -82,7 +82,8 @@ func buildStatusQuery(in dto.SetReportStatusParams) (string, []any) {
 	args = append(args, in.BeforeStatus)
 	whereBeforeStatus := fmt.Sprintf("status = $%d", len(args))
 
-	q := fmt.Sprintf(`
+	q := fmt.Sprintf(
+		`
 UPDATE report_metadata.report_requests
 SET %s
 WHERE %s

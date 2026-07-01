@@ -33,7 +33,6 @@ func NewMinIOCli(baseLogger zerolog.Logger) (MinIOClient, error) {
 		Secure: false,
 		Region: "us-east-1",
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +42,6 @@ func NewMinIOCli(baseLogger zerolog.Logger) (MinIOClient, error) {
 		Secure: false,
 		Region: "us-east-1",
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +74,6 @@ func (c *minioCli) UploadAndPresign(ctx context.Context, in dto.PutReportIn) (st
 	_, err = c.cli.PutObject(fctx, in.Bucket, in.ObjectName, in.Reader, -1, minio.PutObjectOptions{
 		ContentType: in.ContentType,
 	})
-
 	if err != nil {
 		return "", err
 	}
@@ -93,7 +90,6 @@ func (c *minioCli) UploadAndPresign(ctx context.Context, in dto.PutReportIn) (st
 }
 
 func (c *minioCli) DeleteFiles(ctx context.Context, in dto.DeleteExpiredFilesParams) error {
-
 	objectsCh := make(chan minio.ObjectInfo, 100)
 	go func() {
 		defer close(objectsCh)

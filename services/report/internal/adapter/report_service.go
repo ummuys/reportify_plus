@@ -39,7 +39,6 @@ func (ra *ReportAdapter) CreateReport(ctx context.Context, in *rsv1.CreateReport
 		Format:   in.Format,
 		CSVSep:   in.CsvSep,
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -49,7 +48,6 @@ func (ra *ReportAdapter) CreateReport(ctx context.Context, in *rsv1.CreateReport
 		Recreating:  false,
 		GraphicMode: in.GraphicMode,
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -85,7 +83,6 @@ func (ra *ReportAdapter) RecreateReport(ctx context.Context, in *rsv1.RecreateRe
 		ReportID:   out.ReportID,
 		Recreating: true,
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

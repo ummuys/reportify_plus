@@ -8,6 +8,7 @@ package datasourceservicev1
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -91,9 +92,11 @@ type UnimplementedDatasourceServiceServer struct{}
 func (UnimplementedDatasourceServiceServer) ListSchemas(context.Context, *ListSchemasRequest) (*ListSchemasResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListSchemas not implemented")
 }
+
 func (UnimplementedDatasourceServiceServer) ListTables(context.Context, *ListTablesRequest) (*ListTablesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListTables not implemented")
 }
+
 func (UnimplementedDatasourceServiceServer) ListColumns(context.Context, *ListColumnsRequest) (*ListColumnsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListColumns not implemented")
 }
