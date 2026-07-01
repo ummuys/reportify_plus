@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - master
+      - P3-07 # Удалить. Это для тестов
 
 permissions:
   contents: read
