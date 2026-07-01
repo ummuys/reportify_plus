@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/ummuys/reportify/pkg/errs"
@@ -155,6 +156,14 @@ func (rs *reportService) DeleteReports(ctx context.Context, in dto.DeleteReports
 
 func (rs *reportService) DeleteReport(ctx context.Context, in dto.DeleteReportParams) (dto.DeleteReportResult, error) {
 	rs.logger.Debug().Str("evt", "call DeleteReport").Msg("")
+
+	if _, err := uuid.Parse(in.ReportID); err != nil {
+		rs.logger.Warn().
+			Str("report_id", in.ReportID).
+			Str("author_id", in.AuthorID).
+			Msg("delete report failed: invalid report id")
+		return dto.DeleteReportResult{}, errs.ErrPgNotFound
+	}
 
 	out, err := rs.db.DeleteReport(ctx, in)
 	if err != nil {
