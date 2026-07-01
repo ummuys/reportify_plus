@@ -1,26 +1,30 @@
 
 ####################################################
 
+ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 SCRIPTS_PATH=scripts
 UPDATE_SECRETS=$(SCRIPTS_PATH)/update_secrets.sh
 COMPOSE=docker-compose.yaml
 ENV_PATH=../.env
 BASE_COMMAND=-docker compose --env-file $(ENV_PATH)
+GOBIN := $(shell go env GOPATH)/bin
+LINT_BIN := $(GOBIN)/golangci-lint
 
 ####################################################
 
+.PHONY: up update-up down update status drop-all-volume code-review code-auto-format ci-lint ci-test ci-race ci-docker-build test
 
-up: 
+up:
 	@./$(UPDATE_SECRETS)
 	@$(BASE_COMMAND) -f $(COMPOSE) up -d
-	
+
 update-up:
 	@./$(UPDATE_SECRETS)
 	@$(BASE_COMMAND) -f $(COMPOSE) down
 	@$(BASE_COMMAND) -f $(COMPOSE) up -d --build
 
 
-down: 
+down:
 	@$(BASE_COMMAND) -f $(COMPOSE) down
 
 update:
@@ -37,29 +41,29 @@ drop-all-volume:
 # CI
 
 code-review:
-	@cd .. && ./deployment/scripts/pre_commit.sh
+	@cd $(ROOT_DIR) && ./deployment/scripts/pre_commit.sh
 
 code-auto-format:
-	@cd .. && gofumpt -w $$(find . -name '*.go' -type f)
+	@cd $(ROOT_DIR) && gofumpt -w $$(find . -name '*.go' -type f)
 
 ci-lint:
 	@echo "Running golangci-lint..."
-	@cd .. && if [ ! -x "$$(go env GOPATH)/bin/golangci-lint" ]; then \
+	@if [ ! -x "$(LINT_BIN)" ]; then \
 		go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2; \
 	fi
-	@cd .. && "$$(go env GOPATH)/bin/golangci-lint" run ./...
+	@cd $(ROOT_DIR) && "$(LINT_BIN)" run ./...
 
 ci-test:
 	@echo "Running unit tests for auth/report/report-worker services..."
-	@cd .. && go test ./services/auth/internal/service/... ./services/report/internal/service/... ./services/report-worker/internal/service/...
+	@cd $(ROOT_DIR) && go test -count=1 ./services/auth/internal/service/... ./services/report/internal/service/... ./services/report-worker/internal/service/...
 
 ci-race:
 	@echo "Running race tests for auth/report/report-worker services..."
-	@cd .. && go test -race ./services/auth/internal/service/... ./services/report/internal/service/... ./services/report-worker/internal/service/...
+	@cd $(ROOT_DIR) && go test -race -count=1 ./services/auth/internal/service/... ./services/report/internal/service/... ./services/report-worker/internal/service/...
 
 ci-docker-build:
 	@echo "Building report image..."
-	@cd .. && docker build -f deployment/Dockerfile --target report -t reportify-report:ci .
+	@cd $(ROOT_DIR) && docker build -f deployment/Dockerfile --target report -t reportify-report:ci .
 
 test:
 	@echo "Testing AuthService . . ."
