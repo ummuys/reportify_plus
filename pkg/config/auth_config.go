@@ -13,7 +13,6 @@ type AuthServiceConfig struct {
 }
 
 func ParseAuthServiceConfig() (AuthServiceConfig, error) {
-
 	var errs []string
 	add := func(err error) {
 		if err != nil {
