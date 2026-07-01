@@ -75,12 +75,6 @@ func (db *datasourceDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.
 	}
 	defer rows.Close()
 
-	err = tx.Commit(qctx)
-	if err != nil {
-		db.logger.Error().Err(err).Str("evt", "call GetData").Msg("")
-	}
-	// ---------------------
-
 	fds := rows.FieldDescriptions()
 	columns := make([]string, len(fds))
 	for i := range fds {
@@ -105,6 +99,12 @@ func (db *datasourceDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.
 	if err := rows.Err(); err != nil {
 		return dto.GetDataResult{}, err
 	}
+
+	err = tx.Commit(qctx)
+	if err != nil {
+		db.logger.Error().Err(err).Str("evt", "call GetData").Msg("")
+	}
+	// ----------------------------------
 
 	return dto.GetDataResult{
 		Columns: columns,
