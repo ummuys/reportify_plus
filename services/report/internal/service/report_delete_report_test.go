@@ -41,8 +41,9 @@ func TestReportService_DeleteReport_Success(t *testing.T) {
 	svc, db, _ := newReportSvc(t)
 	ctx := context.Background()
 
-	in := dto.DeleteReportParams{ReportID: "r1", AuthorID: "a1"}
-	out := dto.DeleteReportResult{ReportID: "r1"}
+	reportID := "550e8400-e29b-41d4-a716-446655440000"
+	in := dto.DeleteReportParams{ReportID: reportID, AuthorID: "a1"}
+	out := dto.DeleteReportResult{ReportID: reportID}
 
 	db.EXPECT().DeleteReport(mock.Anything, in).Return(out, nil).Once()
 
@@ -55,7 +56,8 @@ func TestReportService_DeleteReport_DbError_ReturnsParsedPgError(t *testing.T) {
 	svc, db, _ := newReportSvc(t)
 	ctx := context.Background()
 
-	in := dto.DeleteReportParams{ReportID: "r1", AuthorID: "a1"}
+	reportID := "550e8400-e29b-41d4-a716-446655440000"
+	in := dto.DeleteReportParams{ReportID: reportID, AuthorID: "a1"}
 	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
