@@ -12,7 +12,7 @@ LINT_BIN := $(GOBIN)/golangci-lint
 
 ####################################################
 
-.PHONY: up update-up down update status drop-all-volume code-review code-auto-format ci-lint ci-test ci-race ci-docker-build test
+.PHONY: up update-up down update status drop-all-volume code-review ci-lint ci-test ci-race ci-docker-build test
 
 up:
 	@./$(UPDATE_SECRETS)
@@ -42,9 +42,6 @@ drop-all-volume:
 
 code-review:
 	@cd $(ROOT_DIR) && ./deployment/scripts/pre_commit.sh
-
-code-auto-format:
-	@cd $(ROOT_DIR) && gofumpt -w $$(find . -name '*.go' -type f)
 
 ci-lint:
 	@echo "Running golangci-lint..."
