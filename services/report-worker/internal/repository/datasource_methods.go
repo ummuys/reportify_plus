@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
@@ -43,8 +45,31 @@ func (db *datasourceDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.
 	db.logger.Debug().Str("evt", "call GetData").Str("Query", in.Query).Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*180)
 	defer cancel()
+	// Safe SQL 1 июля
+	tx, err := db.pool.BeginTx(qctx, pgx.TxOptions{
+		AccessMode: pgx.ReadOnly,
+	})
+	if err != nil {
+		return dto.GetDataResult{}, err
+	}
 
-	rows, err := db.pool.Query(qctx, in.Query)
+	defer func() {
+		if rbErr := tx.Rollback(qctx); rbErr != nil && errors.Is(rbErr, pgx.ErrTxClosed) {
+			db.logger.Error().Err(rbErr).Str("evt", "call GetData").Msg("")
+		}
+	}()
+
+	_, err = tx.Exec(qctx, setSearchPath)
+	if err != nil {
+		return dto.GetDataResult{}, err
+	}
+
+	_, err = tx.Exec(qctx, setStatementTimeout)
+	if err != nil {
+		return dto.GetDataResult{}, err
+	}
+
+	rows, err := tx.Query(qctx, in.Query)
 	if err != nil {
 		return dto.GetDataResult{}, err
 	}
@@ -74,6 +99,12 @@ func (db *datasourceDB) GetData(ctx context.Context, in dto.GetDataParams) (dto.
 	if err := rows.Err(); err != nil {
 		return dto.GetDataResult{}, err
 	}
+
+	err = tx.Commit(qctx)
+	if err != nil {
+		db.logger.Error().Err(err).Str("evt", "call GetData").Msg("")
+	}
+	// ----------------------------------
 
 	return dto.GetDataResult{
 		Columns: columns,
