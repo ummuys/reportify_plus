@@ -139,7 +139,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	reportTTL = p.reportTTL
 
 	eg.Go(func() error {
-		defer func() { _ = pw.Close() }()
+		defer func() { _ = pr.Close() }()
 
 		pth, perr := p.minioCli.UploadAndPresign(gctx, dto.PutReportIn{
 			Reader:      pr,
