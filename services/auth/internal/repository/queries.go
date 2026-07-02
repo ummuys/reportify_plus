@@ -45,6 +45,16 @@ UPDATE identity.users SET password = $2 WHERE user_id = $1;
     WHERE ur.user_id = $1;
     `
 
+	// P0-09 2 июля
+	getUserQuery = `
+        SELECT u.user_id, u.username, r.name
+        FROM identity.users AS u
+        JOIN identity.user_roles AS ur ON u.user_id = ur.user_id
+        JOIN identity.roles AS r ON r.role_id = ur.role_id
+        WHERE u.user_id = $1;
+    `
+    // ------
+
 	deleteUserQuery = `DELETE FROM identity.users WHERE user_id = $1`
 
 	ListUsersQuery = `
