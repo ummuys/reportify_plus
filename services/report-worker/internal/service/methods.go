@@ -90,7 +90,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	eg, gctx := errgroup.WithContext(ctx)
 
 	eg.Go(func() error {
-		defer pw.Close()
+		defer func() { _ = pw.Close() }()
 
 		params := dto.ConvParams{
 			Writer: pw,
