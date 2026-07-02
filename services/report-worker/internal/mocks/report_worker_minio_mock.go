@@ -132,7 +132,8 @@ func (_c *MockMinIOClient_UploadAndPresign_Call) RunAndReturn(run func(context.C
 func NewMockMinIOClient(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockMinIOClient {
+},
+) *MockMinIOClient {
 	mock := &MockMinIOClient{}
 	mock.Mock.Test(t)
 

@@ -21,7 +21,6 @@ func TestAuthService_ListUsers_Success(t *testing.T) {
 	res, err := svc.ListUsers(ctx)
 	require.NoError(t, err)
 	require.Equal(t, dbOut, res)
-
 }
 
 func TestAuthService_ListUsers_DbError_ReturnsParsedPgError(t *testing.T) {
@@ -37,5 +36,4 @@ func TestAuthService_ListUsers_DbError_ReturnsParsedPgError(t *testing.T) {
 	require.Error(t, err)
 	require.ErrorIs(t, err, expected)
 	require.Equal(t, dto.ListUsersResult{}, res)
-
 }

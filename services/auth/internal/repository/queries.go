@@ -53,7 +53,7 @@ UPDATE identity.users SET password = $2 WHERE user_id = $1;
         JOIN identity.roles AS r ON r.role_id = ur.role_id
         WHERE u.user_id = $1;
     `
-    // ------
+	// ------
 
 	deleteUserQuery = `DELETE FROM identity.users WHERE user_id = $1`
 

@@ -7,12 +7,13 @@
 package authv1
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -728,22 +729,25 @@ func file_auth_service_v1_auth_proto_rawDescGZIP() []byte {
 	return file_auth_service_v1_auth_proto_rawDescData
 }
 
-var file_auth_service_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
-var file_auth_service_v1_auth_proto_goTypes = []any{
-	(*LoginRequest)(nil),         // 0: auth.v1.LoginRequest
-	(*LoginResponse)(nil),        // 1: auth.v1.LoginResponse
-	(*CreateUserRequest)(nil),    // 2: auth.v1.CreateUserRequest
-	(*CreateUserResponse)(nil),   // 3: auth.v1.CreateUserResponse
-	(*UpdateUserRequest)(nil),    // 4: auth.v1.UpdateUserRequest
-	(*UpdateUserResponse)(nil),   // 5: auth.v1.UpdateUserResponse
-	(*DeleteUserRequest)(nil),    // 6: auth.v1.DeleteUserRequest
-	(*DeleteUserResponse)(nil),   // 7: auth.v1.DeleteUserResponse
-	(*RefreshTokenRequest)(nil),  // 8: auth.v1.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil), // 9: auth.v1.RefreshTokenResponse
-	(*ListUsersResponse)(nil),    // 10: auth.v1.ListUsersResponse
-	(*User)(nil),                 // 11: auth.v1.User
-	(*emptypb.Empty)(nil),        // 12: google.protobuf.Empty
-}
+var (
+	file_auth_service_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+	file_auth_service_v1_auth_proto_goTypes  = []any{
+		(*LoginRequest)(nil),         // 0: auth.v1.LoginRequest
+		(*LoginResponse)(nil),        // 1: auth.v1.LoginResponse
+		(*CreateUserRequest)(nil),    // 2: auth.v1.CreateUserRequest
+		(*CreateUserResponse)(nil),   // 3: auth.v1.CreateUserResponse
+		(*UpdateUserRequest)(nil),    // 4: auth.v1.UpdateUserRequest
+		(*UpdateUserResponse)(nil),   // 5: auth.v1.UpdateUserResponse
+		(*DeleteUserRequest)(nil),    // 6: auth.v1.DeleteUserRequest
+		(*DeleteUserResponse)(nil),   // 7: auth.v1.DeleteUserResponse
+		(*RefreshTokenRequest)(nil),  // 8: auth.v1.RefreshTokenRequest
+		(*RefreshTokenResponse)(nil), // 9: auth.v1.RefreshTokenResponse
+		(*ListUsersResponse)(nil),    // 10: auth.v1.ListUsersResponse
+		(*User)(nil),                 // 11: auth.v1.User
+		(*emptypb.Empty)(nil),        // 12: google.protobuf.Empty
+	}
+)
+
 var file_auth_service_v1_auth_proto_depIdxs = []int32{
 	11, // 0: auth.v1.ListUsersResponse.users:type_name -> auth.v1.User
 	0,  // 1: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest

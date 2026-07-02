@@ -35,7 +35,6 @@ func NewReportCreateConsumer(svc service.PublishService, baseLogger zerolog.Logg
 		kgo.ClientID(cfg.ClientID),
 		kgo.ConsumeResetOffset(kgo.NewOffset().AtStart()),
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -62,40 +61,42 @@ func (c *consumer) Run(ctx context.Context) error {
 	for i := 0; i < c.cWorkers; i++ {
 		wg.Go(func() {
 			for r := range records {
-				wctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
-				defer cancel()
+				func() {
+					wctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+					defer cancel()
 
-				var payload dto.KafkaMessage
-				if err := json.Unmarshal(r.Value, &payload); err != nil {
-					c.toDLQ(ctx, payload.ReportID, r, err)
-					continue
-				}
+					var payload dto.KafkaMessage
+					if err := json.Unmarshal(r.Value, &payload); err != nil {
+						c.toDLQ(ctx, payload.ReportID, r, err)
+						return
+					}
 
-				c.logger.Info().
-					Str("topic", r.Topic).
-					Str("report_id", payload.ReportID).
-					Msg("catch new message")
+					c.logger.Info().
+						Str("topic", r.Topic).
+						Str("report_id", payload.ReportID).
+						Msg("catch new message")
 
-				msg := dto.KafkaMessage{ReportID: payload.ReportID}
+					msg := dto.KafkaMessage{ReportID: payload.ReportID}
 
-				var err error
-				if payload.Recreating {
-					err = c.svc.RecreateReport(wctx, msg)
-				} else {
-					err = c.svc.CreateReport(wctx, msg)
-				}
+					var err error
+					if payload.Recreating {
+						err = c.svc.RecreateReport(wctx, msg)
+					} else {
+						err = c.svc.CreateReport(wctx, msg)
+					}
 
-				if err != nil {
-					c.toDLQ(ctx, payload.ReportID, r, err)
-					continue
-				}
+					if err != nil {
+						c.toDLQ(ctx, payload.ReportID, r, err)
+						return
+					}
 
-				c.cli.MarkCommitRecords(r)
+					c.cli.MarkCommitRecords(r)
 
-				c.logger.Info().
-					Str("topic", r.Topic).
-					Str("report_id", payload.ReportID).
-					Msg("report created")
+					c.logger.Info().
+						Str("topic", r.Topic).
+						Str("report_id", payload.ReportID).
+						Msg("report created")
+				}()
 			}
 		})
 	}
@@ -129,7 +130,8 @@ func (c *consumer) toDLQ(ctx context.Context, reportID string, r *kgo.Record, er
 		Topic: c.topicDLQ,
 		Key:   nil,
 		Value: r.Value,
-		Headers: append(r.Headers,
+		Headers: append(
+			r.Headers,
 			kgo.RecordHeader{Key: "dlq_error", Value: []byte(err.Error())},
 			kgo.RecordHeader{Key: "src_topic", Value: []byte(r.Topic)},
 		),

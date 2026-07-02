@@ -24,7 +24,6 @@ func TestAuthService_UpdateUser_Success_NoPasswordChange(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, dbOut, res)
 	require.Equal(t, "", in.Password)
-
 }
 
 func TestAuthService_UpdateUser_Success_WithPasswordChange(t *testing.T) {
@@ -44,7 +43,6 @@ func TestAuthService_UpdateUser_Success_WithPasswordChange(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, dbOut, res)
 	require.Equal(t, "123", in.Password)
-
 }
 
 func TestAuthService_UpdateUser_HashError_ReturnsError(t *testing.T) {

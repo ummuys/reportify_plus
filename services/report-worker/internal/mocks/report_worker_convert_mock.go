@@ -255,7 +255,8 @@ func (_c *MockReportConvert_ToXLSX_Call) RunAndReturn(run func(dto.ConvParams) e
 func NewMockReportConvert(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockReportConvert {
+},
+) *MockReportConvert {
 	mock := &MockReportConvert{}
 	mock.Mock.Test(t)
 

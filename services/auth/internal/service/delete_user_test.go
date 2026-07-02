@@ -40,7 +40,6 @@ func TestAuthService_DeleteUser_NotFound_ReturnsParsedPgError(t *testing.T) {
 	require.Error(t, err)
 	require.ErrorIs(t, err, expected)
 	require.Equal(t, dto.DeleteUserResult{}, res)
-
 }
 
 func TestAuthService_DeleteUser_InsufficientPrivilege_ReturnsParsedPgError(t *testing.T) {
@@ -75,7 +74,6 @@ func TestAuthService_DeleteUser_DbError_ReturnsParsedPgError(t *testing.T) {
 	require.Error(t, err)
 	require.ErrorIs(t, err, expected)
 	require.Equal(t, dto.DeleteUserResult{}, res)
-
 }
 
 func TestAuthService_DeleteUser_DbErrorWrapped_ReturnsParsedPgError(t *testing.T) {

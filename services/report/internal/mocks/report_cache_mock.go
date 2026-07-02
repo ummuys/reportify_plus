@@ -133,7 +133,8 @@ func (_c *MockReportCache_Set_Call) RunAndReturn(run func(context.Context, strin
 func NewMockReportCache(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockReportCache {
+},
+) *MockReportCache {
 	mock := &MockReportCache{}
 	mock.Mock.Test(t)
 
