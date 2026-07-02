@@ -85,7 +85,13 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
+	// P0-09 2 июля
 	var tx pgx.Tx
+
+	tx, err = db.pool.Begin(qctx)
+	if err != nil {
+		return
+	}
 
 	defer func() {
 		if err != nil {
@@ -94,11 +100,6 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 			}
 		}
 	}()
-
-	tx, err = db.pool.Begin(qctx)
-	if err != nil {
-		return
-	}
 
 	b := &pgx.Batch{}
 
@@ -135,16 +136,28 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 		return
 	}
 
+	err = tx.QueryRow(qctx, getUserQuery, in.UserID).Scan(
+		&out.UserID,
+		&out.Username,
+		&out.Role,
+	)
+	if err != nil {
+		err = pgx.ErrNoRows
+		return
+	}
+
 	if err = tx.Commit(qctx); err != nil {
 		return
 	}
 
-	out = dto.UpdateUserResult{
-		UserID:   in.UserID,
-		Username: in.Username,
-		Role:     in.Role,
-		IsActive: in.IsActive,
-	}
+	// --------------------
+
+	// out = dto.UpdateUserResult{
+	// 	UserID:   in.UserID,
+	// 	Username: in.Username,
+	// 	Role:     in.Role,
+	// IsActive: in.IsActive,
+	// }
 	return
 }
 
@@ -157,6 +170,7 @@ func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.
 	defer cancel()
 
 	res, err := db.pool.Exec(qctx, deleteUserQuery, in.UserID)
+
 	if err != nil {
 		return dto.DeleteUserResult{}, err
 	}
