@@ -747,6 +747,7 @@ var (
 		(*emptypb.Empty)(nil),        // 12: google.protobuf.Empty
 	}
 )
+
 var file_auth_service_v1_auth_proto_depIdxs = []int32{
 	11, // 0: auth.v1.ListUsersResponse.users:type_name -> auth.v1.User
 	0,  // 1: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest

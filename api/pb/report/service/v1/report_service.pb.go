@@ -946,6 +946,7 @@ var (
 		(*emptypb.Empty)(nil),          // 16: google.protobuf.Empty
 	}
 )
+
 var file_report_service_v1_report_service_proto_depIdxs = []int32{
 	14, // 0: report.service.v1.CreateReportRequest.ttl:type_name -> google.protobuf.Duration
 	14, // 1: report.service.v1.RecreateReportRequest.ttl:type_name -> google.protobuf.Duration

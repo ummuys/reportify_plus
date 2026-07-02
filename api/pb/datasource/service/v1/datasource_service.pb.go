@@ -509,6 +509,7 @@ var (
 		(*Column)(nil),              // 8: datasource.service.v1.Column
 	}
 )
+
 var file_datasource_service_v1_datasource_service_proto_depIdxs = []int32{
 	2, // 0: datasource.service.v1.ListSchemasResponse.schemas:type_name -> datasource.service.v1.Schema
 	5, // 1: datasource.service.v1.ListTablesResponse.tables:type_name -> datasource.service.v1.Table

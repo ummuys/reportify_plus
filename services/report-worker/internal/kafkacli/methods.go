@@ -96,7 +96,7 @@ func (c *consumer) Run(ctx context.Context) error {
 						Str("topic", r.Topic).
 						Str("report_id", payload.ReportID).
 						Msg("report created")
-				}() 
+				}()
 			}
 		})
 	}
