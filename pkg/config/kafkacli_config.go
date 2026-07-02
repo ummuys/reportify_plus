@@ -73,7 +73,7 @@ func ParseReportCreateConsumerConfig() (ReportCreateConsumerConfig, error) {
 	add(err)
 
 	group, err := parseStr("REPORT_KAFKA_GROUP")
-
+	add(err)
 	t, err := parseStr("REPORT_KAFKA_TOPIC_REPORT")
 	add(err)
 
