@@ -114,7 +114,6 @@ func (db *reportDB) MarkArchived(ctx context.Context, in dto.MarkArchivedParams)
 		return err
 	}
 	return nil
-
 }
 
 func (db *reportDB) Close() {

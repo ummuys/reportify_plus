@@ -267,7 +267,8 @@ func (_c *MockReportDB_SetReportStatus_Call) RunAndReturn(run func(context.Conte
 func NewMockReportDB(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockReportDB {
+},
+) *MockReportDB {
 	mock := &MockReportDB{}
 	mock.Mock.Test(t)
 

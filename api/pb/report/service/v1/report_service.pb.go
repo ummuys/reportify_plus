@@ -7,14 +7,15 @@
 package reportservicev1
 
 import (
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
+
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
 )
 
 const (
@@ -923,26 +924,28 @@ func file_report_service_v1_report_service_proto_rawDescGZIP() []byte {
 	return file_report_service_v1_report_service_proto_rawDescData
 }
 
-var file_report_service_v1_report_service_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
-var file_report_service_v1_report_service_proto_goTypes = []any{
-	(*CreateReportRequest)(nil),    // 0: report.service.v1.CreateReportRequest
-	(*CreateReportResponse)(nil),   // 1: report.service.v1.CreateReportResponse
-	(*RecreateReportRequest)(nil),  // 2: report.service.v1.RecreateReportRequest
-	(*RecreateReportResponse)(nil), // 3: report.service.v1.RecreateReportResponse
-	(*ReportStatusRequest)(nil),    // 4: report.service.v1.ReportStatusRequest
-	(*ReportStatusResponse)(nil),   // 5: report.service.v1.ReportStatusResponse
-	(*ListReportsRequest)(nil),     // 6: report.service.v1.ListReportsRequest
-	(*ListReportsResponse)(nil),    // 7: report.service.v1.ListReportsResponse
-	(*ReportInfoRequest)(nil),      // 8: report.service.v1.ReportInfoRequest
-	(*ReportInfoResponse)(nil),     // 9: report.service.v1.ReportInfoResponse
-	(*DeleteReportsRequest)(nil),   // 10: report.service.v1.DeleteReportsRequest
-	(*DeleteReportRequest)(nil),    // 11: report.service.v1.DeleteReportRequest
-	(*DeleteReportResponse)(nil),   // 12: report.service.v1.DeleteReportResponse
-	(*ReportMetadata)(nil),         // 13: report.service.v1.ReportMetadata
-	(*durationpb.Duration)(nil),    // 14: google.protobuf.Duration
-	(*timestamppb.Timestamp)(nil),  // 15: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),          // 16: google.protobuf.Empty
-}
+var (
+	file_report_service_v1_report_service_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+	file_report_service_v1_report_service_proto_goTypes  = []any{
+		(*CreateReportRequest)(nil),    // 0: report.service.v1.CreateReportRequest
+		(*CreateReportResponse)(nil),   // 1: report.service.v1.CreateReportResponse
+		(*RecreateReportRequest)(nil),  // 2: report.service.v1.RecreateReportRequest
+		(*RecreateReportResponse)(nil), // 3: report.service.v1.RecreateReportResponse
+		(*ReportStatusRequest)(nil),    // 4: report.service.v1.ReportStatusRequest
+		(*ReportStatusResponse)(nil),   // 5: report.service.v1.ReportStatusResponse
+		(*ListReportsRequest)(nil),     // 6: report.service.v1.ListReportsRequest
+		(*ListReportsResponse)(nil),    // 7: report.service.v1.ListReportsResponse
+		(*ReportInfoRequest)(nil),      // 8: report.service.v1.ReportInfoRequest
+		(*ReportInfoResponse)(nil),     // 9: report.service.v1.ReportInfoResponse
+		(*DeleteReportsRequest)(nil),   // 10: report.service.v1.DeleteReportsRequest
+		(*DeleteReportRequest)(nil),    // 11: report.service.v1.DeleteReportRequest
+		(*DeleteReportResponse)(nil),   // 12: report.service.v1.DeleteReportResponse
+		(*ReportMetadata)(nil),         // 13: report.service.v1.ReportMetadata
+		(*durationpb.Duration)(nil),    // 14: google.protobuf.Duration
+		(*timestamppb.Timestamp)(nil),  // 15: google.protobuf.Timestamp
+		(*emptypb.Empty)(nil),          // 16: google.protobuf.Empty
+	}
+)
 var file_report_service_v1_report_service_proto_depIdxs = []int32{
 	14, // 0: report.service.v1.CreateReportRequest.ttl:type_name -> google.protobuf.Duration
 	14, // 1: report.service.v1.RecreateReportRequest.ttl:type_name -> google.protobuf.Duration

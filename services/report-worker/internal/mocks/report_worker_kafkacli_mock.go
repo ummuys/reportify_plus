@@ -72,7 +72,8 @@ func (_c *MockKafkaConsumer_Run_Call) RunAndReturn(run func(context.Context) err
 func NewMockKafkaConsumer(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockKafkaConsumer {
+},
+) *MockKafkaConsumer {
 	mock := &MockKafkaConsumer{}
 	mock.Mock.Test(t)
 

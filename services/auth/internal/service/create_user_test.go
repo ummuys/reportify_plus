@@ -28,7 +28,6 @@ func TestAuthService_CreateUser_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, dbOut, res)
 	require.Equal(t, "123", in.Password)
-
 }
 
 func TestAuthService_CreateUser_HashError_ReturnsError(t *testing.T) {

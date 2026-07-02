@@ -7,11 +7,12 @@
 package datasourceservicev1
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -494,18 +495,20 @@ func file_datasource_service_v1_datasource_service_proto_rawDescGZIP() []byte {
 	return file_datasource_service_v1_datasource_service_proto_rawDescData
 }
 
-var file_datasource_service_v1_datasource_service_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
-var file_datasource_service_v1_datasource_service_proto_goTypes = []any{
-	(*ListSchemasRequest)(nil),  // 0: datasource.service.v1.ListSchemasRequest
-	(*ListSchemasResponse)(nil), // 1: datasource.service.v1.ListSchemasResponse
-	(*Schema)(nil),              // 2: datasource.service.v1.Schema
-	(*ListTablesRequest)(nil),   // 3: datasource.service.v1.ListTablesRequest
-	(*ListTablesResponse)(nil),  // 4: datasource.service.v1.ListTablesResponse
-	(*Table)(nil),               // 5: datasource.service.v1.Table
-	(*ListColumnsRequest)(nil),  // 6: datasource.service.v1.ListColumnsRequest
-	(*ListColumnsResponse)(nil), // 7: datasource.service.v1.ListColumnsResponse
-	(*Column)(nil),              // 8: datasource.service.v1.Column
-}
+var (
+	file_datasource_service_v1_datasource_service_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+	file_datasource_service_v1_datasource_service_proto_goTypes  = []any{
+		(*ListSchemasRequest)(nil),  // 0: datasource.service.v1.ListSchemasRequest
+		(*ListSchemasResponse)(nil), // 1: datasource.service.v1.ListSchemasResponse
+		(*Schema)(nil),              // 2: datasource.service.v1.Schema
+		(*ListTablesRequest)(nil),   // 3: datasource.service.v1.ListTablesRequest
+		(*ListTablesResponse)(nil),  // 4: datasource.service.v1.ListTablesResponse
+		(*Table)(nil),               // 5: datasource.service.v1.Table
+		(*ListColumnsRequest)(nil),  // 6: datasource.service.v1.ListColumnsRequest
+		(*ListColumnsResponse)(nil), // 7: datasource.service.v1.ListColumnsResponse
+		(*Column)(nil),              // 8: datasource.service.v1.Column
+	}
+)
 var file_datasource_service_v1_datasource_service_proto_depIdxs = []int32{
 	2, // 0: datasource.service.v1.ListSchemasResponse.schemas:type_name -> datasource.service.v1.Schema
 	5, // 1: datasource.service.v1.ListTablesResponse.tables:type_name -> datasource.service.v1.Table

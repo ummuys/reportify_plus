@@ -20,7 +20,6 @@ type producer struct {
 }
 
 func NewKafkaProducer(tunnelReader chan dto.KafkaMessage, baseLogger zerolog.Logger) (KafkaProducer, error) {
-
 	cfg, err := config.ParseKafkaProducerConfig()
 	if err != nil {
 		return nil, err
@@ -37,13 +36,13 @@ func NewKafkaProducer(tunnelReader chan dto.KafkaMessage, baseLogger zerolog.Log
 		return nil, err
 	}
 
-	return &producer{cli: cli, logger: logger, tunnel: tunnelReader,
+	return &producer{
+		cli: cli, logger: logger, tunnel: tunnelReader,
 		topic: cfg.Topic, topicDLQ: cfg.TopicDLQ,
 	}, nil
 }
 
 func (p *producer) Run(ctx context.Context) error {
-
 	for {
 		select {
 
@@ -66,7 +65,6 @@ func (p *producer) Run(ctx context.Context) error {
 			}
 		}
 	}
-
 }
 
 func (p *producer) Close() {

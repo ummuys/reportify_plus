@@ -157,7 +157,6 @@ func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.
 	defer cancel()
 
 	res, err := db.pool.Exec(qctx, deleteUserQuery, in.UserID)
-
 	if err != nil {
 		return dto.DeleteUserResult{}, err
 	}

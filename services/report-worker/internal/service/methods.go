@@ -29,7 +29,8 @@ type publish struct {
 }
 
 func NewPublishService(datasourceDB repository.DatasourceDB, reportDB repository.ReportDB, reportCache cache.ReportCache,
-	convert convert.ReportConvert, minioCli miniocli.MinIOClient, reportTTL time.Duration, countBatch int, baseLogger zerolog.Logger) (PublishService, error) {
+	convert convert.ReportConvert, minioCli miniocli.MinIOClient, reportTTL time.Duration, countBatch int, baseLogger zerolog.Logger,
+) (PublishService, error) {
 	logger := baseLogger.With().Str("component", "svc").Logger()
 	return &publish{
 		datasourceDB: datasourceDB,
@@ -244,7 +245,6 @@ func (p *publish) stepFailed(ctx context.Context, reportID string, err error, be
 }
 
 func (p *publish) CleanOldReports(ctx context.Context) {
-
 	out, err := p.reportDB.PickAndMarkDeletingFile(ctx, dto.PickAndMarkDeletingFileParams{TimeLife: p.reportTTL, CountBatch: p.countBatch})
 	if err != nil {
 		p.logger.Error().
@@ -256,7 +256,8 @@ func (p *publish) CleanOldReports(ctx context.Context) {
 
 	derr := p.minioCli.DeleteFiles(ctx, dto.DeleteExpiredFilesParams{
 		Names:  out.ReportsId,
-		Bucket: "report"})
+		Bucket: "report",
+	})
 	if derr != nil {
 		p.logger.Error().
 			Err(derr).
@@ -274,5 +275,4 @@ func (p *publish) CleanOldReports(ctx context.Context) {
 			Msg("failed to pick reports")
 		return
 	}
-
 }
