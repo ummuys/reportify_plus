@@ -87,7 +87,7 @@ func (c *consumer) Run(ctx context.Context) error {
 
 					if err != nil {
 						c.toDLQ(ctx, payload.ReportID, r, err)
-						continue
+						return
 					}
 
 					c.cli.MarkCommitRecords(r)
