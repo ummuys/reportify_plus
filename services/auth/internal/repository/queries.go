@@ -13,18 +13,19 @@ WHERE u.username = $1;
 `
 
 	createUserQuery = `
-WITH new_user AS (
-    INSERT INTO identity.users (user_id, username, password)
-    VALUES ($1, $2, $3)
-    RETURNING user_id
-)
-INSERT INTO identity.user_roles (user_id, role_id)
-SELECT
-    new_user.user_id,
-    r.role_id
-FROM new_user
-JOIN identity.roles r ON r.name = $4
-`
+        INSERT INTO identity.users (user_id, username, password)
+        VALUES ($1, $2, $3);
+    `
+
+	createUserRolesQuery = `
+        INSERT INTO identity.user_roles (user_id, role_id)
+        SELECT
+            u.user_id,
+            r.role_id
+        FROM identity.users u
+        JOIN identity.roles r ON r.name = $1
+        WHERE u.user_id = $2;
+    `
 
 	updateUsernameQuery = `
 UPDATE identity.users SET username = $2 WHERE user_id = $1;

@@ -53,6 +53,8 @@ func (a *AuthAdapter) CreateUser(ctx context.Context, in *authv1.CreateUserReque
 		switch {
 		case errors.Is(err, errs.ErrPgDuplicate):
 			return nil, status.Error(codes.AlreadyExists, errs.ErrUserAlreadyExists.Error())
+		case errors.Is(err, errs.ErrRoleNotFound):
+			return nil, status.Error(codes.InvalidArgument, errs.ErrRoleNotFound.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
 		}

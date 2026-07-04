@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/rs/zerolog"
 	"github.com/ummuys/reportify/pkg/errs"
 	pkg "github.com/ummuys/reportify/pkg/tm"
@@ -88,7 +89,16 @@ func (as *authService) CreateUser(ctx context.Context, in dto.CreateUserParams) 
 
 	out, err := as.db.CreateUser(ctx, in)
 	if err != nil {
-
+		// P0-07 4 июля
+		if errors.Is(err, pgx.ErrNoRows) {
+			as.logger.Error().
+				Err(err).
+				Str("db-method", "CreateUser").
+				Str("role", in.Role).
+				Msg("role not found")
+			return dto.CreateUserResult{}, errs.ParsePgError(err)
+		}
+		// ------------------
 		as.logger.Error().
 			Err(err).
 			Str("db-method", "CreateUser").
