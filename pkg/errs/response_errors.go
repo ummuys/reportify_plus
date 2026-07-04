@@ -23,5 +23,5 @@ var (
 	ErrEmptyUsername      = errors.New("empty username")
 	ErrEmptySchemaName    = errors.New("schema name requeired")
 	ErrEmptyTableName     = errors.New("table name required")
-	ErrRoleNotFound		  = errors.New("role not found")
+	ErrRoleNotFound       = errors.New("role not found")
 )
