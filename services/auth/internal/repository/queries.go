@@ -12,6 +12,12 @@ JOIN identity.roles AS r ON r.role_id = ur.role_id
 WHERE u.username = $1;
 `
 
+    getRoleQuery = `
+        SELECT role_id, name
+        FROM identity.roles
+        WHERE name = $1;
+    `
+
 	createUserQuery = `
 WITH new_user AS (
     INSERT INTO identity.users (user_id, username, password)

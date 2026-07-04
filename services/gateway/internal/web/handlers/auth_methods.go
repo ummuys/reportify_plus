@@ -150,6 +150,9 @@ func (a *authHandler) CreateUser(g *gin.Context) {
 		case codes.AlreadyExists:
 			code = http.StatusConflict
 			resp.Error = st.Message()
+		case codes.InvalidArgument:
+			code = http.StatusBadRequest
+			resp.Error = st.Message()
 		default:
 			code = http.StatusInternalServerError
 			resp.Error = errs.ErrServerInternal.Error()

@@ -66,7 +66,16 @@ func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.
 	db.logger.Debug().Str("evt", "call CreateBaseAdmin").Msg("")
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
+	// P0-07 4 июля
+	var roleID int
 
+	err := db.pool.QueryRow(qctx, getRoleQuery, in.Role).Scan(&roleID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return dto.CreateUserResult{}, err
+		}
+	}
+	// ------------------
 	uuid := uuid.New().String()
 
 	if _, err := db.pool.Exec(qctx, createUserQuery, uuid, in.Username, in.Password, in.Role); err != nil {
