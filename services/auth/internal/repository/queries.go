@@ -14,8 +14,7 @@ WHERE u.username = $1;
 
 	createUserQuery = `
         INSERT INTO identity.users (user_id, username, password)
-        VALUES ($1, $2, $3)
-        RETURNING user_id
+        VALUES ($1, $2, $3);
     `
 
     createUserRolesQuery = `
