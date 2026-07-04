@@ -17,7 +17,7 @@ WHERE u.username = $1;
         VALUES ($1, $2, $3);
     `
 
-    createUserRolesQuery = `
+	createUserRolesQuery = `
         INSERT INTO identity.user_roles (user_id, role_id)
         SELECT
             u.user_id,

@@ -68,10 +68,9 @@ func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.
 	defer cancel()
 	// P0-07 4 июля
 	tx, err := db.pool.Begin(qctx)
-
 	if err != nil {
-        return dto.CreateUserResult{}, err
-    }
+		return dto.CreateUserResult{}, err
+	}
 
 	defer func() {
 		if err != nil {
@@ -90,7 +89,6 @@ func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.
 		in.Username,
 		in.Password,
 	)
-
 	if err != nil {
 		return dto.CreateUserResult{}, err
 	}
@@ -101,7 +99,6 @@ func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.
 		in.Role,
 		uuid,
 	)
-	
 	if err != nil {
 		return dto.CreateUserResult{}, err
 	}
@@ -111,7 +108,6 @@ func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.
 	}
 
 	err = tx.Commit(qctx)
-
 	if err != nil {
 		return dto.CreateUserResult{}, err
 	}
