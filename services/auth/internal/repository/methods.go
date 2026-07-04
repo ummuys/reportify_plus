@@ -67,20 +67,55 @@ func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 	// P0-07 4 июля
-	var roleID int
+	tx, err := db.pool.Begin(qctx)
 
-	err := db.pool.QueryRow(qctx, getRoleQuery, in.Role).Scan(&roleID)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return dto.CreateUserResult{}, err
+        return dto.CreateUserResult{}, err
+    }
+
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(qctx); rbErr != nil && !errors.Is(rbErr, pgx.ErrTxClosed) {
+				db.logger.Error().Err(rbErr).Msg("rollback failed")
+			}
 		}
-	}
-	// ------------------
+	}()
+
 	uuid := uuid.New().String()
 
-	if _, err := db.pool.Exec(qctx, createUserQuery, uuid, in.Username, in.Password, in.Role); err != nil {
+	_, err = tx.Exec(
+		qctx,
+		createUserQuery,
+		uuid,
+		in.Username,
+		in.Password,
+	)
+
+	if err != nil {
 		return dto.CreateUserResult{}, err
 	}
+
+	res, err := tx.Exec(
+		qctx,
+		createUserRolesQuery,
+		in.Role,
+		uuid,
+	)
+	
+	if err != nil {
+		return dto.CreateUserResult{}, err
+	}
+
+	if res.RowsAffected() == 0 {
+		return dto.CreateUserResult{}, errs.ErrRoleNotFound
+	}
+
+	err = tx.Commit(qctx)
+
+	if err != nil {
+		return dto.CreateUserResult{}, err
+	}
+	// -------------------
 
 	return dto.CreateUserResult{UserID: uuid}, nil
 }

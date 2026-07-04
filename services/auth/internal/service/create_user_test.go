@@ -15,7 +15,7 @@ func TestAuthService_CreateUser_Success(t *testing.T) {
 	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
-	in := dto.CreateUserParams{Username: "Bob", Password: "123", Role: "Admin"}
+	in := dto.CreateUserParams{Username: "Bob", Password: "123", Role: "admin"}
 	afterHash := in
 	afterHash.Password = "HASH"
 
@@ -34,7 +34,7 @@ func TestAuthService_CreateUser_HashError_ReturnsError(t *testing.T) {
 	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
-	in := dto.CreateUserParams{Username: "Bob", Password: "123", Role: "Admin"}
+	in := dto.CreateUserParams{Username: "Bob", Password: "123", Role: "admin"}
 	hashErr := errors.New("hash err")
 
 	ph.EXPECT().Hash(in.Password).Return("", hashErr).Once()
@@ -52,7 +52,7 @@ func TestAuthService_CreateUser_DbError_ReturnsParsedPgError(t *testing.T) {
 	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
-	in := dto.CreateUserParams{Username: "Bob", Password: "123", Role: "Admin"}
+	in := dto.CreateUserParams{Username: "Bob", Password: "123", Role: "admin"}
 	afterHash := in
 	afterHash.Password = "HASH"
 
@@ -73,7 +73,7 @@ func TestAuthService_CreateUser_UserAlreadyExists_ReturnsParsedPgError(t *testin
 	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
-	in := dto.CreateUserParams{Username: "Bob", Password: "123", Role: "Admin"}
+	in := dto.CreateUserParams{Username: "Bob", Password: "123", Role: "admin"}
 	afterHash := in
 	afterHash.Password = "HASH"
 
@@ -93,7 +93,7 @@ func TestAuthService_CreateBaseAdmin_Success(t *testing.T) {
 	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
-	in := dto.CreateUserParams{Username: "Admin", Password: "123", Role: "Admin"}
+	in := dto.CreateUserParams{Username: "Admin", Password: "123", Role: "admin"}
 	afterHash := in
 	afterHash.Password = "HASH"
 
@@ -112,7 +112,7 @@ func TestAuthService_CreateBaseAdmin_HashError_ReturnsError(t *testing.T) {
 	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
-	in := dto.CreateUserParams{Username: "Admin", Password: "123", Role: "Admin"}
+	in := dto.CreateUserParams{Username: "Admin", Password: "123", Role: "admin"}
 	hashErr := errors.New("hash err")
 
 	ph.EXPECT().Hash(in.Password).Return("", hashErr).Once()
@@ -130,7 +130,7 @@ func TestAuthService_CreateBaseAdmin_DbError_ReturnsParsedPgError(t *testing.T) 
 	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
-	in := dto.CreateUserParams{Username: "Admin", Password: "123", Role: "Admin"}
+	in := dto.CreateUserParams{Username: "Admin", Password: "123", Role: "admin"}
 	afterHash := in
 	afterHash.Password = "HASH"
 
@@ -152,7 +152,7 @@ func TestAuthService_CreateBaseAdmin_UserAlreadyExists_ReturnsParsedPgError(t *t
 	svc, db, ph, _ := newSvc(t)
 	ctx := context.Background()
 
-	in := dto.CreateUserParams{Username: "Admin", Password: "123", Role: "Admin"}
+	in := dto.CreateUserParams{Username: "Admin", Password: "123", Role: "admin"}
 	afterHash := in
 	afterHash.Password = "HASH"
 
