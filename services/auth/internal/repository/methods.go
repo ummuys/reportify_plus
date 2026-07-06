@@ -88,6 +88,7 @@ func (db *authDB) CreateUser(ctx context.Context, in dto.CreateUserParams) (dto.
 		uuid,
 		in.Username,
 		in.Password,
+		in.IsProtected,
 	)
 	if err != nil {
 		return dto.CreateUserResult{}, err
@@ -192,22 +193,47 @@ func (db *authDB) UpdateUser(ctx context.Context, in dto.UpdateUserParams) (out 
 
 	// --------------------
 
-	// out = dto.UpdateUserResult{
-	// 	UserID:   in.UserID,
-	// 	Username: in.Username,
-	// 	Role:     in.Role,
-	// IsActive: in.IsActive,
-	// }
 	return
 }
 
 func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.DeleteUserResult, error) {
 	db.logger.Debug().Str("evt", "call DeleteUser").Msg("")
-	if in.UserID == db.adminUUID {
-		return dto.DeleteUserResult{}, errs.ErrPgInsufficientPrivilege
-	}
 	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
+
+	// P0-08 6 июля
+	var role string
+	var isProtected bool
+
+	err := db.pool.QueryRow(
+		qctx,
+		getIsProtectesAndRoleQuery,
+		in.UserID,
+	).Scan(&isProtected, &role)
+
+	if err != nil {
+		return dto.DeleteUserResult{}, err
+	}
+
+	if isProtected {
+		return dto.DeleteUserResult{}, errs.ErrPgInsufficientPrivilege
+	}
+
+	if role == "admin" {
+		// Если в базе остался последний админ
+		// то его нельзя удалить
+		var count int
+
+		err = db.pool.QueryRow(
+			qctx,
+			countAdminsQuery,
+		).Scan(&count)
+
+		if count == 1 {
+			return dto.DeleteUserResult{}, errs.ErrPgInsufficientPrivilege
+		}
+	}
+	// --------------------------
 
 	res, err := db.pool.Exec(qctx, deleteUserQuery, in.UserID)
 	if err != nil {

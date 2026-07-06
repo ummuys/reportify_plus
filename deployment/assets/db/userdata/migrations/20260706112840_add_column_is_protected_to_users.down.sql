@@ -1,0 +1,1 @@
+ALTER TABLE identity.users DROP COLUMN is_protected;

@@ -1,9 +1,10 @@
 package dto
 
 type CreateUserParams struct {
-	Username string
-	Password string
-	Role     string
+	Username    string
+	Password    string
+	Role        string
+	IsProtected bool
 }
 
 type DeleteUserParams struct {

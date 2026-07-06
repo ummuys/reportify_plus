@@ -58,9 +58,10 @@ func main() {
 
 	// CREATE BASE ADMIN USER
 	if err := svc.CreateBaseAdmin(ctx, dto.CreateUserParams{
-		Username: cfg.AdmUsername,
-		Password: cfg.AdmPassword,
-		Role:     "admin",
+		Username:    cfg.AdmUsername,
+		Password:    cfg.AdmPassword,
+		Role:        "admin",
+		IsProtected: true,
 	}); err != nil && !errors.Is(err, errs.ErrPgDuplicate) {
 		logs.Fatal().Err(err).Msg("Create admin user")
 	}

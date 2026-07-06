@@ -13,8 +13,8 @@ WHERE u.username = $1;
 `
 
 	createUserQuery = `
-        INSERT INTO identity.users (user_id, username, password)
-        VALUES ($1, $2, $3);
+        INSERT INTO identity.users (user_id, username, password, is_protected)
+        VALUES ($1, $2, $3, $4);
     `
 
 	createUserRolesQuery = `
@@ -55,6 +55,24 @@ UPDATE identity.users SET password = $2 WHERE user_id = $1;
         WHERE u.user_id = $1;
     `
 	// ------
+
+    // P0-08 6 июля
+    getIsProtectesAndRoleQuery = `
+        SELECT u.is_protected, r.name
+        FROM identity.users u
+        JOIN identity.user_roles ur ON u.user_id = ur.user_id
+        JOIN identity.roles r ON r.role_id = ur.role_id
+        WHERE u.user_id = $1;
+    `
+
+    countAdminsQuery = `
+        SELECT COUNT(*)
+        FROM identity.users u
+        JOIN identity.user_roles ur ON u.user_id = ur.user_id
+        JOIN identity.roles r ON r.role_id = ur.role_id
+        WHERE r.name = 'admin';
+    `
+    // -----------
 
 	deleteUserQuery = `DELETE FROM identity.users WHERE user_id = $1`
 

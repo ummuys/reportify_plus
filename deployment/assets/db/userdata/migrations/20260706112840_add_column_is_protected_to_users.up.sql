@@ -1,0 +1,1 @@
+ALTER TABLE identity.users ADD is_protected BOOLEAN DEFAULT false;
