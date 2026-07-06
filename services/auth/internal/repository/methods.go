@@ -227,7 +227,6 @@ func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.
 			qctx,
 			countAdminsQuery,
 		).Scan(&count)
-
 		if err != nil {
 			return dto.DeleteUserResult{}, err
 		}
