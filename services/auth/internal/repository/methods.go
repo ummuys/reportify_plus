@@ -228,6 +228,10 @@ func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.
 			countAdminsQuery,
 		).Scan(&count)
 
+		if err != nil {
+			return dto.DeleteUserResult{}, err
+		}
+
 		if count == 1 {
 			return dto.DeleteUserResult{}, errs.ErrPgInsufficientPrivilege
 		}
