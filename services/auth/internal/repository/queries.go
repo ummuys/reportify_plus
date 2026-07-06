@@ -56,8 +56,8 @@ UPDATE identity.users SET password = $2 WHERE user_id = $1;
     `
 	// ------
 
-    // P0-08 6 июля
-    getIsProtectedAndRoleQuery = `
+	// P0-08 6 июля
+	getIsProtectedAndRoleQuery = `
         SELECT u.is_protected, r.name
         FROM identity.users u
         JOIN identity.user_roles ur ON u.user_id = ur.user_id
@@ -65,14 +65,14 @@ UPDATE identity.users SET password = $2 WHERE user_id = $1;
         WHERE u.user_id = $1;
     `
 
-    countAdminsQuery = `
+	countAdminsQuery = `
         SELECT COUNT(*)
         FROM identity.users u
         JOIN identity.user_roles ur ON u.user_id = ur.user_id
         JOIN identity.roles r ON r.role_id = ur.role_id
         WHERE r.name = 'admin';
     `
-    // -----------
+	// -----------
 
 	deleteUserQuery = `DELETE FROM identity.users WHERE user_id = $1`
 

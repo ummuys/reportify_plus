@@ -210,7 +210,6 @@ func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.
 		getIsProtectedAndRoleQuery,
 		in.UserID,
 	).Scan(&isProtected, &role)
-
 	if err != nil {
 		return dto.DeleteUserResult{}, err
 	}
