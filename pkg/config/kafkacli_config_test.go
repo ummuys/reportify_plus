@@ -34,22 +34,22 @@ func TestParseReportCreateConsumerConfig_GroupIsRequired(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Очищаем все переменные окружения
-			os.Unsetenv("REPORT_KAFKA_GROUP")
-			os.Unsetenv("REPORT_KAFKA_PRODUCER_ID")
-			os.Unsetenv("REPORT_KAFKA_CONTAINER_NAME")
-			os.Unsetenv("REPORT_KAFKA_DOCKER_PORT")
-			os.Unsetenv("REPORT_KAFKA_TOPIC_REPORT")
-			os.Unsetenv("REPORT_KAFKA_TOPIC_DLQ")
+			_ = os.Unsetenv("REPORT_KAFKA_GROUP")
+			_ = os.Unsetenv("REPORT_KAFKA_PRODUCER_ID")
+			_ = os.Unsetenv("REPORT_KAFKA_CONTAINER_NAME")
+			_ = os.Unsetenv("REPORT_KAFKA_DOCKER_PORT")
+			_ = os.Unsetenv("REPORT_KAFKA_TOPIC_REPORT")
+			_ = os.Unsetenv("REPORT_KAFKA_TOPIC_DLQ")
 
 			// Устанавливаем обязательные переменные
-			os.Setenv("REPORT_KAFKA_PRODUCER_ID", "test-producer")
-			os.Setenv("REPORT_KAFKA_CONTAINER_NAME", "kafka")
-			os.Setenv("REPORT_KAFKA_DOCKER_PORT", "9092")
-			os.Setenv("REPORT_KAFKA_TOPIC_REPORT", "test-topic")
-			os.Setenv("REPORT_KAFKA_TOPIC_DLQ", "test-dlq")
+			_ = os.Setenv("REPORT_KAFKA_PRODUCER_ID", "test-producer")
+			_ = os.Setenv("REPORT_KAFKA_CONTAINER_NAME", "kafka")
+			_ = os.Setenv("REPORT_KAFKA_DOCKER_PORT", "9092")
+			_ = os.Setenv("REPORT_KAFKA_TOPIC_REPORT", "test-topic")
+			_ = os.Setenv("REPORT_KAFKA_TOPIC_DLQ", "test-dlq")
 
 			if tt.setEnv {
-				os.Setenv("REPORT_KAFKA_GROUP", tt.envValue)
+				_ = os.Setenv("REPORT_KAFKA_GROUP", tt.envValue)
 			}
 
 			_, err := ParseReportCreateConsumerConfig()
