@@ -51,12 +51,12 @@ ci-lint:
 	@cd $(ROOT_DIR) && "$(LINT_BIN)" run ./...
 
 ci-test:
-	@echo "Running unit tests for auth/report/report-worker services..."
-	@cd $(ROOT_DIR) && go test -count=1 ./services/auth/internal/service/... ./services/report/internal/service/... ./services/report-worker/internal/service/...
+	@echo "Running all unit tests..."
+	@cd $(ROOT_DIR) && go test -count=1 ./...
 
 ci-race:
-	@echo "Running race tests for auth/report/report-worker services..."
-	@cd $(ROOT_DIR) && go test -race -count=1 ./services/auth/internal/service/... ./services/report/internal/service/... ./services/report-worker/internal/service/...
+	@echo "Running all race tests..."
+	@cd $(ROOT_DIR) && go test -race -count=1 ./...
 
 ci-docker-build:
 	@echo "Building report image..."
