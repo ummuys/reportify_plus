@@ -207,7 +207,7 @@ func (db *authDB) DeleteUser(ctx context.Context, in dto.DeleteUserParams) (dto.
 
 	err := db.pool.QueryRow(
 		qctx,
-		getIsProtectesAndRoleQuery,
+		getIsProtectedAndRoleQuery,
 		in.UserID,
 	).Scan(&isProtected, &role)
 

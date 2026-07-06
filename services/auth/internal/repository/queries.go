@@ -57,7 +57,7 @@ UPDATE identity.users SET password = $2 WHERE user_id = $1;
 	// ------
 
     // P0-08 6 июля
-    getIsProtectesAndRoleQuery = `
+    getIsProtectedAndRoleQuery = `
         SELECT u.is_protected, r.name
         FROM identity.users u
         JOIN identity.user_roles ur ON u.user_id = ur.user_id
