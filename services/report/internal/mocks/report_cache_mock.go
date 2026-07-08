@@ -21,6 +21,67 @@ func (_m *MockReportCache) EXPECT() *MockReportCache_Expecter {
 	return &MockReportCache_Expecter{mock: &_m.Mock}
 }
 
+// Delete provides a mock function with given fields: ctx, keys
+func (_m *MockReportCache) Delete(ctx context.Context, keys ...string) error {
+	_va := make([]interface{}, len(keys))
+	for _i := range keys {
+		_va[_i] = keys[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Delete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, ...string) error); ok {
+		r0 = rf(ctx, keys...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockReportCache_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type MockReportCache_Delete_Call struct {
+	*mock.Call
+}
+
+// Delete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - keys ...string
+func (_e *MockReportCache_Expecter) Delete(ctx interface{}, keys ...interface{}) *MockReportCache_Delete_Call {
+	return &MockReportCache_Delete_Call{Call: _e.mock.On("Delete",
+		append([]interface{}{ctx}, keys...)...)}
+}
+
+func (_c *MockReportCache_Delete_Call) Run(run func(ctx context.Context, keys ...string)) *MockReportCache_Delete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]string, len(args)-1)
+		for i, a := range args[1:] {
+			if a != nil {
+				variadicArgs[i] = a.(string)
+			}
+		}
+		run(args[0].(context.Context), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockReportCache_Delete_Call) Return(_a0 error) *MockReportCache_Delete_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockReportCache_Delete_Call) RunAndReturn(run func(context.Context, ...string) error) *MockReportCache_Delete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Get provides a mock function with given fields: ctx, key
 func (_m *MockReportCache) Get(ctx context.Context, key string) (*string, error) {
 	ret := _m.Called(ctx, key)
@@ -133,8 +194,7 @@ func (_c *MockReportCache_Set_Call) RunAndReturn(run func(context.Context, strin
 func NewMockReportCache(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockReportCache {
+}) *MockReportCache {
 	mock := &MockReportCache{}
 	mock.Mock.Test(t)
 

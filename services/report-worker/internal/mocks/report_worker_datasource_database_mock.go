@@ -116,8 +116,7 @@ func (_c *MockDatasourceDB_GetData_Call) RunAndReturn(run func(context.Context, 
 func NewMockDatasourceDB(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockDatasourceDB {
+}) *MockDatasourceDB {
 	mock := &MockDatasourceDB{}
 	mock.Mock.Test(t)
 

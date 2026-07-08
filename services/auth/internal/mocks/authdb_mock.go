@@ -376,8 +376,7 @@ func (_c *MockAuthDB_UpdateUser_Call) RunAndReturn(run func(context.Context, dto
 func NewMockAuthDB(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockAuthDB {
+}) *MockAuthDB {
 	mock := &MockAuthDB{}
 	mock.Mock.Test(t)
 

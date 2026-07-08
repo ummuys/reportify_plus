@@ -62,6 +62,25 @@ func (rs *reportService) RecreateReport(ctx context.Context, in dto.RecreateRepo
 			Msg("recreate report failed")
 		return out, errs.ParsePgError(err)
 	}
+
+	err = rs.cache.Delete(ctx, in.ReportID)
+	if err != nil {
+		rs.logger.Warn().
+			Err(err).
+			Str("cache-method", "Set").
+			Str("report_id", out.ReportID).
+			Msg("cache delete failed")
+	}
+
+	err = rs.cache.Set(ctx, out.ReportID, out.Status)
+	if err != nil {
+		rs.logger.Warn().
+			Err(err).
+			Str("cache-method", "Set").
+			Str("report_id", out.ReportID).
+			Msg("cache set failed")
+	}
+
 	return out, nil
 }
 
@@ -141,8 +160,24 @@ func (rs *reportService) ReportInfo(ctx context.Context, in dto.ReportInfoParams
 func (rs *reportService) DeleteReports(ctx context.Context, in dto.DeleteReportsParams) error {
 	rs.logger.Debug().Str("evt", "call DeleteReports").Msg("")
 
-	if err := rs.db.DeleteReports(ctx, in); err != nil {
+	reports, err := rs.db.ListReports(ctx, dto.ListReportsParams{AuthorID: in.AuthorID})
+	if err != nil {
+		rs.logger.Error().
+			Err(err).
+			Str("db-method", "ListReports").
+			Str("author_id", in.AuthorID).
+			Msg("list reports failed")
 
+		return errs.ParsePgError(err)
+	}
+
+	reportsIDs := make([]string, len(reports.Reports))
+
+	for index, value := range reports.Reports {
+		reportsIDs[index] = value.ReportID
+	}
+
+	if err := rs.db.DeleteReports(ctx, in); err != nil {
 		rs.logger.Error().
 			Err(err).
 			Str("db-method", "DeleteReports").
@@ -151,6 +186,15 @@ func (rs *reportService) DeleteReports(ctx context.Context, in dto.DeleteReports
 
 		return errs.ParsePgError(err)
 	}
+
+	if err := rs.cache.Delete(ctx, reportsIDs...); err != nil {
+		rs.logger.Warn().
+			Err(err).
+			Str("cahce-method", "Delete").
+			Str("author_id", in.AuthorID).
+			Msg("cache delete failed")
+	}
+
 	return nil
 }
 
@@ -167,7 +211,6 @@ func (rs *reportService) DeleteReport(ctx context.Context, in dto.DeleteReportPa
 
 	out, err := rs.db.DeleteReport(ctx, in)
 	if err != nil {
-
 		rs.logger.Error().
 			Err(err).
 			Str("db-method", "DeleteReport").
@@ -177,5 +220,14 @@ func (rs *reportService) DeleteReport(ctx context.Context, in dto.DeleteReportPa
 
 		return dto.DeleteReportResult{}, errs.ParsePgError(err)
 	}
+
+	if err := rs.cache.Delete(ctx, in.ReportID); err != nil {
+		rs.logger.Warn().
+			Err(err).
+			Str("cahce-method", "Delete").
+			Str("report_id", in.ReportID).
+			Msg("cache delete failed")
+	}
+
 	return out, nil
 }
