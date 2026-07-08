@@ -160,7 +160,8 @@ func (rs *reportService) ReportInfo(ctx context.Context, in dto.ReportInfoParams
 func (rs *reportService) DeleteReports(ctx context.Context, in dto.DeleteReportsParams) error {
 	rs.logger.Debug().Str("evt", "call DeleteReports").Msg("")
 
-	reports, err := rs.db.ListReports(ctx, dto.ListReportsParams{AuthorID: in.AuthorID})
+	listReportsIn := dto.ListReportsParams{AuthorID: in.AuthorID}
+	reports, err := rs.db.ListReports(ctx, listReportsIn)
 	if err != nil {
 		rs.logger.Error().
 			Err(err).
