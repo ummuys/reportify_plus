@@ -14,6 +14,7 @@ var (
 	ErrDeleteAdmin        = errors.New("can't delete main admin")
 	ErrInvalidPaylod      = errors.New("invalid payload")
 	ErrInvalidUserID      = errors.New("invalid user_id")
+	ErrInvalidReportID    = errors.New("invalid report_id")
 	ErrInvalidData        = errors.New("invalid data")
 	ErrUserUnauthorized   = errors.New("you need to auth")
 	ErrUserAlreadyExists  = errors.New("user already exists")
