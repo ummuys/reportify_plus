@@ -1,25 +1,25 @@
 package handlers
 
 import (
-    "net/http"
+	"net/http"
 
-    "github.com/gin-gonic/gin"
-    "github.com/google/uuid"
-    "github.com/rs/zerolog"
-    reportservicev1 "github.com/ummuys/reportify/api/pb/report/service/v1"
-    "github.com/ummuys/reportify/pkg/errs"
-    "github.com/ummuys/reportify/services/gateway/internal/webdto"
-    "google.golang.org/grpc/codes"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/rs/zerolog"
+	reportservicev1 "github.com/ummuys/reportify/api/pb/report/service/v1"
+	"github.com/ummuys/reportify/pkg/errs"
+	"github.com/ummuys/reportify/services/gateway/internal/webdto"
+	"google.golang.org/grpc/codes"
 )
 
 type reportServiceHandler struct {
-    sc     reportservicev1.ReportServiceClient
-    logger zerolog.Logger
+	sc     reportservicev1.ReportServiceClient
+	logger zerolog.Logger
 }
 
 func NewReportServiceHandler(sc reportservicev1.ReportServiceClient, baseLogger zerolog.Logger) ReportServiceHandler {
-    logger := baseLogger.With().Str("component", "srv").Logger()
-    return &reportServiceHandler{sc: sc, logger: logger}
+	logger := baseLogger.With().Str("component", "srv").Logger()
+	return &reportServiceHandler{sc: sc, logger: logger}
 }
 
 // CreateReport godoc
@@ -33,111 +33,111 @@ func NewReportServiceHandler(sc reportservicev1.ReportServiceClient, baseLogger 
 // @Failure 400 {object} webdto.ErrResponse
 // @Router /reports [post]
 func (rsh *reportServiceHandler) CreateReport(g *gin.Context) {
-    rsh.logger.Debug().Str("evt", "call CreateReport").Msg("")
+	rsh.logger.Debug().Str("evt", "call CreateReport").Msg("")
 
-    userID := g.GetString("user_id")
-    if _, err := uuid.Parse(userID); err != nil {
-        g.Set("msg", errs.ErrInvalidPaylod.Error())
-        g.AbortWithStatusJSON(http.StatusBadRequest,
-            webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
-        return
-    }
+	userID := g.GetString("user_id")
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
-    req := webdto.CreateReportRequest{}
-    if err := g.ShouldBindJSON(&req); err != nil {
-        g.Set("msg", err.Error())
-        g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: err.Error()})
-        return
-    }
+	req := webdto.CreateReportRequest{}
+	if err := g.ShouldBindJSON(&req); err != nil {
+		g.Set("msg", err.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: err.Error()})
+		return
+	}
 
-    out, gErr := rsh.sc.CreateReport(g.Request.Context(), &reportservicev1.CreateReportRequest{
-        AuthorId:    userID,
-        Name:        req.Name,
-        Comm:        req.Comm,
-        Query:       req.Query,
-        Format:      req.Format,
-        CsvSep:      req.CSVSep,
-        GraphicMode: req.GraphicMode,
-    })
+	out, gErr := rsh.sc.CreateReport(g.Request.Context(), &reportservicev1.CreateReportRequest{
+		AuthorId:    userID,
+		Name:        req.Name,
+		Comm:        req.Comm,
+		Query:       req.Query,
+		Format:      req.Format,
+		CsvSep:      req.CSVSep,
+		GraphicMode: req.GraphicMode,
+	})
 
-    if gErr != nil {
-        st, ok := errs.GRPCtoREST(gErr)
-        if !ok {
-            g.Set("msg", gErr.Error())
-            g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
-            return
-        }
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
+			return
+		}
 
-        g.Set("msg", st.Message())
+		g.Set("msg", st.Message())
 
-        code := http.StatusInternalServerError
-        resp := webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
+		code := http.StatusInternalServerError
+		resp := webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
 
-        // switch st.Code() {
-        // default:
-        // }
+		// switch st.Code() {
+		// default:
+		// }
 
-        g.AbortWithStatusJSON(code, resp)
-        return
-    }
+		g.AbortWithStatusJSON(code, resp)
+		return
+	}
 
-    g.Set("msg", "task to create report created")
-    g.JSON(http.StatusCreated, webdto.CreateReportResponse{
-        ReportID: out.ReportId,
-        Status:   out.Status,
-    })
+	g.Set("msg", "task to create report created")
+	g.JSON(http.StatusCreated, webdto.CreateReportResponse{
+		ReportID: out.ReportId,
+		Status:   out.Status,
+	})
 }
 
 func (rsh *reportServiceHandler) RecreateReport(g *gin.Context) {
-    rsh.logger.Debug().Str("evt", "call RecreateReport").Msg("")
+	rsh.logger.Debug().Str("evt", "call RecreateReport").Msg("")
 
-    reportID := g.Param("report_id")
-    if _, err := uuid.Parse(reportID); err != nil {
-        g.Set("msg", errs.ErrInvalidPaylod.Error())
-        g.AbortWithStatusJSON(http.StatusBadRequest,
-            webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
-        return
-    }
+	reportID := g.Param("report_id")
+	if _, err := uuid.Parse(reportID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
+		return
+	}
 
-    userID := g.GetString("user_id")
-    if _, err := uuid.Parse(userID); err != nil {
-        g.Set("msg", errs.ErrInvalidPaylod.Error())
-        g.AbortWithStatusJSON(http.StatusBadRequest,
-            webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
-        return
-    }
+	userID := g.GetString("user_id")
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
-    out, gErr := rsh.sc.RecreateReport(g.Request.Context(), &reportservicev1.RecreateReportRequest{
-        AuthorId: userID,
-        ReportId: reportID,
-    })
+	out, gErr := rsh.sc.RecreateReport(g.Request.Context(), &reportservicev1.RecreateReportRequest{
+		AuthorId: userID,
+		ReportId: reportID,
+	})
 
-    if gErr != nil {
-        st, ok := errs.GRPCtoREST(gErr)
-        if !ok {
-            g.Set("msg", gErr.Error())
-            g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
-            return
-        }
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
+			return
+		}
 
-        g.Set("msg", st.Message())
+		g.Set("msg", st.Message())
 
-        code := http.StatusInternalServerError
-        resp := webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
+		code := http.StatusInternalServerError
+		resp := webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
 
-        // switch st.Code() {
-        // default:
-        // }
+		// switch st.Code() {
+		// default:
+		// }
 
-        g.AbortWithStatusJSON(code, resp)
-        return
-    }
+		g.AbortWithStatusJSON(code, resp)
+		return
+	}
 
-    g.Set("msg", "report recreation started")
-    g.JSON(http.StatusCreated, webdto.RecreateReportResponse{
-        ReportID: out.ReportId,
-        Status:   out.Status,
-    })
+	g.Set("msg", "report recreation started")
+	g.JSON(http.StatusCreated, webdto.RecreateReportResponse{
+		ReportID: out.ReportId,
+		Status:   out.Status,
+	})
 }
 
 // ListReports godoc
@@ -150,72 +150,72 @@ func (rsh *reportServiceHandler) RecreateReport(g *gin.Context) {
 // @Failure 500 {object} webdto.ErrResponse
 // @Router /reports [get]
 func (rsh *reportServiceHandler) ListReports(g *gin.Context) {
-    rsh.logger.Debug().Str("evt", "call ListReports").Msg("")
+	rsh.logger.Debug().Str("evt", "call ListReports").Msg("")
 
-    userID := g.GetString("user_id")
-    if _, err := uuid.Parse(userID); err != nil {
-        g.Set("msg", errs.ErrInvalidPaylod.Error())
-        g.AbortWithStatusJSON(http.StatusBadRequest,
-            webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
-        return
-    }
+	userID := g.GetString("user_id")
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
-    out, gErr := rsh.sc.ListReports(g.Request.Context(), &reportservicev1.ListReportsRequest{
-        AuthorId: userID,
-    })
+	out, gErr := rsh.sc.ListReports(g.Request.Context(), &reportservicev1.ListReportsRequest{
+		AuthorId: userID,
+	})
 
-    if gErr != nil {
-        st, ok := errs.GRPCtoREST(gErr)
-        if !ok {
-            g.Set("msg", gErr.Error())
-            g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
-            return
-        }
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
+			return
+		}
 
-        g.Set("msg", st.Message())
+		g.Set("msg", st.Message())
 
-        code := http.StatusInternalServerError
-        resp := webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
+		code := http.StatusInternalServerError
+		resp := webdto.ErrResponse{Error: errs.ErrServerInternal.Error()}
 
-        // switch st.Code() {
-        // default:
-        // }
+		// switch st.Code() {
+		// default:
+		// }
 
-        g.AbortWithStatusJSON(code, resp)
-        return
-    }
+		g.AbortWithStatusJSON(code, resp)
+		return
+	}
 
-    g.Set("msg", "list of reports returned")
+	g.Set("msg", "list of reports returned")
 
-    resp := webdto.ListReportsResponse{
-        Reports: make([]webdto.ReportMetadata, 0, len(out.Reports)),
-    }
+	resp := webdto.ListReportsResponse{
+		Reports: make([]webdto.ReportMetadata, 0, len(out.Reports)),
+	}
 
-    for _, pbReport := range out.Reports {
-        metadata := webdto.ReportMetadata{
-            ReportID: pbReport.ReportId,
-            Name:     pbReport.Name,
-            Comm:     pbReport.Comm,
-            Query:    pbReport.Query,
-            Format:   pbReport.Format,
-            CSVSep:   pbReport.CsvSep,
-            Status:   pbReport.Status,
-            FilePath: pbReport.FilePath,
-            ErrMsg:   pbReport.ErrMsg,
-        }
+	for _, pbReport := range out.Reports {
+		metadata := webdto.ReportMetadata{
+			ReportID: pbReport.ReportId,
+			Name:     pbReport.Name,
+			Comm:     pbReport.Comm,
+			Query:    pbReport.Query,
+			Format:   pbReport.Format,
+			CSVSep:   pbReport.CsvSep,
+			Status:   pbReport.Status,
+			FilePath: pbReport.FilePath,
+			ErrMsg:   pbReport.ErrMsg,
+		}
 
-        if pbReport.CreatedAt != nil {
-            metadata.CreatedAt = pbReport.CreatedAt.AsTime()
-        }
+		if pbReport.CreatedAt != nil {
+			metadata.CreatedAt = pbReport.CreatedAt.AsTime()
+		}
 
-        if pbReport.UpdatedAt != nil {
-            metadata.UpdatedAt = pbReport.UpdatedAt.AsTime()
-        }
+		if pbReport.UpdatedAt != nil {
+			metadata.UpdatedAt = pbReport.UpdatedAt.AsTime()
+		}
 
-        resp.Reports = append(resp.Reports, metadata)
-    }
+		resp.Reports = append(resp.Reports, metadata)
+	}
 
-    g.JSON(http.StatusOK, resp)
+	g.JSON(http.StatusOK, resp)
 }
 
 // ReportStatus godoc
@@ -230,58 +230,58 @@ func (rsh *reportServiceHandler) ListReports(g *gin.Context) {
 // @Failure 500 {object} webdto.ErrResponse
 // @Router /reports/{report_id}/status [get]
 func (rsh *reportServiceHandler) ReportStatus(g *gin.Context) {
-    rsh.logger.Debug().Str("evt", "call ReportStatus").Msg("")
+	rsh.logger.Debug().Str("evt", "call ReportStatus").Msg("")
 
-    reportID := g.Param("report_id")
-    if _, err := uuid.Parse(reportID); err != nil {
-        g.Set("msg", errs.ErrInvalidPaylod.Error())
-        g.AbortWithStatusJSON(http.StatusBadRequest,
-            webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
-        return
-    }
+	reportID := g.Param("report_id")
+	if _, err := uuid.Parse(reportID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
+		return
+	}
 
-    userID := g.GetString("user_id")
-    if _, err := uuid.Parse(userID); err != nil {
-        g.Set("msg", errs.ErrInvalidPaylod.Error())
-        g.AbortWithStatusJSON(http.StatusBadRequest,
-            webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
-        return
-    }
+	userID := g.GetString("user_id")
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
-    out, gErr := rsh.sc.ReportStatus(g.Request.Context(), &reportservicev1.ReportStatusRequest{
-        AuthorId: userID,
-        ReportId: reportID,
-    })
-    if gErr != nil {
-        st, ok := errs.GRPCtoREST(gErr)
-        if !ok {
-            g.Set("msg", gErr.Error())
-            g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
-            return
-        }
+	out, gErr := rsh.sc.ReportStatus(g.Request.Context(), &reportservicev1.ReportStatusRequest{
+		AuthorId: userID,
+		ReportId: reportID,
+	})
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
+			return
+		}
 
-        g.Set("msg", st.Message())
+		g.Set("msg", st.Message())
 
-        code := http.StatusInternalServerError
-        var resp webdto.ErrResponse
+		code := http.StatusInternalServerError
+		var resp webdto.ErrResponse
 
-        switch st.Code() {
-        case codes.NotFound:
-            code = http.StatusNotFound
-            resp.Error = "can't find report by report_id"
-        default:
-            resp.Error = errs.ErrServerInternal.Error()
-        }
+		switch st.Code() {
+		case codes.NotFound:
+			code = http.StatusNotFound
+			resp.Error = "can't find report by report_id"
+		default:
+			resp.Error = errs.ErrServerInternal.Error()
+		}
 
-        g.AbortWithStatusJSON(code, resp)
-        return
-    }
+		g.AbortWithStatusJSON(code, resp)
+		return
+	}
 
-    g.Set("msg", "report status returned")
-    g.JSON(http.StatusOK, webdto.ReportStatusResponse{
-        ReportID: out.ReportId,
-        Status:   out.Status,
-    })
+	g.Set("msg", "report status returned")
+	g.JSON(http.StatusOK, webdto.ReportStatusResponse{
+		ReportID: out.ReportId,
+		Status:   out.Status,
+	})
 }
 
 // ReportInfo godoc
@@ -296,75 +296,75 @@ func (rsh *reportServiceHandler) ReportStatus(g *gin.Context) {
 // @Failure 500 {object} webdto.ErrResponse
 // @Router /reports/{report_id} [get]
 func (rsh *reportServiceHandler) ReportInfo(g *gin.Context) {
-    rsh.logger.Debug().Str("evt", "call ReportInfo").Msg("")
+	rsh.logger.Debug().Str("evt", "call ReportInfo").Msg("")
 
-    reportID := g.Param("report_id")
-    if _, err := uuid.Parse(reportID); err != nil {
-        g.Set("msg", errs.ErrInvalidPaylod.Error())
-        g.AbortWithStatusJSON(http.StatusBadRequest,
-            webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
-        return
-    }
+	reportID := g.Param("report_id")
+	if _, err := uuid.Parse(reportID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
+		return
+	}
 
-    userID := g.GetString("user_id")
-    if _, err := uuid.Parse(userID); err != nil {
-        g.Set("msg", errs.ErrInvalidPaylod.Error())
-        g.AbortWithStatusJSON(http.StatusBadRequest,
-            webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
-        return
-    }
+	userID := g.GetString("user_id")
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
-    out, gErr := rsh.sc.ReportInfo(g.Request.Context(), &reportservicev1.ReportInfoRequest{
-        AuthorId: userID,
-        ReportId: reportID,
-    })
-    if gErr != nil {
-        st, ok := errs.GRPCtoREST(gErr)
-        if !ok {
-            g.Set("msg", gErr.Error())
-            g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
-            return
-        }
+	out, gErr := rsh.sc.ReportInfo(g.Request.Context(), &reportservicev1.ReportInfoRequest{
+		AuthorId: userID,
+		ReportId: reportID,
+	})
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
+			return
+		}
 
-        g.Set("msg", st.Message())
+		g.Set("msg", st.Message())
 
-        code := http.StatusInternalServerError
-        var resp webdto.ErrResponse
+		code := http.StatusInternalServerError
+		var resp webdto.ErrResponse
 
-        switch st.Code() {
-        case codes.NotFound:
-            code = http.StatusNotFound
-            resp.Error = "can't find report by report_id"
-        default:
-            resp.Error = errs.ErrServerInternal.Error()
-        }
+		switch st.Code() {
+		case codes.NotFound:
+			code = http.StatusNotFound
+			resp.Error = "can't find report by report_id"
+		default:
+			resp.Error = errs.ErrServerInternal.Error()
+		}
 
-        g.AbortWithStatusJSON(code, resp)
-        return
-    }
+		g.AbortWithStatusJSON(code, resp)
+		return
+	}
 
-    g.Set("msg", "report info returned")
+	g.Set("msg", "report info returned")
 
-    pbReport := out.Report
+	pbReport := out.Report
 
-    metadata := webdto.ReportMetadata{
-        ReportID: pbReport.ReportId,
-        Name:     pbReport.Name,
-        Comm:     pbReport.Comm,
-        Query:    pbReport.Query,
-        Format:   pbReport.Format,
-        CSVSep:   pbReport.CsvSep,
-        Status:   pbReport.Status,
-        FilePath: pbReport.FilePath,
-        ErrMsg:   pbReport.ErrMsg,
-    }
-    if pbReport.CreatedAt != nil {
-        metadata.CreatedAt = pbReport.CreatedAt.AsTime()
-    }
+	metadata := webdto.ReportMetadata{
+		ReportID: pbReport.ReportId,
+		Name:     pbReport.Name,
+		Comm:     pbReport.Comm,
+		Query:    pbReport.Query,
+		Format:   pbReport.Format,
+		CSVSep:   pbReport.CsvSep,
+		Status:   pbReport.Status,
+		FilePath: pbReport.FilePath,
+		ErrMsg:   pbReport.ErrMsg,
+	}
+	if pbReport.CreatedAt != nil {
+		metadata.CreatedAt = pbReport.CreatedAt.AsTime()
+	}
 
-    g.JSON(http.StatusOK, webdto.ReportInfoResponse{
-        Report: metadata,
-    })
+	g.JSON(http.StatusOK, webdto.ReportInfoResponse{
+		Report: metadata,
+	})
 }
 
 // DeleteReports godoc
@@ -378,46 +378,46 @@ func (rsh *reportServiceHandler) ReportInfo(g *gin.Context) {
 // @Failure 500 {object} webdto.ErrResponse
 // @Router /reports [delete]
 func (rsh *reportServiceHandler) DeleteReports(g *gin.Context) {
-    rsh.logger.Debug().Str("evt", "call DeleteReports").Msg("")
+	rsh.logger.Debug().Str("evt", "call DeleteReports").Msg("")
 
-    userID := g.GetString("user_id")
-    if _, err := uuid.Parse(userID); err != nil {
-        g.Set("msg", errs.ErrInvalidPaylod.Error())
-        g.AbortWithStatusJSON(http.StatusBadRequest,
-            webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
-        return
-    }
+	userID := g.GetString("user_id")
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
-    _, gErr := rsh.sc.DeleteReports(g.Request.Context(), &reportservicev1.DeleteReportsRequest{
-        AuthorId: userID,
-    })
-    if gErr != nil {
-        st, ok := errs.GRPCtoREST(gErr)
-        if !ok {
-            g.Set("msg", gErr.Error())
-            g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
-            return
-        }
+	_, gErr := rsh.sc.DeleteReports(g.Request.Context(), &reportservicev1.DeleteReportsRequest{
+		AuthorId: userID,
+	})
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
+			return
+		}
 
-        g.Set("msg", st.Message())
+		g.Set("msg", st.Message())
 
-        code := http.StatusInternalServerError
-        var resp webdto.ErrResponse
+		code := http.StatusInternalServerError
+		var resp webdto.ErrResponse
 
-        switch st.Code() {
-        case codes.NotFound:
-            code = http.StatusNotFound
-            resp.Error = "can't find reports by report_id"
-        default:
-            resp.Error = errs.ErrServerInternal.Error()
-        }
+		switch st.Code() {
+		case codes.NotFound:
+			code = http.StatusNotFound
+			resp.Error = "can't find reports by report_id"
+		default:
+			resp.Error = errs.ErrServerInternal.Error()
+		}
 
-        g.AbortWithStatusJSON(code, resp)
-        return
-    }
+		g.AbortWithStatusJSON(code, resp)
+		return
+	}
 
-    g.Set("msg", "reports deleted")
-    g.JSON(http.StatusOK, webdto.BaseResponse{Message: "ok"})
+	g.Set("msg", "reports deleted")
+	g.JSON(http.StatusOK, webdto.BaseResponse{Message: "ok"})
 }
 
 // DeleteReport godoc
@@ -432,55 +432,55 @@ func (rsh *reportServiceHandler) DeleteReports(g *gin.Context) {
 // @Failure 500 {object} webdto.ErrResponse
 // @Router /reports/{report_id} [delete]
 func (rsh *reportServiceHandler) DeleteReport(g *gin.Context) {
-    rsh.logger.Debug().Str("evt", "call DeleteReport").Msg("")
+	rsh.logger.Debug().Str("evt", "call DeleteReport").Msg("")
 
-    reportID := g.Param("report_id")
-    if _, err := uuid.Parse(reportID); err != nil {
-        g.Set("msg", errs.ErrInvalidPaylod.Error())
-        g.AbortWithStatusJSON(http.StatusBadRequest,
-            webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
-        return
-    }
+	reportID := g.Param("report_id")
+	if _, err := uuid.Parse(reportID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
+		return
+	}
 
-    ID := g.GetString("user_id")
-    if _, err := uuid.Parse(ID); err != nil {
-        g.Set("msg", errs.ErrInvalidPaylod.Error())
-        g.AbortWithStatusJSON(http.StatusBadRequest,
-            webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
-        return
-    }
+	ID := g.GetString("user_id")
+	if _, err := uuid.Parse(ID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
-    out, gErr := rsh.sc.DeleteReport(g.Request.Context(), &reportservicev1.DeleteReportRequest{
-        AuthorId: ID,
-        ReportId: reportID,
-    })
-    if gErr != nil {
-        st, ok := errs.GRPCtoREST(gErr)
-        if !ok {
-            g.Set("msg", gErr.Error())
-            g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
-            return
-        }
+	out, gErr := rsh.sc.DeleteReport(g.Request.Context(), &reportservicev1.DeleteReportRequest{
+		AuthorId: ID,
+		ReportId: reportID,
+	})
+	if gErr != nil {
+		st, ok := errs.GRPCtoREST(gErr)
+		if !ok {
+			g.Set("msg", gErr.Error())
+			g.AbortWithStatusJSON(http.StatusInternalServerError, webdto.ErrResponse{Error: errs.ErrServerInternal.Error()})
+			return
+		}
 
-        g.Set("msg", st.Message())
+		g.Set("msg", st.Message())
 
-        code := http.StatusInternalServerError
-        var resp webdto.ErrResponse
+		code := http.StatusInternalServerError
+		var resp webdto.ErrResponse
 
-        switch st.Code() {
-        case codes.NotFound:
-            code = http.StatusNotFound
-            resp.Error = "can't find reports by report_id"
-        default:
-            resp.Error = errs.ErrServerInternal.Error()
-        }
+		switch st.Code() {
+		case codes.NotFound:
+			code = http.StatusNotFound
+			resp.Error = "can't find reports by report_id"
+		default:
+			resp.Error = errs.ErrServerInternal.Error()
+		}
 
-        g.AbortWithStatusJSON(code, resp)
-        return
-    }
+		g.AbortWithStatusJSON(code, resp)
+		return
+	}
 
-    g.Set("msg", " report deleted")
-    g.JSON(http.StatusOK, webdto.DeleteReportResponse{
-        ReportID: out.ReportId,
-    })
+	g.Set("msg", " report deleted")
+	g.JSON(http.StatusOK, webdto.DeleteReportResponse{
+		ReportID: out.ReportId,
+	})
 }
