@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	authv1 "github.com/ummuys/reportify/api/pb/auth/service/v1"
 	"github.com/ummuys/reportify/pkg/errs"
@@ -263,6 +264,12 @@ func (a *authHandler) DeleteUser(g *gin.Context) {
 		g.Set("msg", errs.ErrInvalidPaylod.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidPaylod.Error()})
+		return
+	}
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
 		return
 	}
 	out, gErr := a.sc.DeleteUser(g.Request.Context(), &authv1.DeleteUserRequest{

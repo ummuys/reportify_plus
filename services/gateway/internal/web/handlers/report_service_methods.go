@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	reportservicev1 "github.com/ummuys/reportify/api/pb/report/service/v1"
 	"github.com/ummuys/reportify/pkg/errs"
@@ -35,6 +36,12 @@ func (rsh *reportServiceHandler) CreateReport(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call CreateReport").Msg("")
 
 	userID := g.GetString("user_id")
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
 	req := webdto.CreateReportRequest{}
 	if err := g.ShouldBindJSON(&req); err != nil {
@@ -85,7 +92,20 @@ func (rsh *reportServiceHandler) RecreateReport(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call RecreateReport").Msg("")
 
 	reportID := g.Param("report_id")
+	if _, err := uuid.Parse(reportID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
+		return
+	}
+
 	userID := g.GetString("user_id")
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
 	out, gErr := rsh.sc.RecreateReport(g.Request.Context(), &reportservicev1.RecreateReportRequest{
 		AuthorId: userID,
@@ -133,6 +153,12 @@ func (rsh *reportServiceHandler) ListReports(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call ListReports").Msg("")
 
 	userID := g.GetString("user_id")
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
 	out, gErr := rsh.sc.ListReports(g.Request.Context(), &reportservicev1.ListReportsRequest{
 		AuthorId: userID,
@@ -207,7 +233,20 @@ func (rsh *reportServiceHandler) ReportStatus(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call ReportStatus").Msg("")
 
 	reportID := g.Param("report_id")
+	if _, err := uuid.Parse(reportID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
+		return
+	}
+
 	userID := g.GetString("user_id")
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
 	out, gErr := rsh.sc.ReportStatus(g.Request.Context(), &reportservicev1.ReportStatusRequest{
 		AuthorId: userID,
@@ -260,7 +299,20 @@ func (rsh *reportServiceHandler) ReportInfo(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call ReportInfo").Msg("")
 
 	reportID := g.Param("report_id")
+	if _, err := uuid.Parse(reportID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
+		return
+	}
+
 	userID := g.GetString("user_id")
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
 	out, gErr := rsh.sc.ReportInfo(g.Request.Context(), &reportservicev1.ReportInfoRequest{
 		AuthorId: userID,
@@ -329,6 +381,12 @@ func (rsh *reportServiceHandler) DeleteReports(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call DeleteReports").Msg("")
 
 	userID := g.GetString("user_id")
+	if _, err := uuid.Parse(userID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
 	_, gErr := rsh.sc.DeleteReports(g.Request.Context(), &reportservicev1.DeleteReportsRequest{
 		AuthorId: userID,
@@ -377,7 +435,20 @@ func (rsh *reportServiceHandler) DeleteReport(g *gin.Context) {
 	rsh.logger.Debug().Str("evt", "call DeleteReport").Msg("")
 
 	reportID := g.Param("report_id")
+	if _, err := uuid.Parse(reportID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
+		return
+	}
+
 	ID := g.GetString("user_id")
+	if _, err := uuid.Parse(ID); err != nil {
+		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest,
+			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
+		return
+	}
 
 	out, gErr := rsh.sc.DeleteReport(g.Request.Context(), &reportservicev1.DeleteReportRequest{
 		AuthorId: ID,
