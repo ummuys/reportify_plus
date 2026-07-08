@@ -71,3 +71,28 @@ func (rc *repCache) Get(ctx context.Context, key string) (*string, error) {
 
 	return &value, nil
 }
+
+func (rc *repCache) Delete(ctx context.Context, keys ...string) error {
+	if len(keys) == 0 {
+		return nil
+	}
+
+	rc.logger.Debug().
+		Str("evt", "call Delete").
+		Int("keys_count", len(keys)).
+		Msg("")
+
+	qctx, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
+
+	_, err := rc.cli.Unlink(qctx, keys...).Result()
+	if err != nil {
+		rc.logger.Debug().
+			Err(err).
+			Interface("keys", keys).
+			Msg("redis delete failed")
+		return err
+	}
+
+	return nil
+}

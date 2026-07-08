@@ -125,8 +125,7 @@ func (_c *MockPasswordHasher_Hash_Call) RunAndReturn(run func(string) (string, e
 func NewMockPasswordHasher(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockPasswordHasher {
+}) *MockPasswordHasher {
 	mock := &MockPasswordHasher{}
 	mock.Mock.Test(t)
 

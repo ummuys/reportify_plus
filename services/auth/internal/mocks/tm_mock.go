@@ -298,8 +298,7 @@ func (_c *MockTokenManager_ValidateRefreshToken_Call) RunAndReturn(run func(stri
 func NewMockTokenManager(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockTokenManager {
+}) *MockTokenManager {
 	mock := &MockTokenManager{}
 	mock.Mock.Test(t)
 

@@ -229,8 +229,7 @@ func (_c *MockDatasourceDB_ListTables_Call) RunAndReturn(run func(context.Contex
 func NewMockDatasourceDB(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockDatasourceDB {
+}) *MockDatasourceDB {
 	mock := &MockDatasourceDB{}
 	mock.Mock.Test(t)
 

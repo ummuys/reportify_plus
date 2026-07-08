@@ -11,12 +11,22 @@ import (
 )
 
 func TestReportService_DeleteReports_Success(t *testing.T) {
-	svc, db, _ := newReportSvc(t)
+	svc, db, cache := newReportSvc(t)
 	ctx := context.Background()
 
 	in := dto.DeleteReportsParams{AuthorID: "a1"}
 
+	db.EXPECT().
+		ListReports(mock.Anything, dto.ListReportsParams{AuthorID: "a1"}).
+		Return(dto.ListReportsResult{}, nil).
+		Once()
+
 	db.EXPECT().DeleteReports(mock.Anything, in).Return(nil).Once()
+
+	cache.EXPECT().
+		Delete(mock.Anything).
+		Return(nil).
+		Once()
 
 	err := svc.DeleteReports(ctx, in)
 	require.NoError(t, err)
@@ -30,6 +40,11 @@ func TestReportService_DeleteReports_DbError_ReturnsParsedPgError(t *testing.T) 
 	dbErr := errs.ErrPgDeadlock
 	expected := errs.ParsePgError(dbErr)
 
+	db.EXPECT().
+		ListReports(mock.Anything, dto.ListReportsParams{AuthorID: "a1"}).
+		Return(dto.ListReportsResult{}, nil).
+		Once()
+
 	db.EXPECT().DeleteReports(mock.Anything, in).Return(dbErr).Once()
 
 	err := svc.DeleteReports(ctx, in)
@@ -38,7 +53,7 @@ func TestReportService_DeleteReports_DbError_ReturnsParsedPgError(t *testing.T) 
 }
 
 func TestReportService_DeleteReport_Success(t *testing.T) {
-	svc, db, _ := newReportSvc(t)
+	svc, db, cache := newReportSvc(t)
 	ctx := context.Background()
 
 	reportID := "550e8400-e29b-41d4-a716-446655440000"
@@ -46,6 +61,11 @@ func TestReportService_DeleteReport_Success(t *testing.T) {
 	out := dto.DeleteReportResult{ReportID: reportID}
 
 	db.EXPECT().DeleteReport(mock.Anything, in).Return(out, nil).Once()
+
+	cache.EXPECT().
+		Delete(mock.Anything, reportID).
+		Return(nil).
+		Once()
 
 	res, err := svc.DeleteReport(ctx, in)
 	require.NoError(t, err)
