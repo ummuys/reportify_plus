@@ -25,10 +25,13 @@ type ReportInfoResponse struct {
 }
 
 type ReportMetadata struct {
-	ReportID  string    `json:"report_id"`
-	AuthorID  string    `json:"author_id"`
-	Name      string    `json:"name"`
-	Comm      string    `json:"comm"`
+	ReportID string `json:"report_id"`
+	AuthorID string `json:"author_id"`
+	Name     string `json:"name"`
+	// NOTE: JSON key intentionally kept as "comm" (not "comment") to avoid
+	// breaking existing API clients. Field renamed at the Go level only;
+	// fix the wire key via a versioned/additive change if needed.
+	Comment   string    `json:"comm"`
 	Query     string    `json:"query"`
 	Format    string    `json:"format"`
 	CSVSep    string    `json:"csv_sep"`

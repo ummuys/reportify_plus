@@ -49,7 +49,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 
 	if err := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
 		ReportID:     in.ReportID,
-		UpdateStatus: repository.StatusRunnig,
+		UpdateStatus: repository.StatusRunning,
 		BeforeStatus: repository.StatusCreated,
 	}); err != nil {
 		p.logger.Error().
@@ -70,7 +70,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 			Str("report_id", in.ReportID).
 			Msg("get report info failed")
 
-		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunnig)
+		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunning)
 		return errs.ParsePgError(err)
 	}
 
@@ -82,7 +82,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 			Str("report_id", in.ReportID).
 			Msg("get datasource data failed")
 
-		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunnig)
+		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunning)
 		return errs.ParsePgError(err)
 	}
 
@@ -94,10 +94,10 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 		defer func() { _ = pw.Close() }()
 
 		params := dto.ConvParams{
-			Writer: pw,
-			Colums: data.Columns,
-			Rows:   data.Rows,
-			Sep:    info.CSVSep,
+			Writer:  pw,
+			Columns: data.Columns,
+			Rows:    data.Rows,
+			Sep:     info.CSVSep,
 		}
 
 		var err error
@@ -165,7 +165,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	})
 
 	if err := eg.Wait(); err != nil {
-		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunnig)
+		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunning)
 		return err
 	}
 
@@ -174,7 +174,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 	if err := p.reportDB.SetReportStatus(ctx, dto.SetReportStatusParams{
 		ReportID:     in.ReportID,
 		UpdateStatus: repository.StatusCompleted,
-		BeforeStatus: repository.StatusRunnig,
+		BeforeStatus: repository.StatusRunning,
 		FilePath:     &path,
 		ExpireAt:     &expireAt,
 	}); err != nil {
@@ -184,7 +184,7 @@ func (p *publish) CreateReport(ctx context.Context, in dto.KafkaMessage) error {
 			Str("report_id", in.ReportID).
 			Msg("set status completed failed")
 
-		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunnig)
+		p.stepFailed(ctx, in.ReportID, err, repository.StatusRunning)
 		return errs.ParsePgError(err)
 	}
 

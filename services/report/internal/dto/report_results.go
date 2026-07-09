@@ -23,7 +23,7 @@ type ListReportsResult struct {
 type ReportMetadata struct {
 	ReportID  string
 	Name      string
-	Comm      string
+	Comment   string
 	Query     string
 	Format    string
 	CSVSep    string

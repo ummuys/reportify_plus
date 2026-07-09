@@ -2,7 +2,7 @@ package repository
 
 const (
 	StatusCreated   = "CREATED"
-	StatusRunnig    = "RUNNING"
+	StatusRunning   = "RUNNING"
 	StatusFailed    = "FAILED"
 	StatusCompleted = "COMPLETED"
 	StatusArchived  = "ARCHIVED"

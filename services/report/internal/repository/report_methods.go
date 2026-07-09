@@ -54,7 +54,7 @@ func (db *reportDB) CreateReport(ctx context.Context, in dto.CreateReportParams)
 		reportID,
 		in.AuthorID,
 		in.Name,
-		in.Comm,
+		in.Comment,
 		in.Query,
 		in.Format,
 		in.CSVSep,
@@ -100,7 +100,7 @@ func (db *reportDB) ListReports(ctx context.Context, in dto.ListReportsParams) (
 		if err := rows.Scan(
 			&rmd.ReportID,
 			&rmd.Name,
-			&rmd.Comm,
+			&rmd.Comment,
 			&rmd.Query,
 			&rmd.Format,
 			&rmd.CSVSep,
@@ -154,7 +154,7 @@ func (db *reportDB) ReportInfo(ctx context.Context, in dto.ReportInfoParams) (dt
 		in.ReportID,
 	).Scan(
 		&out.Report.Name,
-		&out.Report.Comm,
+		&out.Report.Comment,
 		&out.Report.Query,
 		&out.Report.Format,
 		&out.Report.CSVSep,

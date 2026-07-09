@@ -34,7 +34,7 @@ func (ra *ReportAdapter) CreateReport(ctx context.Context, in *rsv1.CreateReport
 	out, err := ra.reportSvc.CreateReport(ctx, dto.CreateReportParams{
 		AuthorID: in.AuthorId,
 		Name:     in.Name,
-		Comm:     in.Comm,
+		Comment:  in.Comment,
 		Query:    in.Query,
 		Format:   in.Format,
 		CSVSep:   in.CsvSep,
@@ -134,7 +134,7 @@ func (ra *ReportAdapter) ListReports(ctx context.Context, in *rsv1.ListReportsRe
 		resp.Reports = append(resp.Reports, &rsv1.ReportMetadata{
 			ReportId:  r.ReportID,
 			Name:      r.Name,
-			Comm:      r.Comm,
+			Comment:   r.Comment,
 			Query:     r.Query,
 			Format:    r.Format,
 			CsvSep:    r.CSVSep,
@@ -169,7 +169,7 @@ func (ra *ReportAdapter) ReportInfo(ctx context.Context, in *rsv1.ReportInfoRequ
 		Report: &rsv1.ReportMetadata{
 			ReportId:  out.Report.ReportID,
 			Name:      out.Report.Name,
-			Comm:      out.Report.Comm,
+			Comment:   out.Report.Comment,
 			Query:     out.Report.Query,
 			Format:    out.Report.Format,
 			CsvSep:    out.Report.CSVSep,

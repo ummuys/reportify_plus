@@ -69,7 +69,7 @@ func expectSetRunningOK(reportDB *mocks.MockReportDB) {
 	reportDB.EXPECT().
 		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
 			return p.ReportID == "r1" &&
-				p.UpdateStatus == repository.StatusRunnig &&
+				p.UpdateStatus == repository.StatusRunning &&
 				p.BeforeStatus == repository.StatusCreated
 		})).
 		Return(nil).
@@ -142,7 +142,7 @@ func expectSetCompletedOK(reportDB *mocks.MockReportDB, url string) {
 		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
 			return p.ReportID == "r1" &&
 				p.UpdateStatus == repository.StatusCompleted &&
-				p.BeforeStatus == repository.StatusRunnig &&
+				p.BeforeStatus == repository.StatusRunning &&
 				p.FilePath != nil && *p.FilePath == url &&
 				p.ExpireAt != nil
 		})).
@@ -155,7 +155,7 @@ func expectSetCompletedErr(reportDB *mocks.MockReportDB, err error) {
 		SetReportStatus(mock.Anything, mock.MatchedBy(func(p dto.SetReportStatusParams) bool {
 			return p.ReportID == "r1" &&
 				p.UpdateStatus == repository.StatusCompleted &&
-				p.BeforeStatus == repository.StatusRunnig
+				p.BeforeStatus == repository.StatusRunning
 		})).
 		Return(err).
 		Once()
@@ -274,7 +274,7 @@ func TestPublish_CreateReport_GetInfoError_ReturnsParsedPgError_AndStepFailed(t 
 
 	expectSetRunningOK(reportDB)
 	expectGetInfoErr(reportDB, dbErr)
-	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunning)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
@@ -302,7 +302,7 @@ func TestPublish_CreateReport_GetDataError_ReturnsParsedPgError_AndStepFailed(t 
 	p2, _ := NewPublishService(ds, reportDB, cache, conv, minio, time.Hour, 50, zerolog.Nop())
 
 	expectGetDataErr(ds, info.Query, dbErr)
-	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunning)
 
 	err := p2.CreateReport(ctx, in)
 	require.Error(t, err)
@@ -329,7 +329,7 @@ func TestPublish_CreateReport_ConvertError_ReturnsError_AndStepFailed(t *testing
 
 	expectUpload(minio, "", nil)
 
-	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunning)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
@@ -353,7 +353,7 @@ func TestPublish_CreateReport_UploadError_ReturnsError_AndStepFailed(t *testing.
 	upErr := errors.New("upload err")
 	expectUpload(minio, "", upErr)
 
-	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunning)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
@@ -380,7 +380,7 @@ func TestPublish_CreateReport_SetCompletedError_ReturnsParsedPgError_AndStepFail
 
 	expectSetCompletedErr(reportDB, dbErr)
 
-	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunning)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
@@ -401,7 +401,7 @@ func TestPublish_CreateReport_UnsupportedFormat_ReturnsError_AndStepFailed(t *te
 
 	expectUpload(minio, "", nil)
 
-	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunning)
 
 	err := p.CreateReport(ctx, in)
 	require.Error(t, err)
@@ -483,7 +483,7 @@ func TestPublish_CreateReport_ConvertError_IsNotParsed(t *testing.T) {
 	convErr := fmt.Errorf("plain convert err")
 	expectConvert(conv, info.Format, convErr)
 	expectUpload(minio, "", nil)
-	expectStepFailedOK(t, reportDB, cache, repository.StatusRunnig)
+	expectStepFailedOK(t, reportDB, cache, repository.StatusRunning)
 
 	err := p.CreateReport(ctx, in)
 	require.ErrorIs(t, err, convErr)

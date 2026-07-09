@@ -21,7 +21,7 @@ service ReportService {
 message CreateReportRequest {
   string author_id = 1;
   string name = 2;
-  string comm = 3;
+  string comment = 3;
   string query = 4;
   string format = 5;
   string csv_sep = 6;
@@ -89,7 +89,7 @@ message DeleteReportResponse {
 message ReportMetadata {
   string report_id = 1;
   string name = 2;
-  string comm = 3;
+  string comment = 3;
   string query = 4;
   string format = 5;
   string csv_sep = 6;

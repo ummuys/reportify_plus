@@ -10,7 +10,7 @@ type GetReportInfoResult struct {
 	ReportID string
 	AuthorID string
 	Name     string
-	Comm     string
+	Comment  string
 	Query    string
 	Format   string
 	CSVSep   byte
