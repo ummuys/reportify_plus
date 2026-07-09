@@ -38,7 +38,7 @@ func (rc *repConv) ToDOCX(in dto.ConvParams) error {
 	tblBorders.SetInsideHorizontal(wml.ST_BorderSingle, color.Auto, th)
 
 	header := table.AddRow()
-	for _, h := range in.Colums {
+	for _, h := range in.Columns {
 		cell := header.AddCell()
 		para := cell.AddParagraph()
 		run := para.AddRun()
@@ -69,7 +69,7 @@ func (rc *repConv) ToJSON(in dto.ConvParams) error {
 	for i, row := range in.Rows {
 		m := make(map[string]any)
 		for j, d := range row {
-			m[in.Colums[j]] = d
+			m[in.Columns[j]] = d
 		}
 		res[i] = m
 	}
@@ -104,7 +104,7 @@ func (rc *repConv) ToXLSX(in dto.ConvParams) error {
 		return fmt.Errorf("get new sheet: %w", err)
 	}
 
-	for col, head := range in.Colums {
+	for col, head := range in.Columns {
 		cell, err := excelize.CoordinatesToCellName(col+1, 1)
 		if err != nil {
 			return fmt.Errorf("can't conv int -> cell: %v", err)
@@ -139,7 +139,7 @@ func (rc *repConv) ToXLSX(in dto.ConvParams) error {
 
 func (rc *repConv) ToCSV(in dto.ConvParams) error {
 	rc.logger.Debug().Str("env", "call toCSV").Msg("")
-	if len(in.Colums) == 0 {
+	if len(in.Columns) == 0 {
 		return fmt.Errorf("empty headers")
 	}
 
@@ -149,7 +149,7 @@ func (rc *repConv) ToCSV(in dto.ConvParams) error {
 	}
 	defer w.Flush()
 
-	if err := w.Write(in.Colums); err != nil {
+	if err := w.Write(in.Columns); err != nil {
 		return fmt.Errorf("write headers: %w", err)
 	}
 
@@ -175,7 +175,7 @@ func (rc *repConv) ToCSV(in dto.ConvParams) error {
 func (rc *repConv) ToPDF(in dto.ConvParams) error {
 	rc.logger.Debug().Str("env", "call toPDF").Msg("")
 
-	if len(in.Colums) == 0 {
+	if len(in.Columns) == 0 {
 		return fmt.Errorf("empty headers")
 	}
 
@@ -218,11 +218,11 @@ func (rc *repConv) ToPDF(in dto.ConvParams) error {
 		{"A3", "L", 8, 10},
 	}
 	switch {
-	case len(in.Colums) >= 18:
+	case len(in.Columns) >= 18:
 		for i := range presets {
 			presets[i].leftRight = 6
 		}
-	case len(in.Colums) >= 12:
+	case len(in.Columns) >= 12:
 		for i := range presets {
 			if presets[i].leftRight > 8 {
 				presets[i].leftRight = 8
@@ -264,8 +264,8 @@ func (rc *repConv) ToPDF(in dto.ConvParams) error {
 
 	measure := func(pdf *gofpdf.Fpdf, fontSize float64) ([]float64, float64) {
 		pdf.SetFont("DejaVu", "", fontSize)
-		colW := make([]float64, len(in.Colums))
-		for i, htxt := range in.Colums {
+		colW := make([]float64, len(in.Columns))
+		for i, htxt := range in.Columns {
 			sw := pdf.GetStringWidth(htxt) + 2*cellPad
 			if sw < minColWidthMM {
 				sw = minColWidthMM
@@ -277,7 +277,7 @@ func (rc *repConv) ToPDF(in dto.ConvParams) error {
 		}
 		for r := 0; r < sampleN; r++ {
 			row := in.Rows[r]
-			for c := 0; c < len(in.Colums) && c < len(row); c++ {
+			for c := 0; c < len(in.Columns) && c < len(row); c++ {
 				sw := pdf.GetStringWidth(fmt.Sprint(row[c])) + 2*cellPad
 				if sw > colW[c] {
 					if sw > maxColWidthMM {
@@ -407,7 +407,7 @@ func (rc *repConv) ToPDF(in dto.ConvParams) error {
 
 	pdf.SetFillColor(240, 240, 240)
 	pdf.SetDrawColor(200, 200, 200)
-	for i, htxt := range in.Colums {
+	for i, htxt := range in.Columns {
 		pdf.CellFormat(chosen.colW[i], headerH, htxt, "1", 0, "C", true, 0, "")
 	}
 	pdf.Ln(-1)
@@ -420,7 +420,7 @@ func (rc *repConv) ToPDF(in dto.ConvParams) error {
 		} else {
 			pdf.SetFillColor(255, 255, 255)
 		}
-		for i := range in.Colums {
+		for i := range in.Columns {
 			var txt string
 			if i < len(row) {
 				txt = fmt.Sprint(row[i])

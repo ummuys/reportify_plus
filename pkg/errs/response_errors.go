@@ -12,7 +12,7 @@ var (
 
 	// ANOTHER
 	ErrDeleteAdmin        = errors.New("can't delete main admin")
-	ErrInvalidPaylod      = errors.New("invalid payload")
+	ErrInvalidPayload     = errors.New("invalid payload")
 	ErrInvalidUserID      = errors.New("invalid user_id")
 	ErrInvalidReportID    = errors.New("invalid report_id")
 	ErrInvalidData        = errors.New("invalid data")

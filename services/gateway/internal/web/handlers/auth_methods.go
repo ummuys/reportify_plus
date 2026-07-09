@@ -50,8 +50,8 @@ func (a *authHandler) Login(refreshTime time.Duration) gin.HandlerFunc {
 		req.Password = strings.TrimSpace(req.Password)
 
 		if req.Username == "" || req.Password == "" {
-			g.Set("msg", errs.ErrInvalidPaylod.Error())
-			g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidPaylod.Error()})
+			g.Set("msg", errs.ErrInvalidPayload.Error())
+			g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidPayload.Error()})
 			return
 		}
 
@@ -122,8 +122,8 @@ func (a *authHandler) CreateUser(g *gin.Context) {
 	req.Role = strings.TrimSpace(req.Role)
 
 	if req.Username == "" || req.Password == "" || req.Role == "" {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
-		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidPaylod.Error()})
+		g.Set("msg", errs.ErrInvalidPayload.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidPayload.Error()})
 		return
 	}
 
@@ -196,8 +196,8 @@ func (a *authHandler) UpdateUser(g *gin.Context) {
 	req.Role = strings.TrimSpace(req.Role)
 
 	if req.UserID == "" || req.Username == "" || req.Password == "" || req.Role == "" {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
-		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidPaylod.Error()})
+		g.Set("msg", errs.ErrInvalidPayload.Error())
+		g.AbortWithStatusJSON(http.StatusBadRequest, webdto.ErrResponse{Error: errs.ErrInvalidPayload.Error()})
 		return
 	}
 
@@ -261,13 +261,13 @@ func (a *authHandler) DeleteUser(g *gin.Context) {
 	// TODO: fix validate answer
 	// mark at (04.01.2026) deadline at (10.01.2026)
 	if userID == "" {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
-			webdto.ErrResponse{Error: errs.ErrInvalidPaylod.Error()})
+			webdto.ErrResponse{Error: errs.ErrInvalidPayload.Error()})
 		return
 	}
 	if _, err := uuid.Parse(userID); err != nil {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
 		return

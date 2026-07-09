@@ -132,7 +132,7 @@ func (rs *reportService) ReportStatus(ctx context.Context, in dto.ReportStatusPa
 	if err := rs.cache.Set(ctx, in.ReportID, out.Status); err != nil {
 		rs.logger.Warn().
 			Err(err).
-			Str("cahce-method", "Set").
+			Str("cache-method", "Set").
 			Str("report_id", in.ReportID).
 			Msg("cache set failed")
 	}
@@ -190,7 +190,7 @@ func (rs *reportService) DeleteReports(ctx context.Context, in dto.DeleteReports
 	if err := rs.cache.Delete(ctx, reportsIDs...); err != nil {
 		rs.logger.Warn().
 			Err(err).
-			Str("cahce-method", "Delete").
+			Str("cache-method", "Delete").
 			Str("author_id", in.AuthorID).
 			Msg("cache delete failed")
 	}
@@ -224,7 +224,7 @@ func (rs *reportService) DeleteReport(ctx context.Context, in dto.DeleteReportPa
 	if err := rs.cache.Delete(ctx, in.ReportID); err != nil {
 		rs.logger.Warn().
 			Err(err).
-			Str("cahce-method", "Delete").
+			Str("cache-method", "Delete").
 			Str("report_id", in.ReportID).
 			Msg("cache delete failed")
 	}

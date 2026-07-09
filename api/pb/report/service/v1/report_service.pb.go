@@ -29,7 +29,7 @@ type CreateReportRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AuthorId      string                 `protobuf:"bytes,1,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Comm          string                 `protobuf:"bytes,3,opt,name=comm,proto3" json:"comm,omitempty"`
+	Comment       string                 `protobuf:"bytes,3,opt,name=comment,proto3" json:"comment,omitempty"`
 	Query         string                 `protobuf:"bytes,4,opt,name=query,proto3" json:"query,omitempty"`
 	Format        string                 `protobuf:"bytes,5,opt,name=format,proto3" json:"format,omitempty"`
 	CsvSep        string                 `protobuf:"bytes,6,opt,name=csv_sep,json=csvSep,proto3" json:"csv_sep,omitempty"`
@@ -83,9 +83,9 @@ func (x *CreateReportRequest) GetName() string {
 	return ""
 }
 
-func (x *CreateReportRequest) GetComm() string {
+func (x *CreateReportRequest) GetComment() string {
 	if x != nil {
-		return x.Comm
+		return x.Comment
 	}
 	return ""
 }
@@ -721,7 +721,7 @@ type ReportMetadata struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ReportId      string                 `protobuf:"bytes,1,opt,name=report_id,json=reportId,proto3" json:"report_id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Comm          string                 `protobuf:"bytes,3,opt,name=comm,proto3" json:"comm,omitempty"`
+	Comment       string                 `protobuf:"bytes,3,opt,name=comment,proto3" json:"comment,omitempty"`
 	Query         string                 `protobuf:"bytes,4,opt,name=query,proto3" json:"query,omitempty"`
 	Format        string                 `protobuf:"bytes,5,opt,name=format,proto3" json:"format,omitempty"`
 	CsvSep        string                 `protobuf:"bytes,6,opt,name=csv_sep,json=csvSep,proto3" json:"csv_sep,omitempty"`
@@ -778,9 +778,9 @@ func (x *ReportMetadata) GetName() string {
 	return ""
 }
 
-func (x *ReportMetadata) GetComm() string {
+func (x *ReportMetadata) GetComment() string {
 	if x != nil {
-		return x.Comm
+		return x.Comment
 	}
 	return ""
 }
@@ -845,11 +845,11 @@ var File_report_service_v1_report_service_proto protoreflect.FileDescriptor
 
 const file_report_service_v1_report_service_proto_rawDesc = "" +
 	"\n" +
-	"&report/service/v1/report_service.proto\x12\x11report.service.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/duration.proto\"\xf1\x01\n" +
+	"&report/service/v1/report_service.proto\x12\x11report.service.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/duration.proto\"\xf7\x01\n" +
 	"\x13CreateReportRequest\x12\x1b\n" +
 	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
-	"\x04comm\x18\x03 \x01(\tR\x04comm\x12\x14\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
+	"\acomment\x18\x03 \x01(\tR\acomment\x12\x14\n" +
 	"\x05query\x18\x04 \x01(\tR\x05query\x12\x16\n" +
 	"\x06format\x18\x05 \x01(\tR\x06format\x12\x17\n" +
 	"\acsv_sep\x18\x06 \x01(\tR\x06csvSep\x12+\n" +
@@ -886,11 +886,11 @@ const file_report_service_v1_report_service_proto_rawDesc = "" +
 	"\tauthor_id\x18\x01 \x01(\tR\bauthorId\x12\x1b\n" +
 	"\treport_id\x18\x02 \x01(\tR\breportId\"3\n" +
 	"\x14DeleteReportResponse\x12\x1b\n" +
-	"\treport_id\x18\x01 \x01(\tR\breportId\"\xe0\x02\n" +
+	"\treport_id\x18\x01 \x01(\tR\breportId\"\xe6\x02\n" +
 	"\x0eReportMetadata\x12\x1b\n" +
 	"\treport_id\x18\x01 \x01(\tR\breportId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
-	"\x04comm\x18\x03 \x01(\tR\x04comm\x12\x14\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
+	"\acomment\x18\x03 \x01(\tR\acomment\x12\x14\n" +
 	"\x05query\x18\x04 \x01(\tR\x05query\x12\x16\n" +
 	"\x06format\x18\x05 \x01(\tR\x06format\x12\x17\n" +
 	"\acsv_sep\x18\x06 \x01(\tR\x06csvSep\x12\x16\n" +
@@ -924,29 +924,26 @@ func file_report_service_v1_report_service_proto_rawDescGZIP() []byte {
 	return file_report_service_v1_report_service_proto_rawDescData
 }
 
-var (
-	file_report_service_v1_report_service_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
-	file_report_service_v1_report_service_proto_goTypes  = []any{
-		(*CreateReportRequest)(nil),    // 0: report.service.v1.CreateReportRequest
-		(*CreateReportResponse)(nil),   // 1: report.service.v1.CreateReportResponse
-		(*RecreateReportRequest)(nil),  // 2: report.service.v1.RecreateReportRequest
-		(*RecreateReportResponse)(nil), // 3: report.service.v1.RecreateReportResponse
-		(*ReportStatusRequest)(nil),    // 4: report.service.v1.ReportStatusRequest
-		(*ReportStatusResponse)(nil),   // 5: report.service.v1.ReportStatusResponse
-		(*ListReportsRequest)(nil),     // 6: report.service.v1.ListReportsRequest
-		(*ListReportsResponse)(nil),    // 7: report.service.v1.ListReportsResponse
-		(*ReportInfoRequest)(nil),      // 8: report.service.v1.ReportInfoRequest
-		(*ReportInfoResponse)(nil),     // 9: report.service.v1.ReportInfoResponse
-		(*DeleteReportsRequest)(nil),   // 10: report.service.v1.DeleteReportsRequest
-		(*DeleteReportRequest)(nil),    // 11: report.service.v1.DeleteReportRequest
-		(*DeleteReportResponse)(nil),   // 12: report.service.v1.DeleteReportResponse
-		(*ReportMetadata)(nil),         // 13: report.service.v1.ReportMetadata
-		(*durationpb.Duration)(nil),    // 14: google.protobuf.Duration
-		(*timestamppb.Timestamp)(nil),  // 15: google.protobuf.Timestamp
-		(*emptypb.Empty)(nil),          // 16: google.protobuf.Empty
-	}
-)
-
+var file_report_service_v1_report_service_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_report_service_v1_report_service_proto_goTypes = []any{
+	(*CreateReportRequest)(nil),    // 0: report.service.v1.CreateReportRequest
+	(*CreateReportResponse)(nil),   // 1: report.service.v1.CreateReportResponse
+	(*RecreateReportRequest)(nil),  // 2: report.service.v1.RecreateReportRequest
+	(*RecreateReportResponse)(nil), // 3: report.service.v1.RecreateReportResponse
+	(*ReportStatusRequest)(nil),    // 4: report.service.v1.ReportStatusRequest
+	(*ReportStatusResponse)(nil),   // 5: report.service.v1.ReportStatusResponse
+	(*ListReportsRequest)(nil),     // 6: report.service.v1.ListReportsRequest
+	(*ListReportsResponse)(nil),    // 7: report.service.v1.ListReportsResponse
+	(*ReportInfoRequest)(nil),      // 8: report.service.v1.ReportInfoRequest
+	(*ReportInfoResponse)(nil),     // 9: report.service.v1.ReportInfoResponse
+	(*DeleteReportsRequest)(nil),   // 10: report.service.v1.DeleteReportsRequest
+	(*DeleteReportRequest)(nil),    // 11: report.service.v1.DeleteReportRequest
+	(*DeleteReportResponse)(nil),   // 12: report.service.v1.DeleteReportResponse
+	(*ReportMetadata)(nil),         // 13: report.service.v1.ReportMetadata
+	(*durationpb.Duration)(nil),    // 14: google.protobuf.Duration
+	(*timestamppb.Timestamp)(nil),  // 15: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),          // 16: google.protobuf.Empty
+}
 var file_report_service_v1_report_service_proto_depIdxs = []int32{
 	14, // 0: report.service.v1.CreateReportRequest.ttl:type_name -> google.protobuf.Duration
 	14, // 1: report.service.v1.RecreateReportRequest.ttl:type_name -> google.protobuf.Duration

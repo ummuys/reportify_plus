@@ -37,7 +37,7 @@ func (rsh *reportServiceHandler) CreateReport(g *gin.Context) {
 
 	userID := g.GetString("user_id")
 	if _, err := uuid.Parse(userID); err != nil {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
 		return
@@ -53,7 +53,7 @@ func (rsh *reportServiceHandler) CreateReport(g *gin.Context) {
 	out, gErr := rsh.sc.CreateReport(g.Request.Context(), &reportservicev1.CreateReportRequest{
 		AuthorId:    userID,
 		Name:        req.Name,
-		Comm:        req.Comm,
+		Comment:     req.Comment,
 		Query:       req.Query,
 		Format:      req.Format,
 		CsvSep:      req.CSVSep,
@@ -93,7 +93,7 @@ func (rsh *reportServiceHandler) RecreateReport(g *gin.Context) {
 
 	reportID := g.Param("report_id")
 	if _, err := uuid.Parse(reportID); err != nil {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
 		return
@@ -101,7 +101,7 @@ func (rsh *reportServiceHandler) RecreateReport(g *gin.Context) {
 
 	userID := g.GetString("user_id")
 	if _, err := uuid.Parse(userID); err != nil {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
 		return
@@ -154,7 +154,7 @@ func (rsh *reportServiceHandler) ListReports(g *gin.Context) {
 
 	userID := g.GetString("user_id")
 	if _, err := uuid.Parse(userID); err != nil {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
 		return
@@ -195,7 +195,7 @@ func (rsh *reportServiceHandler) ListReports(g *gin.Context) {
 		metadata := webdto.ReportMetadata{
 			ReportID: pbReport.ReportId,
 			Name:     pbReport.Name,
-			Comm:     pbReport.Comm,
+			Comment:  pbReport.Comment,
 			Query:    pbReport.Query,
 			Format:   pbReport.Format,
 			CSVSep:   pbReport.CsvSep,
@@ -234,7 +234,7 @@ func (rsh *reportServiceHandler) ReportStatus(g *gin.Context) {
 
 	reportID := g.Param("report_id")
 	if _, err := uuid.Parse(reportID); err != nil {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
 		return
@@ -242,7 +242,7 @@ func (rsh *reportServiceHandler) ReportStatus(g *gin.Context) {
 
 	userID := g.GetString("user_id")
 	if _, err := uuid.Parse(userID); err != nil {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
 		return
@@ -300,7 +300,7 @@ func (rsh *reportServiceHandler) ReportInfo(g *gin.Context) {
 
 	reportID := g.Param("report_id")
 	if _, err := uuid.Parse(reportID); err != nil {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
 		return
@@ -308,7 +308,7 @@ func (rsh *reportServiceHandler) ReportInfo(g *gin.Context) {
 
 	userID := g.GetString("user_id")
 	if _, err := uuid.Parse(userID); err != nil {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
 		return
@@ -350,7 +350,7 @@ func (rsh *reportServiceHandler) ReportInfo(g *gin.Context) {
 	metadata := webdto.ReportMetadata{
 		ReportID: pbReport.ReportId,
 		Name:     pbReport.Name,
-		Comm:     pbReport.Comm,
+		Comment:  pbReport.Comment,
 		Query:    pbReport.Query,
 		Format:   pbReport.Format,
 		CSVSep:   pbReport.CsvSep,
@@ -382,7 +382,7 @@ func (rsh *reportServiceHandler) DeleteReports(g *gin.Context) {
 
 	userID := g.GetString("user_id")
 	if _, err := uuid.Parse(userID); err != nil {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
 		return
@@ -436,7 +436,7 @@ func (rsh *reportServiceHandler) DeleteReport(g *gin.Context) {
 
 	reportID := g.Param("report_id")
 	if _, err := uuid.Parse(reportID); err != nil {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidReportID.Error()})
 		return
@@ -444,7 +444,7 @@ func (rsh *reportServiceHandler) DeleteReport(g *gin.Context) {
 
 	ID := g.GetString("user_id")
 	if _, err := uuid.Parse(ID); err != nil {
-		g.Set("msg", errs.ErrInvalidPaylod.Error())
+		g.Set("msg", errs.ErrInvalidPayload.Error())
 		g.AbortWithStatusJSON(http.StatusBadRequest,
 			webdto.ErrResponse{Error: errs.ErrInvalidUserID.Error()})
 		return

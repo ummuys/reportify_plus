@@ -47,7 +47,7 @@ func (db *reportDB) GetReportInfo(ctx context.Context, in dto.GetReportInfoParam
 	var sep string
 	out := dto.GetReportInfoResult{}
 	if err := db.pool.QueryRow(qctx, ReportInfoQuery, in.ReportID).Scan(&out.AuthorID,
-		&out.Name, &out.Comm, &out.Query, &out.Format, &sep); err != nil {
+		&out.Name, &out.Comment, &out.Query, &out.Format, &sep); err != nil {
 		return dto.GetReportInfoResult{}, err
 	}
 	if sep != "" {

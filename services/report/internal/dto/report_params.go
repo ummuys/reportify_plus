@@ -3,7 +3,7 @@ package dto
 type CreateReportParams struct {
 	AuthorID    string
 	Name        string
-	Comm        string
+	Comment     string
 	Query       string
 	Format      string
 	CSVSep      string
