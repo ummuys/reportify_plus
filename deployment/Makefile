@@ -12,7 +12,7 @@ LINT_BIN := $(GOBIN)/golangci-lint
 
 ####################################################
 
-.PHONY: up update-up down update status drop-all-volume code-review ci-lint ci-test ci-race ci-docker-build test
+.PHONY: up update-up down update status drop-all-volume code-review ci-lint ci-test ci-race ci-docker-build test swagger
 
 up:
 	@./$(UPDATE_SECRETS)
@@ -70,4 +70,7 @@ test:
 	@richgo test ../services/report/internal/service/... -cover
 	@echo "Testing ReportWorkerService . . ."
 	@richgo test ../services/report-worker/internal/service/... -coverprofile=worker_cover.out
+
+swagger:
+	@cd $(ROOT_DIR)/services/gateway && go run github.com/swaggo/swag/cmd/swag init -g cmd/main.go -d . -o ./docs --parseDependency --parseInternal
 
