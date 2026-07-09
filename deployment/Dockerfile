@@ -69,10 +69,8 @@ COPY ./api ./api
 COPY ./pkg ./pkg
 COPY ./services/gateway ./services/gateway
 
-RUN go install github.com/swaggo/swag/cmd/swag@latest \
- && cd /svc/services/gateway \
- && swag init -g cmd/main.go -d . -o ./docs --parseDependency --parseInternal
- 
+RUN cd /svc/services/gateway \
+    && go run github.com/swaggo/swag/cmd/swag init -g cmd/main.go -d . -o ./docs --parseDependency --parseInternal
 
 RUN  go build -o /svc/app ./services/gateway/cmd
 
