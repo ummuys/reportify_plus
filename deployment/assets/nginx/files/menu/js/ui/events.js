@@ -4,6 +4,7 @@ import { updateButtons, createFilterRow, createSortRow, updateFilterFields } fro
 import { showToast, showAlert, showConfirm } from './index.js';
 import { saveHistoryEntry, renderHistory, getReportHistory, toggleShowOnlyFavorites, setShowOnlyFavorites, clearHistory, toggleFavoriteEntry, deleteHistoryEntry, hydrateHistoryEntry } from './history.js';
 import { labelOf, titleOf } from '../core/index.js';
+import { initReportFileDialog } from './reportFileDialog.js';
 
 let reportHistory = getReportHistory();
 
@@ -240,6 +241,7 @@ export function setupEventListeners() {
     const csvOptions = el('csvOptions');
     const csvSeparator = el('csvSeparator');
     const historyList = el('historyList');
+    const openReportFile = initReportFileDialog();
     const favFilterBtn = el('btnFavFilter');
     const btnClearHistory = el('btnClearHistory');
     const logoutBtn = el('logoutBtn');
@@ -367,15 +369,19 @@ export function setupEventListeners() {
         }
     });
 
+    function updateFieldCounter(field, counter, maxLength) {
+        const length = field.value.length;
+        counter.textContent = `${length} / ${maxLength} символов`;
+        counter.classList.toggle('limit-reached', length >= maxLength);
+    }
+
     // Название отчета
     reportName.addEventListener('input', () => {
         if (reportName.value.length > 128) {
             reportName.value = reportName.value.slice(0, 128);
             showToast('Название не может превышать 128 символов');
         }
-        const len = reportName.value.length;
-        nameCounter.textContent = `${len} / 128 символов`;
-        nameCounter.classList.toggle("limit-reached", len >= 128);
+        updateFieldCounter(reportName, nameCounter, 128);
         updateButtons();
     });
 
@@ -387,9 +393,7 @@ export function setupEventListeners() {
             reportComment.value = reportComment.value.slice(0, 256);
             showToast('Комментарий не может превышать 256 символов');
         }
-        const len = reportComment.value.length;
-        commentCounter.textContent = `${len} / 256 символов`;
-        commentCounter.classList.toggle("limit-reached", len >= 256);
+        updateFieldCounter(reportComment, commentCounter, 256);
         updateButtons();
     });
 
@@ -410,29 +414,19 @@ export function setupEventListeners() {
     });
 
     // Форматы экспорта
-    document.querySelectorAll('.chip').forEach(ch => {
-			ch.addEventListener('click', () => {
-				document
-					.querySelectorAll('.chip')
-					.forEach(x => x.classList.remove('active'))
-				ch.classList.add('active')
-				state.format = ch.dataset.format || 'PDF'
+    const formatButtons = [...document.querySelectorAll('.chip[data-format]')];
+    function selectReportFormat(format) {
+        for (const button of formatButtons) {
+            button.classList.toggle('active', button.dataset.format === format);
+        }
+        state.format = format;
+        csvOptions.style.display = format === 'CSV' ? 'block' : 'none';
+        btnPreview?.classList.toggle('disabled', format !== 'PDF');
+    }
 
-				if (state.format === 'CSV') {
-					csvOptions.style.display = 'block'
-				} else {
-					csvOptions.style.display = 'none'
-				}
-
-				if (btnPreview) {
-					if (state.format === 'PDF') {
-						btnPreview.classList.remove('disabled')
-					} else {
-						btnPreview.classList.add('disabled')
-					}
-				}
-			})
-		})
+    formatButtons.forEach(button => {
+        button.addEventListener('click', () => selectReportFormat(button.dataset.format));
+    });
 
 
     // Добавление фильтров
@@ -523,7 +517,7 @@ export function setupEventListeners() {
                 createdAt: new Date().toISOString(),
             });
 
-            if (result?.task && (result.task.uuid || result.task.status)) {
+            if (result?.task?.uuid) {
                 const lines = [
                     'Задача на формирование отчёта создана и выполняется.',
                     '',
@@ -532,6 +526,8 @@ export function setupEventListeners() {
                     `Формат: ${state.format || '—'}`,
                     `Название: ${reportName.value.trim() || '—'}`,
                 ];
+                await saveHistoryEntry(result.task.uuid, result.task.status);
+                updateReportHistory();
                 await showAlert(lines.join('\n'), 'Отчёт поставлен в очередь');
             } else if (result?.blob) {
                 saveBlob(result.blob, result.filename || `report.${(result.format || 'pdf')}`);
@@ -539,9 +535,6 @@ export function setupEventListeners() {
                 const details = typeof result === "string" ? result : JSON.stringify(result);
                 throw new Error(`Неожиданный ответ сервера: ${details?.slice?.(0, 300) || ""}`);
             }
-
-            await saveHistoryEntry(result.task.uuid);
-            updateReportHistory();
         } catch (e) {
             await showAlert('Не удалось сформировать отчёт:\n' + (e.message || e), "Ошибка");
             console.error(e);
@@ -621,6 +614,18 @@ export function setupEventListeners() {
             sqlTextArea.value = item.sql;
         }
 
+        reportName.value = item.name || '';
+        reportComment.value = item.comment || '';
+        reportComment.style.height = 'auto';
+        reportComment.style.height = reportComment.scrollHeight + 'px';
+        updateFieldCounter(reportName, nameCounter, 128);
+        updateFieldCounter(reportComment, commentCounter, 256);
+
+        if (formatButtons.some(button => button.dataset.format === item.format)) {
+            selectReportFormat(item.format);
+        }
+        if (csvSeparator && item.csvSep) csvSeparator.value = item.csvSep;
+
         const hasSchema = Boolean(item.schema);
         const hasTable = Boolean(item.table);
 
@@ -689,21 +694,9 @@ export function setupEventListeners() {
             const sortField = el("sortField");
             const sortDir = el("sortDir");
             const limitInput = el("limitInput");
-            const reportName = el("reportName");
-            const reportComment = el("reportComment");
-
             if (sortField) sortField.value = item.sortField || "";
             if (sortDir) sortDir.value = item.sortDir || "ASC";
             if (limitInput) limitInput.value = item.limit || "";
-            if (reportName) reportName.value = item.name || "";
-            if (reportComment) {
-                reportComment.value = item.comment || "";
-                reportComment.style.height = 'auto';
-                reportComment.style.height = reportComment.scrollHeight + 'px';
-            }
-            if (csvSeparator && item.csvSep) {
-                csvSeparator.value = item.csvSep;
-            }
 
             buildSQL();
             if (sqlTextArea && item.sql) {
@@ -733,6 +726,12 @@ export function setupEventListeners() {
         const index = +li.dataset.i;
         // console.log("index: ", index);
         // console.log("reportHistory: ", reportHistory);
+        const statusButton = e.target.closest('.history-report-status');
+        if (statusButton) {
+            openReportFile(statusButton, reportHistory[index]?.name);
+            return;
+        }
+
         const item = hydrateHistoryEntry(reportHistory[index]);
         // console.log("item: ", item);
         if (!item) return;

@@ -70,6 +70,39 @@
   word-break: break-word;
 }
 
+.history-report-status {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 4px 9px;
+  border: 1px solid var(--overlay-white-20);
+  border-radius: 999px;
+  background: var(--overlay-white-20);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.history-report-status:hover,
+.history-report-status:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.history-report-status[data-status="CREATED"],
+.history-report-status[data-status="RUNNING"] {
+  background: rgba(246, 192, 80, 0.22);
+}
+
+.history-report-status[data-status="COMPLETED"] {
+  background: rgba(62, 196, 124, 0.22);
+}
+
+.history-report-status[data-status="FAILED"] {
+  background: rgba(236, 91, 91, 0.22);
+}
+
 .history-header {
     display: grid;
     grid-template-columns: 1fr auto;

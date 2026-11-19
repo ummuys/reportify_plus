@@ -1,5 +1,6 @@
 import { fetchWithToken } from './fetchWithToken.js';
 import { API_BASE } from '../config/index.js';
+import { getReportInfo, getReportStatus } from './userReports.js';
 
 const REPORTS_API = `${API_BASE}/api/v1/reports`;
 
@@ -53,7 +54,7 @@ async function waitForReport(reportId, { timeoutMs = 120000, intervalMs = 2000 }
     let lastStatus = "";
 
     while (Date.now() - started < timeoutMs) {
-        const statusResp = await fetchWithToken(`${REPORTS_API}/${encodeURIComponent(reportId)}/status`);
+        const statusResp = await getReportStatus(reportId);
         lastStatus = statusResp?.status ?? statusResp?.Status ?? "";
         const normalized = normalizeStatus(lastStatus);
 
@@ -68,10 +69,6 @@ async function waitForReport(reportId, { timeoutMs = 120000, intervalMs = 2000 }
     }
 
     throw new Error(`Timeout waiting for report ${reportId} (${lastStatus || "pending"})`);
-}
-
-async function getReportInfo(reportId) {
-    return fetchWithToken(`${REPORTS_API}/${encodeURIComponent(reportId)}`);
 }
 
 export async function postReportAndCreateTask({

@@ -45,6 +45,59 @@
   gap: 10px;
 }
 
+#reportFileDialog[hidden],
+#reportFileDownload[hidden] {
+  display: none;
+}
+
+#reportFileDialog .modal {
+  min-width: 0;
+  width: min(380px, calc(100% - 32px));
+  overflow-wrap: anywhere;
+}
+
+#reportFileDialog .modal-actions {
+  flex-wrap: wrap;
+}
+
+#reportFileDialog .modal-actions .btn:not([hidden]) {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+#reportFileClose {
+  border: 1px solid var(--overlay-white-20);
+  background: transparent;
+  color: var(--text);
+}
+
+#reportFileClose:hover {
+  background: var(--overlay-white-20);
+}
+
+#reportFileDownload {
+  text-decoration: none;
+}
+
+.report-file-comment {
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+
+.report-file-format {
+  margin: 0 0 12px;
+  font-size: 13px;
+}
+
 .chart-modal-overlay {
   position: fixed;
   top: 0;

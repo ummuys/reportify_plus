@@ -7,6 +7,15 @@ export async function getUserReports(options = {}) {
   return fetchWithToken(`${REPORTS_API}`, options);
 }
 
+export function getReportComment(report) {
+  const value = report.comm ?? report.comment ?? report.report_comm ?? report.ReportComm ?? report.Comment;
+  return typeof value === 'string' ? value.trim() : undefined;
+}
+
+export async function getReportInfo(reportId, options = {}) {
+  return fetchWithToken(`${REPORTS_API}/${encodeURIComponent(reportId)}`, options);
+}
+
 export async function getReportStatus(reportId, options = {}) {
   const id = String(reportId || '').trim();
   if (!id) throw new Error('reportId is required');
