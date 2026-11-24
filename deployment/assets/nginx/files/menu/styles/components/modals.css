@@ -52,50 +52,105 @@
 
 #reportFileDialog .modal {
   min-width: 0;
-  width: min(380px, calc(100% - 32px));
+  width: calc(100% - 32px);
+  max-width: 600px;
+  max-height: calc(100% - 32px);
+  padding-inline: clamp(16px, 4vw, 28px);
+  overflow-y: auto;
   overflow-wrap: anywhere;
 }
 
-#reportFileDialog .modal-actions {
-  flex-wrap: wrap;
+#reportFileDialog .modal-actions .btn {
+  flex: 1;
+  min-width: 0;
 }
 
-#reportFileDialog .modal-actions .btn:not([hidden]) {
+#reportFileDownload:not([hidden]) {
   display: inline-flex;
-  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: auto;
-  min-height: 40px;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
   font-size: 15px;
   line-height: 1.35;
-  white-space: nowrap;
-}
-
-#reportFileClose {
-  border: 1px solid var(--overlay-white-20);
-  background: transparent;
-  color: var(--text);
-}
-
-#reportFileClose:hover {
-  background: var(--overlay-white-20);
-}
-
-#reportFileDownload {
   text-decoration: none;
 }
 
+.report-file-header {
+  margin-bottom: 16px;
+}
+
+.report-file-title {
+  margin: 0;
+  font-size: clamp(22px, 4vw, 28px);
+  line-height: 1.25;
+}
+
 .report-file-comment {
-  margin: 0 0 8px;
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
   white-space: pre-wrap;
 }
 
-.report-file-format {
-  margin: 0 0 12px;
+.report-file-table {
+  width: 100%;
+  margin: 0 0 14px;
+  table-layout: fixed;
+  border-spacing: 0;
+  border: 1px solid var(--overlay-white-20);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--white-tint-600);
+  font-size: 14px;
+}
+
+.report-file-table th,
+.report-file-table td {
+  padding: 9px 12px;
+  vertical-align: top;
+  text-align: left;
+}
+
+.report-file-table tr:not([hidden]) ~ tr > * {
+  border-top: 1px solid var(--overlay-black-10);
+}
+
+.report-file-table th {
+  width: 38%;
+  background: var(--mint-tint-200);
+  font-weight: 600;
+}
+
+.report-file-table td {
+  white-space: pre-wrap;
+}
+
+.report-file-details {
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+
+.report-file-details summary {
+  padding: 9px 12px;
+  border: 1px solid var(--overlay-white-20);
+  border-radius: 12px;
+  background: var(--overlay-white-20);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.report-file-details .report-file-table {
+  margin: 8px 0 0;
+}
+
+.report-file-details pre {
+  margin: 0;
+  max-height: 10rem;
+  overflow: auto;
   font-size: 13px;
+  white-space: pre-wrap;
 }
 
 .chart-modal-overlay {

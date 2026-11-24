@@ -255,9 +255,28 @@
   <div id="reportFileDialog" class="modal-overlay" role="dialog" aria-modal="true"
        aria-labelledby="reportFileTitle" aria-describedby="reportFileStatus" hidden>
     <div class="modal">
-      <div class="modal-title" id="reportFileTitle">Файл отчёта</div>
-      <p class="report-file-comment" id="reportFileComment" hidden></p>
-      <p class="report-file-format" id="reportFileFormat" hidden></p>
+      <header class="report-file-header">
+        <h2 class="report-file-title" id="reportFileTitle">Файл отчёта</h2>
+        <p class="report-file-comment" id="reportFileComment" hidden></p>
+      </header>
+      <table class="report-file-table" id="reportFileMetadata" aria-label="Сведения об отчёте" hidden>
+        <tbody></tbody>
+      </table>
+      <details class="report-file-details" id="reportFileDetails" hidden>
+        <summary>Метаданные</summary>
+        <table class="report-file-table" aria-label="Метаданные отчёта">
+          <tbody>
+            <tr id="reportFileIdRow" hidden>
+              <th scope="row">ID отчёта</th>
+              <td></td>
+            </tr>
+            <tr id="reportFileQueryRow" hidden>
+              <th scope="row">SQL-запрос</th>
+              <td><pre><code></code></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </details>
       <div class="modal-message" id="reportFileStatus" role="status"></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="reportFileClose">Закрыть</button>

@@ -241,7 +241,7 @@ export function setupEventListeners() {
     const csvOptions = el('csvOptions');
     const csvSeparator = el('csvSeparator');
     const historyList = el('historyList');
-    const openReportFile = initReportFileDialog();
+    const { openReportFile, showQueuedReport } = initReportFileDialog();
     const favFilterBtn = el('btnFavFilter');
     const btnClearHistory = el('btnClearHistory');
     const logoutBtn = el('logoutBtn');
@@ -507,28 +507,29 @@ export function setupEventListeners() {
         btnDownload.disabled = true;
         btnDownload.textContent = 'Готовим...';
 
+        const request = {
+            format: state.format,
+            sql: sqlText.value.trim(),
+            reportName: reportName.value.trim(),
+            reportComment: reportComment.value.trim(),
+            csvSep: csvSeparator?.value || ",",
+            createdAt: new Date().toISOString(),
+        };
         try {
-            const result = await postReportAndCreateTask({
-                format: state.format,
-                sql: sqlText.value.trim(),
-                reportName: reportName.value.trim(),
-                reportComment: reportComment.value.trim(),
-                csvSep: csvSeparator?.value || ",",
-                createdAt: new Date().toISOString(),
-            });
+            const result = await postReportAndCreateTask(request);
 
             if (result?.task?.uuid) {
-                const lines = [
-                    'Задача на формирование отчёта создана и выполняется.',
-                    '',
-                    `UUID: ${result.task.uuid || '—'}`,
-                    `Статус: ${result.task.status || '—'}`,
-                    `Формат: ${state.format || '—'}`,
-                    `Название: ${reportName.value.trim() || '—'}`,
-                ];
                 await saveHistoryEntry(result.task.uuid, result.task.status);
                 updateReportHistory();
-                await showAlert(lines.join('\n'), 'Отчёт поставлен в очередь');
+                await showQueuedReport(btnDownload, {
+                    name: request.reportName,
+                    comment: request.reportComment,
+                    format: result.format.toUpperCase(),
+                    csv_sep: request.csvSep,
+                    report_id: result.task.uuid,
+                    status: result.task.status,
+                    query: request.sql,
+                });
             } else if (result?.blob) {
                 saveBlob(result.blob, result.filename || `report.${(result.format || 'pdf')}`);
             } else {

@@ -43,10 +43,12 @@ func CheckJWT(tm pkg.TokenManager, access []string) gin.HandlerFunc {
 				break
 			}
 		}
+
 		if forbidden {
 			g.AbortWithStatus(http.StatusForbidden)
 			return
 		}
+
 		g.Set("user_id", user_id)
 		g.Next()
 	}

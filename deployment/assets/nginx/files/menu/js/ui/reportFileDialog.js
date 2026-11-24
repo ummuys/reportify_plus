@@ -8,6 +8,9 @@ const STATUS_LABELS = {
     ARCHIVED: 'Недоступен',
 };
 const REPORT_STATUS_POLL_MS = 2000;
+const reportDateFormat = new Intl.DateTimeFormat('ru-RU', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+});
 
 export function reportStatusLabel(status) {
     return Object.hasOwn(STATUS_LABELS, status) ? STATUS_LABELS[status] : 'Проверить статус';
@@ -15,6 +18,11 @@ export function reportStatusLabel(status) {
 
 export function isReportPending(status) {
     return status === 'CREATED' || status === 'RUNNING';
+}
+
+function formatTimestamp(value) {
+    const date = new Date(value ?? NaN);
+    return date.getUTCFullYear() > 1 ? reportDateFormat.format(date) : '';
 }
 
 function parseDownloadLink(filePath) {
@@ -39,7 +47,14 @@ export function initReportFileDialog() {
     const dialog = document.getElementById('reportFileDialog');
     const title = document.getElementById('reportFileTitle');
     const comment = document.getElementById('reportFileComment');
-    const format = document.getElementById('reportFileFormat');
+    const metadata = document.getElementById('reportFileMetadata');
+    const metadataBody = metadata.tBodies[0];
+    const details = document.getElementById('reportFileDetails');
+    const detailsSummary = details.querySelector('summary');
+    const idRow = document.getElementById('reportFileIdRow');
+    const idValue = idRow.querySelector('td');
+    const queryRow = document.getElementById('reportFileQueryRow');
+    const queryCode = queryRow.querySelector('code');
     const status = document.getElementById('reportFileStatus');
     const closeButton = document.getElementById('reportFileClose');
     const download = document.getElementById('reportFileDownload');
@@ -47,13 +62,43 @@ export function initReportFileDialog() {
     let pollTimer;
     let opener;
     let link;
+    let resolveQueuedReport;
 
-    function showMetadata(report) {
+    function showMetadata(report, fileLink) {
         title.textContent = report.name || 'Файл отчёта';
         comment.textContent = getReportComment(report) || '';
         comment.hidden = !comment.textContent;
-        format.textContent = report.format ? `Формат: ${report.format}` : '';
-        format.hidden = !format.textContent;
+
+        const rows = [
+            ['Статус', Object.hasOwn(STATUS_LABELS, report.status) ? reportStatusLabel(report.status) : report.status],
+            ['Формат', report.format],
+            ['Разделитель CSV', report.format?.toUpperCase() === 'CSV' ? report.csv_sep : ''],
+            ['Создан', formatTimestamp(report.created_at)],
+            ['Обновлён', formatTimestamp(report.updated_at)],
+            ['Ссылка действует до', formatTimestamp(fileLink?.expiresAt)],
+            ['Ошибка', report.status === 'FAILED' ? report.err_msg : ''],
+        ];
+
+        const content = document.createDocumentFragment();
+        for (const [label, value] of rows) {
+            if (!value?.trim()) continue;
+            const row = document.createElement('tr');
+            const heading = document.createElement('th');
+            const cell = document.createElement('td');
+            heading.scope = 'row';
+            heading.textContent = label;
+            cell.textContent = value;
+            row.append(heading, cell);
+            content.append(row);
+        }
+        metadata.hidden = !content.childElementCount;
+        metadataBody.replaceChildren(content);
+
+        idValue.textContent = report.report_id || '';
+        idRow.hidden = !idValue.textContent.trim();
+        queryCode.textContent = report.query || '';
+        queryRow.hidden = !queryCode.textContent.trim();
+        details.hidden = idRow.hidden && queryRow.hidden;
     }
 
     function showStatus(message, fileLink = null) {
@@ -72,14 +117,26 @@ export function initReportFileDialog() {
     function close() {
         stopPolling();
         dialog.hidden = true;
-        if (opener?.isConnected) opener.focus();
+        const button = opener;
+        const restoreFocus = () => {
+            if (dialog.hidden && button?.isConnected) button.focus();
+        };
+        if (resolveQueuedReport) {
+            resolveQueuedReport();
+            resolveQueuedReport = undefined;
+            // The submit handler reenables its button after acknowledging the result.
+            queueMicrotask(restoreFocus);
+        } else {
+            restoreFocus();
+        }
     }
 
     async function refresh(reportId, signal) {
         try {
             const { report } = await getReportInfo(reportId, { signal, cache: 'no-store' });
             if (signal.aborted) return;
-            showMetadata(report);
+            const fileLink = report.status === 'COMPLETED' ? parseDownloadLink(report.file_path) : null;
+            showMetadata(report, fileLink);
 
             if (isReportPending(report.status)) {
                 showStatus(reportStatusLabel(report.status));
@@ -88,7 +145,6 @@ export function initReportFileDialog() {
             }
 
             if (report.status === 'COMPLETED') {
-                const fileLink = parseDownloadLink(report.file_path);
                 if (!fileLink) {
                     showStatus('Файл недоступен.');
                 } else if (Date.now() >= fileLink.expiresAt) {
@@ -113,7 +169,7 @@ export function initReportFileDialog() {
         if (event.key === 'Escape') {
             close();
         } else if (event.key === 'Tab') {
-            const first = closeButton;
+            const first = details.hidden ? closeButton : detailsSummary;
             const last = download.hidden ? closeButton : download;
             if (document.activeElement === (event.shiftKey ? first : last)) {
                 event.preventDefault();
@@ -128,14 +184,28 @@ export function initReportFileDialog() {
         closeButton.focus();
     });
 
-    return (button, name) => {
-        stopPolling();
-        controller = new AbortController();
+    function openDialog(button, report, message) {
+        if (!dialog.hidden) close();
         opener = button;
-        showMetadata({ name });
-        showStatus('Проверяем статус…');
+        details.open = false;
+        showMetadata(report);
+        showStatus(message);
         dialog.hidden = false;
         closeButton.focus();
+    }
+
+    function openReportFile(button, name) {
+        openDialog(button, { name }, 'Проверяем статус…');
+        controller = new AbortController();
         refresh(button.dataset.reportId, controller.signal);
-    };
+    }
+
+    function showQueuedReport(button, report) {
+        openDialog(button, report, 'Отчёт поставлен в очередь.');
+        return new Promise(resolve => {
+            resolveQueuedReport = resolve;
+        });
+    }
+
+    return { openReportFile, showQueuedReport };
 }
